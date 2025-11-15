@@ -4,6 +4,38 @@ This document outlines all tasks required to reach MVP. Each task is issue-sized
 
 ---
 
+## Current Project Status
+
+### ✅ Already Completed
+- **SvelteKit 2 with Svelte 5** - Fully configured and working
+- **Drizzle ORM** - Set up with PostgreSQL connection
+- **Database Connection** - PostgreSQL configured with connection pooling
+- **TypeScript** - Full setup with proper configuration
+- **Remote Functions** - Enabled and configured in `svelte.config.js`
+- **Example Schema** - Users and todos tables (demo/template)
+
+### 🔄 Partially Complete
+- **Database Schema** - Has example users/todos tables, needs MVP-specific tables (questions, responses, user_stats, personality_snapshots)
+
+### ❌ Not Yet Started (MVP Requirements)
+- Tailwind CSS (can use `npx sv add tailwindcss`)
+- Prettier (can use `npx sv add prettier`)
+- ESLint (can use `npx sv add eslint`)
+- Bits UI, Tabler Icons, LayerChart
+- vite-plugin-pwa
+- Better Auth
+- All personality tracker features (quiz, streaks, personality calculation, etc.)
+
+### 📦 Available SvelteKit CLI Commands
+The `sv` CLI provides quick setup for common dependencies:
+- `npx sv add tailwindcss` - Adds Tailwind with automatic config
+- `npx sv add prettier` - Adds and configures Prettier for Svelte
+- `npx sv add eslint` - Adds and configures ESLint for Svelte 5
+- `npx sv add vitest` - Adds Vitest for testing (optional)
+- `npx sv add playwright` - Adds Playwright for E2E testing (optional)
+
+---
+
 ## Phase 1: Foundation & Setup
 
 ### Task 1: Project Dependencies & Configuration
@@ -12,24 +44,29 @@ This document outlines all tasks required to reach MVP. Each task is issue-sized
 
 #### Implementation Steps
 - [ ] Install and configure Tailwind CSS
-  - Add `tailwindcss`, `postcss`, `autoprefixer`
-  - Create `tailwind.config.js` with custom theme colors (vibrant, playful palette)
-  - Set up custom utility classes for game-like design
+  - Run `npx sv add tailwindcss` (adds with forms plugin by default)
+  - Update `tailwind.config.js` with custom theme colors (vibrant, playful palette)
+  - Define custom utility classes for game-like design
+  - Consider adding typography plugin if needed
+- [ ] Set up development tooling with SvelteKit CLI
+  - Run `npx sv add prettier` (auto-configures for Svelte)
+  - Run `npx sv add eslint` (auto-configures for Svelte 5)
+  - Review and customize `.prettierrc` and `.eslintrc` if needed
 - [ ] Install UI dependencies
-  - Add `bits-ui` for headless component primitives
-  - Add `@tabler/icons-svelte` for icon library
-  - Add `layerchart` for data visualization
+  - Run `pnpm add bits-ui` for headless component primitives
+  - Run `pnpm add @tabler/icons-svelte` for icon library
+  - Run `pnpm add layerchart` for data visualization
 - [ ] Install PWA dependencies
-  - Add `vite-plugin-pwa` and configure
+  - Run `pnpm add -D vite-plugin-pwa`
+  - Configure in `vite.config.ts`
   - Set up service worker configuration
-  - Create manifest.json with app icons
-- [ ] Configure TypeScript paths
-  - Update `tsconfig.json` with path aliases
+  - Create `public/manifest.json` with app metadata
+- [ ] Configure TypeScript paths (if needed)
+  - Update `tsconfig.json` with additional path aliases
   - Configure stricter TypeScript options
-- [ ] Set up development tooling
-  - Configure Prettier with project standards
-  - Configure ESLint for Svelte 5
-  - Add VS Code workspace settings
+- [ ] Add VS Code workspace settings (optional)
+  - Create `.vscode/settings.json` for team consistency
+  - Configure format-on-save, recommended extensions
 
 #### Acceptance Criteria
 - All dependencies installed without conflicts
@@ -47,13 +84,13 @@ This document outlines all tasks required to reach MVP. Each task is issue-sized
 ### Task 2: Database Schema & Migrations
 **Priority:** P0 (Critical)
 **Estimated Time:** 3-4 hours
+**Status:** 🔄 Partially Complete (Drizzle setup done, needs MVP-specific tables)
 
 #### Implementation Steps
-- [ ] Design and create `users` table schema
-  - id (UUID primary key)
-  - email (unique, indexed)
-  - createdAt, updatedAt timestamps
-  - Better Auth required fields
+- [ ] Update existing `users` table schema for Better Auth
+  - Review existing schema (already has id, email, createdAt, updatedAt)
+  - Add Better Auth required fields when implementing auth (Task 3)
+  - Current schema in `/src/lib/server/db/schema.ts` is a good starting point
 - [ ] Create `questions` table schema
   - id (UUID primary key)
   - text (question content)
@@ -99,10 +136,12 @@ This document outlines all tasks required to reach MVP. Each task is issue-sized
 - Drizzle Studio can visualize schema
 
 #### Technical Notes
-- Use UUID for all primary keys
+- Drizzle ORM is already configured with PostgreSQL ✓
+- Use UUID for all primary keys (existing schema already does this)
 - Add proper indexes on frequently queried fields
 - Use timestamps for all created/updated tracking
 - Consider server timezone for date fields
+- Can test schema changes with `pnpm db:studio` to visualize in Drizzle Studio
 
 ---
 
