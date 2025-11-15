@@ -1,100 +1,90 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import { getServerData, getRecord, processText, submitData, logActivity } from '../data.remote';
 
-	const { data }: { data: PageData } = $props();
-
-	let apiResponse = $state<any>(null);
-	let postResponse = $state<any>(null);
-	let recordResponse = $state<any>(null);
-	let inputText = $state('hello world');
 	let recordId = $state('42');
-	let loading = $state(false);
+	let textToProcess = $state('hello world');
+	let activityLog = $state('User viewed demo page');
 
-	async function fetchHello() {
-		loading = true;
-		try {
-			const response = await fetch('/api/hello');
-			apiResponse = await response.json();
-		} catch (error) {
-			apiResponse = { error: String(error) };
-		} finally {
-			loading = false;
-		}
-	}
-
-	async function postData() {
-		loading = true;
-		try {
-			const response = await fetch('/api/data', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ text: inputText })
-			});
-			postResponse = await response.json();
-		} catch (error) {
-			postResponse = { error: String(error) };
-		} finally {
-			loading = false;
-		}
-	}
-
-	async function fetchRecord() {
-		loading = true;
-		try {
-			const response = await fetch(`/api/records/${recordId}`);
-			recordResponse = await response.json();
-		} catch (error) {
-			recordResponse = { error: String(error) };
-		} finally {
-			loading = false;
-		}
-	}
+	// You can await remote functions directly in the template or in reactive statements
+	let serverData = $derived(getServerData());
 </script>
 
 <div class="container">
 	<h1>Remote Functions Demo</h1>
-	<p>This page demonstrates SvelteKit's server-side functionality and API endpoints.</p>
+	<p>This page demonstrates SvelteKit's Remote Functions feature (.remote.ts files).</p>
 
 	<section>
-		<h2>Server-Side Load Function</h2>
-		<p>Data loaded on the server before page render:</p>
-		<pre>{JSON.stringify(data, null, 2)}</pre>
+		<h2>Query Functions</h2>
+		<p>Query functions fetch data from the server and can be awaited in templates.</p>
+
+		<div class="demo-box">
+			<h3>Simple Query - getServerData()</h3>
+			<p>This data is fetched from the server using a remote function:</p>
+			<pre>{JSON.stringify(await serverData, null, 2)}</pre>
+		</div>
+
+		<div class="demo-box">
+			<h3>Parameterized Query - getRecord(id)</h3>
+			<label>
+				Record ID:
+				<input type="text" bind:value={recordId} />
+			</label>
+			<p>Fetching record with ID: <code>{recordId}</code></p>
+			<pre>{JSON.stringify(await getRecord(recordId), null, 2)}</pre>
+		</div>
+
+		<div class="demo-box">
+			<h3>Data Processing - processText(text)</h3>
+			<label>
+				Text to process:
+				<input type="text" bind:value={textToProcess} />
+			</label>
+			<pre>{JSON.stringify(await processText(textToProcess), null, 2)}</pre>
+		</div>
 	</section>
 
 	<section>
-		<h2>API Endpoints</h2>
+		<h2>Form Functions</h2>
+		<p>Form functions handle form submissions with progressive enhancement.</p>
 
-		<div class="api-test">
-			<h3>GET /api/hello</h3>
-			<button onclick={fetchHello} disabled={loading}>Fetch Hello</button>
-			{#if apiResponse}
-				<pre>{JSON.stringify(apiResponse, null, 2)}</pre>
-			{/if}
+		<div class="demo-box">
+			<h3>Form Submission - submitData()</h3>
+			<form {...submitData}>
+				<label>
+					Enter text:
+					<input type="text" name="text" required />
+				</label>
+				<button type="submit">Submit</button>
+			</form>
+			<p class="hint">This form works with and without JavaScript!</p>
 		</div>
+	</section>
 
-		<div class="api-test">
-			<h3>POST /api/data</h3>
-			<input type="text" bind:value={inputText} placeholder="Enter text" />
-			<button onclick={postData} disabled={loading}>Process Text</button>
-			{#if postResponse}
-				<pre>{JSON.stringify(postResponse, null, 2)}</pre>
-			{/if}
-		</div>
+	<section>
+		<h2>Command Functions</h2>
+		<p>Command functions execute actions without returning data.</p>
 
-		<div class="api-test">
-			<h3>GET /api/records/[id]</h3>
-			<input type="text" bind:value={recordId} placeholder="Record ID" />
-			<button onclick={fetchRecord} disabled={loading}>Fetch Record</button>
-			{#if recordResponse}
-				<pre>{JSON.stringify(recordResponse, null, 2)}</pre>
-			{/if}
+		<div class="demo-box">
+			<h3>Log Activity - logActivity()</h3>
+			<label>
+				Activity to log:
+				<input type="text" bind:value={activityLog} />
+			</label>
+			<button onclick={() => logActivity(activityLog)}>
+				Log Activity (check server console)
+			</button>
 		</div>
+	</section>
+
+	<section>
+		<h2>More Examples</h2>
+		<p>Check out the <a href="/todos">Todos Demo</a> for a full CRUD example with remote functions.</p>
 	</section>
 </div>
 
 <style>
 	.container {
-		max-width: 800px;
+		max-width: 900px;
 		margin: 0 auto;
 		padding: 2rem;
 		font-family: system-ui, -apple-system, sans-serif;
@@ -107,7 +97,7 @@
 
 	h2 {
 		color: #333;
-		margin-top: 2rem;
+		margin-top: 2.5rem;
 		margin-bottom: 1rem;
 		border-bottom: 2px solid #ff3e00;
 		padding-bottom: 0.5rem;
@@ -116,18 +106,20 @@
 	h3 {
 		color: #666;
 		margin-top: 1.5rem;
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.75rem;
+		font-size: 1.1rem;
 	}
 
 	section {
 		margin: 2rem 0;
 	}
 
-	.api-test {
-		background: #f5f5f5;
-		padding: 1rem;
-		margin: 1rem 0;
-		border-radius: 4px;
+	.demo-box {
+		background: #f8f8f8;
+		padding: 1.5rem;
+		margin: 1.5rem 0;
+		border-radius: 8px;
+		border-left: 4px solid #ff3e00;
 	}
 
 	pre {
@@ -136,39 +128,85 @@
 		padding: 1rem;
 		border-radius: 4px;
 		overflow-x: auto;
-		margin-top: 0.5rem;
+		margin-top: 0.75rem;
+		font-size: 0.9rem;
+	}
+
+	label {
+		display: block;
+		margin: 0.75rem 0;
+		color: #555;
+		font-weight: 500;
+	}
+
+	input[type='text'] {
+		display: block;
+		width: 100%;
+		max-width: 400px;
+		padding: 0.5rem;
+		border: 2px solid #ddd;
+		border-radius: 4px;
+		margin-top: 0.25rem;
+		font-size: 1rem;
+		transition: border-color 0.2s;
+	}
+
+	input[type='text']:focus {
+		outline: none;
+		border-color: #ff3e00;
 	}
 
 	button {
 		background: #ff3e00;
 		color: white;
 		border: none;
-		padding: 0.5rem 1rem;
+		padding: 0.6rem 1.2rem;
 		border-radius: 4px;
 		cursor: pointer;
 		font-size: 1rem;
-		margin: 0.5rem 0.5rem 0.5rem 0;
+		margin-top: 0.5rem;
+		transition: background 0.2s;
 	}
 
-	button:hover:not(:disabled) {
+	button:hover {
 		background: #cc3200;
 	}
 
-	button:disabled {
-		background: #ccc;
-		cursor: not-allowed;
+	form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
 	}
 
-	input {
-		padding: 0.5rem;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		margin-right: 0.5rem;
-		font-size: 1rem;
+	code {
+		background: #f0f0f0;
+		padding: 0.2rem 0.4rem;
+		border-radius: 3px;
+		font-family: 'Courier New', monospace;
+		color: #d63384;
+		font-size: 0.9em;
 	}
 
 	p {
 		color: #666;
 		line-height: 1.6;
+		margin: 0.5rem 0;
+	}
+
+	.hint {
+		font-style: italic;
+		color: #999;
+		font-size: 0.9rem;
+		margin-top: 0.5rem;
+	}
+
+	a {
+		color: #ff3e00;
+		text-decoration: none;
+		font-weight: 500;
+	}
+
+	a:hover {
+		text-decoration: underline;
 	}
 </style>
