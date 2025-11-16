@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
+	import { signOut } from '../auth.remote';
 	import { goto } from '$app/navigation';
 
 	/**
@@ -9,9 +10,11 @@
 	 * This is a placeholder - will be fully implemented in Task 8
 	 */
 
+	// Use Better Auth's reactive session hook
 	const session = authClient.useSession();
 
 	async function handleSignOut() {
+		await signOut();
 		await authClient.signOut();
 		goto('/login');
 	}

@@ -27,6 +27,7 @@
 		success = false;
 
 		try {
+			// Sign up with Better Auth
 			await authClient.signUp.email({
 				name,
 				email,
