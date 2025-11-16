@@ -3,22 +3,24 @@
  * Populates the questions table with MBTI personality assessment questions
  *
  * Run with: pnpm db:seed
+ * Or with env file: tsx --env-file=.env ./src/lib/server/db/seed.ts
+ *
+ * Note: We use curated MBTI questions rather than drizzle-seed's random generation
+ * to ensure questions are validated and psychologically sound.
  */
 
-import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { questions } from './schema';
 import type { Dimension } from './schema';
 
-// Load environment variables
-config();
-
-// Create database connection for seeding
+// Get database connection from environment
 const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
 	console.error('❌ DATABASE_URL environment variable is not set');
+	console.error('💡 Set it in your environment or .env file');
+	console.error('   Example: DATABASE_URL=postgresql://... pnpm db:seed');
 	process.exit(1);
 }
 

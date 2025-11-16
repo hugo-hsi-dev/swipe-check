@@ -12,8 +12,10 @@ This document provides setup instructions for Task 4.
 
 ### 2. Database Seed Script
 - ✅ Created seed script with automatic question distribution verification
-- ✅ Uses drizzle-orm to populate questions table
+- ✅ Uses drizzle-orm to insert curated MBTI questions
+- ✅ Uses tsx's `--env-file` flag for environment variable loading (no dotenv needed)
 - ✅ Run with: `pnpm db:seed`
+- ℹ️ Note: Uses curated questions instead of drizzle-seed's random generation to ensure psychologically validated MBTI questions
 
 ### 3. Quiz Remote Functions
 - ✅ Created `/src/routes/quiz.remote.ts` with full quiz functionality
@@ -56,7 +58,10 @@ Run the seed script to populate the questions table:
 pnpm db:seed
 ```
 
+**Note:** The script uses tsx with `--env-file=.env` flag to automatically load environment variables from your `.env` file. No additional dotenv package needed!
+
 This will:
+- Load DATABASE_URL from .env file
 - Clear any existing questions
 - Insert all 80 MBTI questions
 - Display distribution verification
