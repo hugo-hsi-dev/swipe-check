@@ -104,10 +104,9 @@ The `sv` CLI provides quick setup for common dependencies:
 **Status:** 🔄 Partially Complete (Drizzle setup done, needs MVP-specific tables)
 
 #### Implementation Steps
-- [ ] Update existing `users` table schema for Better Auth
-  - Review existing schema (already has id, email, createdAt, updatedAt)
-  - Add Better Auth required fields when implementing auth (Task 3)
-  - Current schema in `/src/lib/server/db/schema.ts` is a good starting point
+- [ ] Create application schema tables in `/src/lib/server/db/schema.ts`
+  - Keep existing users table (will be separate from Better Auth users)
+  - OR remove existing users table if Better Auth will handle all user data
 - [ ] Create `questions` table schema
   - id (UUID primary key)
   - text (question content)
@@ -154,6 +153,10 @@ The `sv` CLI provides quick setup for common dependencies:
 
 #### Technical Notes
 - Drizzle ORM is already configured with PostgreSQL ✓
+- **IMPORTANT:** Keep app schemas separate from Better Auth schemas
+  - App schemas go in `/src/lib/server/db/schema.ts`
+  - Better Auth schemas will be in `/src/lib/server/db/auth-schema.ts` (Task 3)
+  - This prevents Better Auth from overwriting app schemas when regenerating
 - Use UUID for all primary keys (existing schema already does this)
 - Add proper indexes on frequently queried fields
 - Use timestamps for all created/updated tracking
@@ -176,10 +179,24 @@ The `sv` CLI provides quick setup for common dependencies:
   - Set up email/password authentication
   - Configure session management
   - Add social OAuth providers (optional for MVP)
-- [ ] Create auth database tables
-  - Generate Better Auth schema
-  - Add to existing migration
-  - Run migrations
+- [ ] Generate Better Auth schema (separate from app schema)
+  - Run `npx @better-auth/cli generate --output ./src/lib/server/db/auth-schema.ts`
+  - This creates Better Auth tables in a separate file to avoid conflicts
+  - Update `drizzle.config.ts` to include both schema files:
+    ```typescript
+    schema: ['./src/lib/server/db/schema.ts', './src/lib/server/db/auth-schema.ts']
+    ```
+  - Update `/src/lib/server/db/index.ts` to import both schemas:
+    ```typescript
+    import * as schema from './schema';
+    import * as authSchema from './auth-schema';
+
+    export const db = drizzle(client, {
+      schema: { ...schema, ...authSchema }
+    });
+    ```
+  - Run `pnpm db:generate` to generate migration files
+  - Run `pnpm db:migrate` or `pnpm db:push` to apply migrations
 - [ ] Create authentication remote functions
   - Create `/src/routes/auth.remote.ts`
   - Implement `signUp` form function
@@ -215,6 +232,11 @@ The `sv` CLI provides quick setup for common dependencies:
 - Forms have proper validation and error messages
 
 #### Technical Notes
+- **IMPORTANT:** Keep Better Auth schema in separate file (`auth-schema.ts`)
+  - Better Auth regenerates its schema file, which would delete app schemas if mixed
+  - Use `--output` flag when running `npx @better-auth/cli generate`
+  - Update `drizzle.config.ts` to include both schema files
+  - Spread both schemas when initializing the db instance
 - Store session token securely
 - Use HTTP-only cookies for session
 - Implement CSRF protection
