@@ -18,7 +18,7 @@ This document outlines all tasks required to reach MVP. Each task is issue-sized
 - **Database Schema** - Has example users/todos tables, needs MVP-specific tables (questions, responses, user_stats, personality_snapshots)
 
 ### ❌ Not Yet Started (MVP Requirements)
-- Tailwind CSS (can use `npx sv add tailwindcss`)
+- Tailwind CSS v4 (can use `npx sv add tailwindcss`)
 - Prettier (can use `npx sv add prettier`)
 - ESLint (can use `npx sv add eslint`)
 - Bits UI, Tabler Icons, LayerChart
@@ -26,9 +26,11 @@ This document outlines all tasks required to reach MVP. Each task is issue-sized
 - Better Auth
 - All personality tracker features (quiz, streaks, personality calculation, etc.)
 
+**Note:** Tailwind CSS v4 uses CSS-first configuration with the `@theme` directive instead of `tailwind.config.js`
+
 ### 📦 Available SvelteKit CLI Commands
 The `sv` CLI provides quick setup for common dependencies:
-- `npx sv add tailwindcss` - Adds Tailwind with automatic config
+- `npx sv add tailwindcss` - Adds Tailwind v4 with Vite plugin (CSS-first config)
 - `npx sv add prettier` - Adds and configures Prettier for Svelte
 - `npx sv add eslint` - Adds and configures ESLint for Svelte 5
 - `npx sv add vitest` - Adds Vitest for testing (optional)
@@ -43,11 +45,23 @@ The `sv` CLI provides quick setup for common dependencies:
 **Estimated Time:** 2-3 hours
 
 #### Implementation Steps
-- [ ] Install and configure Tailwind CSS
-  - Run `npx sv add tailwindcss` (adds with forms plugin by default)
-  - Update `tailwind.config.js` with custom theme colors (vibrant, playful palette)
-  - Define custom utility classes for game-like design
-  - Consider adding typography plugin if needed
+- [ ] Install and configure Tailwind CSS v4
+  - Run `npx sv add tailwindcss` (installs Tailwind v4 with Vite plugin)
+  - Configure custom theme in your main CSS file using `@theme` directive
+  - Define vibrant, playful color palette (e.g., sunset-orange, purple, etc.)
+  - Add custom spacing/animations for game-like design
+  - Example CSS configuration:
+    ```css
+    @import "tailwindcss";
+
+    @theme {
+      --color-primary: oklch(68% 0.1 250);
+      --color-secondary: oklch(75% 0.15 350);
+      --color-accent: oklch(80% 0.2 50);
+      /* Add more custom colors and design tokens */
+    }
+    ```
+  - Note: v4 uses CSS-first config, no `tailwind.config.js` needed
 - [ ] Set up development tooling with SvelteKit CLI
   - Run `npx sv add prettier` (auto-configures for Svelte)
   - Run `npx sv add eslint` (auto-configures for Svelte 5)
@@ -76,8 +90,11 @@ The `sv` CLI provides quick setup for common dependencies:
 
 #### Technical Notes
 - Use pnpm for package management
-- Document custom Tailwind classes in CLAUDE.md
+- Tailwind v4 uses CSS-first configuration (@theme directive) instead of tailwind.config.js
+- Use OKLCH color format for vibrant, accessible colors
+- Document custom design tokens and utility patterns in CLAUDE.md
 - Ensure all packages are compatible with Svelte 5
+- Tailwind v4 requires modern browsers (Safari 16.4+, Chrome 111+, Firefox 128+)
 
 ---
 
