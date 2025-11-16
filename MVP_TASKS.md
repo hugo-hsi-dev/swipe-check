@@ -104,9 +104,10 @@ The `sv` CLI provides quick setup for common dependencies:
 **Status:** 🔄 Partially Complete (Drizzle setup done, needs MVP-specific tables)
 
 #### Implementation Steps
-- [ ] Create application schema tables in `/src/lib/server/db/schema.ts`
-  - Keep existing users table (will be separate from Better Auth users)
-  - OR remove existing users table if Better Auth will handle all user data
+- [ ] Note: User table will come from Better Auth (Task 3)
+  - Better Auth generates the user table automatically
+  - Can extend with custom fields if needed in Task 3
+  - Remove the existing example users table from schema.ts
 - [ ] Create `questions` table schema
   - id (UUID primary key)
   - text (question content)
@@ -117,14 +118,14 @@ The `sv` CLI provides quick setup for common dependencies:
   - createdAt timestamp
 - [ ] Create `responses` table schema
   - id (UUID primary key)
-  - userId (foreign key to users)
+  - userId (foreign key to Better Auth's user table)
   - questionId (foreign key to questions)
   - answer (boolean: true=agree, false=disagree)
   - respondedAt (date, indexed)
   - createdAt timestamp
   - Composite unique index on (userId, questionId, respondedAt)
 - [ ] Create `user_stats` table schema
-  - userId (UUID primary key, foreign key)
+  - userId (UUID primary key, foreign key to Better Auth's user table)
   - currentStreak (integer, default 0)
   - longestStreak (integer, default 0)
   - totalDaysCompleted (integer, default 0)
@@ -133,7 +134,7 @@ The `sv` CLI provides quick setup for common dependencies:
   - updatedAt timestamp
 - [ ] Create `personality_snapshots` table schema (optional, for historical tracking)
   - id (UUID primary key)
-  - userId (foreign key)
+  - userId (foreign key to Better Auth's user table)
   - personalityType (varchar(4), e.g., 'INFJ')
   - dimensionScores (JSONB with E/I/S/N/T/F/J/P percentages)
   - calculatedAt (date, indexed)
@@ -159,6 +160,11 @@ The `sv` CLI provides quick setup for common dependencies:
   - App schemas go in `/src/lib/server/db/schema.ts`
   - Better Auth schemas will be in `/src/lib/server/db/auth-schema.ts` (Task 3)
   - This prevents Better Auth from overwriting app schemas when regenerating
+- **User Table:**
+  - Better Auth will generate the user table (Task 3)
+  - Remove the existing example users/todos tables from schema.ts
+  - All app tables reference Better Auth's user table via foreign keys
+  - No need for a separate user table in app schema
 - Use UUID for all primary keys (existing schema already does this)
 - Add proper indexes on frequently queried fields
 - Use timestamps for all created/updated tracking
@@ -183,7 +189,9 @@ The `sv` CLI provides quick setup for common dependencies:
   - Add social OAuth providers (optional for MVP)
 - [ ] Generate Better Auth schema (separate from app schema)
   - Run `npx @better-auth/cli generate --output ./src/lib/server/db/auth-schema.ts`
-  - This creates Better Auth tables in a separate file to avoid conflicts
+  - This creates Better Auth tables (including user table) in a separate file to avoid conflicts
+  - **This is the only user table** - all app tables will reference Better Auth's user table
+  - Can extend the user table with custom fields if needed (add directly to auth-schema.ts)
   - Update `drizzle.config.ts` to include both schema files:
     ```typescript
     schema: ['./src/lib/server/db/schema.ts', './src/lib/server/db/auth-schema.ts']
@@ -239,6 +247,11 @@ The `sv` CLI provides quick setup for common dependencies:
   - Use `--output` flag when running `npx @better-auth/cli generate`
   - Update `drizzle.config.ts` to include both schema files
   - Spread both schemas when initializing the db instance
+- **User Table:** Better Auth's user table is the ONLY user table
+  - All foreign keys in app tables reference Better Auth's user table
+  - No separate user table in schema.ts
+  - Can extend Better Auth's user table with custom fields if needed
+  - Remove the existing example users table from schema.ts (Task 2)
 - Store session token securely
 - Use HTTP-only cookies for session
 - Implement CSRF protection
