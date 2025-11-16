@@ -78,8 +78,11 @@ You can verify the questions were seeded correctly by:
 
 ## Remote Functions Available
 
-### `getCurrentUser()`
+### `getCurrentUser()` (from auth.remote.ts)
 Query function to retrieve the current authenticated user.
+
+**Location:** `/src/routes/auth.remote.ts`
+**Can be imported by:** Any remote function file for session validation
 
 **Parameters:**
 - None (uses session automatically)
@@ -88,7 +91,20 @@ Query function to retrieve the current authenticated user.
 - User object with `id`, `name`, `email` if authenticated
 - `null` if not authenticated
 
-**Note:** This query is deduped by SvelteKit for performance optimization.
+**Usage:**
+```typescript
+import { getCurrentUser } from './auth.remote';
+
+export const someFunction = query(async () => {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'Not authenticated' };
+  }
+  // Use user.id, user.name, user.email
+});
+```
+
+**Note:** This query is deduped by SvelteKit for performance optimization. Multiple calls in the same request only execute once.
 
 ### `getQuestions()`
 Query function to fetch daily questions for the current user.
@@ -162,7 +178,17 @@ Task 4 implementation is complete! The next task (Task 5) will focus on:
 
 - ✅ `/src/lib/server/db/seed.ts` - Question bank and seed script
 - ✅ `/src/routes/quiz.remote.ts` - Quiz remote functions with rotation logic
+- ✅ `/src/routes/auth.remote.ts` - Added `getCurrentUser()` query for session validation
 - ✅ `.env` - Created from .env.example (needs your database credentials)
+
+## Architecture Pattern
+
+The `getCurrentUser()` query is centralized in `auth.remote.ts` and can be imported by any other remote function file that needs session validation. This follows the pattern:
+
+1. **Session validation** lives in `auth.remote.ts` as a reusable query
+2. **Quiz logic** in `quiz.remote.ts` imports and uses `getCurrentUser()`
+3. **Future remote functions** can import `getCurrentUser()` for consistent session handling
+4. **Query deduplication** ensures session is validated only once per request, even if multiple functions call it
 
 ## Troubleshooting
 

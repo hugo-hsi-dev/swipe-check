@@ -1,8 +1,9 @@
-import { form, query, getRequestEvent } from '$app/server';
+import { form, query } from '$app/server';
 import { z } from 'zod';
 import { db } from '$lib/server/db';
 import { questions, responses, userStats, type Dimension } from '$lib/server/db/schema';
 import { eq, and, sql, desc, inArray, notInArray } from 'drizzle-orm';
+import { getCurrentUser } from './auth.remote';
 
 /**
  * Quiz Remote Functions
@@ -59,31 +60,6 @@ export const submitAnswerSchema = z.object({
 export const getQuestionsSchema = z.object({
 	date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (expected YYYY-MM-DD)'),
 	isOnboarding: z.boolean().optional().default(false)
-});
-
-// ============================================================================
-// Query Functions for Session
-// ============================================================================
-
-/**
- * Get Current User
- *
- * Query function to retrieve the current authenticated user
- * Uses SvelteKit's query deduplication for performance
- */
-export const getCurrentUser = query(async () => {
-	const event = getRequestEvent();
-	const user = event?.locals.user;
-
-	if (!user?.id) {
-		return null;
-	}
-
-	return {
-		id: user.id,
-		name: user.name,
-		email: user.email
-	};
 });
 
 // ============================================================================
