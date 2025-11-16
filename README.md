@@ -98,6 +98,13 @@ pnpm db:generate  # Generate migration files
 pnpm db:migrate   # Run migrations
 pnpm db:studio    # Open Drizzle Studio
 pnpm db:drop      # Drop migration files
+pnpm db:seed      # Seed database with initial data
+```
+
+### Authentication
+
+```bash
+pnpm auth:generate  # Generate Better Auth schema to auth-schema.ts
 ```
 
 ## Technologies

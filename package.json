@@ -14,7 +14,9 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"db:drop": "drizzle-kit drop"
+		"db:drop": "drizzle-kit drop",
+		"db:seed": "tsx ./src/lib/server/db/seed.ts",
+		"auth:generate": "better-auth generate --output ./src/lib/server/db/auth-schema.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",

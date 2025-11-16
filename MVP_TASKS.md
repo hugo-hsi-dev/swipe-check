@@ -187,18 +187,23 @@ The `sv` CLI provides quick setup for common dependencies:
 **Estimated Time:** 4-5 hours
 
 #### Implementation Steps
-- [ ] Install Better Auth
-  - Add `better-auth` package
-  - Add required peer dependencies
+- [ ] Install Better Auth dependencies
+  - Run `pnpm add better-auth`
+  - Run `pnpm add -D tsx` (for running TypeScript seed scripts)
+  - Run `pnpm add -D drizzle-seed` (for database seeding)
 - [ ] Configure Better Auth server
   - Create `/src/lib/server/auth/index.ts`
   - Configure database adapter for Drizzle
   - Set up email/password authentication
-  - Configure session management
+  - Set BETTER_AUTH_SECRET environment variable (for cookie signing)
+  - Better Auth automatically handles:
+    - HTTP-only, secure cookies (in production)
+    - Session management and expiration
+    - Cookie signing and CSRF protection
   - Add social OAuth providers (optional for MVP)
 - [ ] Generate Better Auth schema (separate from app schema)
-  - Run `npx @better-auth/cli generate --output ./src/lib/server/db/auth-schema.ts`
-  - This creates Better Auth tables (including user table) in a separate file to avoid conflicts
+  - Run `pnpm auth:generate` to generate Better Auth schema
+  - This creates Better Auth tables (including user table) in `./src/lib/server/db/auth-schema.ts`
   - **This is the only user table** - all app tables will reference Better Auth's user table
   - Can extend the user table with custom fields if needed (add directly to auth-schema.ts)
   - Update `drizzle.config.ts` to include both schema files:
@@ -255,7 +260,7 @@ The `sv` CLI provides quick setup for common dependencies:
 #### Technical Notes
 - **IMPORTANT:** Keep Better Auth schema in separate file (`auth-schema.ts`)
   - Better Auth regenerates its schema file, which would delete app schemas if mixed
-  - Use `--output` flag when running `npx @better-auth/cli generate`
+  - Use `pnpm auth:generate` script (already configured with correct output path)
   - Update `drizzle.config.ts` to include both schema files
   - Spread both schemas when initializing the db instance
 - **User Table:** Better Auth's user table is the ONLY user table
@@ -263,16 +268,18 @@ The `sv` CLI provides quick setup for common dependencies:
   - No separate user table in schema.ts
   - Can extend Better Auth's user table with custom fields if needed
   - Remove the existing example users table from schema.ts (Task 2)
+- **Better Auth Handles Security Automatically:**
+  - Cookies: HTTP-only, secure (in production), signed with BETTER_AUTH_SECRET
+  - Sessions: Automatic expiration, refresh on activity, stored in database
+  - CSRF: Built-in CSRF protection
+  - No need to manually implement cookie/session handling
 - **Input Validation:** Use Zod to validate all auth form inputs
   - Email format validation
   - Password strength requirements
   - Sanitize inputs before processing
   - Return clear validation error messages to UI
-- Store session token securely
-- Use HTTP-only cookies for session
-- Implement CSRF protection
-- Follow Better Auth best practices
-- Consider rate limiting for auth endpoints
+- Follow Better Auth best practices documentation
+- Consider rate limiting for auth endpoints (can be added separately)
 
 ---
 
@@ -287,15 +294,30 @@ The `sv` CLI provides quick setup for common dependencies:
   - Research validated MBTI question sets
   - Ensure even distribution across all 8 dimensions (E, I, S, N, T, F, J, P)
   - Aim for 60-100 questions minimum for variety (roughly 7-12 per dimension)
-- [ ] Create question seed data
-  - Create `/src/lib/server/db/seeds/questions.ts`
+- [ ] Create question seed data using drizzle-seed
+  - Create `/src/lib/server/db/seed.ts`
+  - Use drizzle-seed package to generate question data
   - Format questions with targetDimension (E, I, S, N, T, F, J, or P)
-  - Ensure even distribution across all 8 dimensions
-  - Validate question quality and clarity
-- [ ] Create seed script
-  - Create database seeding script
-  - Add npm script: `pnpm db:seed`
-  - Implement idempotent seeding (don't duplicate)
+  - Ensure even distribution across all 8 dimensions (7-12 questions per dimension)
+  - Use `.refine()` to customize question generation
+  - Example structure:
+    ```typescript
+    import { seed } from 'drizzle-seed';
+    import { db } from './index';
+    import { questions } from './schema';
+
+    await seed(db, { questions }).refine((funcs) => ({
+      questions: {
+        count: 80, // 10 per dimension
+        columns: {
+          targetDimension: funcs.valuesFromArray({
+            values: ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P']
+          })
+        }
+      }
+    }));
+    ```
+  - Run using: `pnpm db:seed`
 - [ ] Create question remote functions
   - Create `/src/routes/quiz.remote.ts`
   - Implement `getQuestions` query function for fetching daily questions
@@ -323,6 +345,11 @@ The `sv` CLI provides quick setup for common dependencies:
 
 #### Technical Notes
 - Store questions in database, not hardcoded
+- **drizzle-seed:** Use the drizzle-seed package for seeding
+  - Requires drizzle-orm@0.36.4 or higher
+  - Use `.refine()` to customize generation behavior
+  - Can generate realistic fake data with proper distribution
+  - Run with `pnpm db:seed` script
 - **MBTI Dimension Mapping:**
   - 4 dimension pairs: E/I (Extraversion/Introversion), S/N (Sensing/Intuition), T/F (Thinking/Feeling), J/P (Judging/Perceiving)
   - Each question targets one of 8 dimensions directly (E, I, S, N, T, F, J, P)
