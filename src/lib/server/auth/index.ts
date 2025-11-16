@@ -1,5 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { sveltekitCookies } from 'better-auth/svelte-kit';
+import { getRequestEvent } from '$app/server';
 import { db } from '../db';
 import { BETTER_AUTH_SECRET } from '$env/static/private';
 
@@ -8,6 +10,7 @@ import { BETTER_AUTH_SECRET } from '$env/static/private';
  *
  * Configured with:
  * - Drizzle ORM adapter for PostgreSQL
+ * - SvelteKit cookies plugin for automatic cookie handling
  * - Email/password authentication
  * - Secure session management (HTTP-only cookies, CSRF protection)
  *
@@ -35,12 +38,7 @@ export const auth = betterAuth({
 		// Session expiration (7 days)
 		expiresIn: 60 * 60 * 24 * 7,
 		// Update session on activity
-		updateAge: 60 * 60 * 24, // Update once per day
-		// Cookie name
-		cookieCache: {
-			enabled: true,
-			maxAge: 5 * 60 // 5 minutes
-		}
+		updateAge: 60 * 60 * 24 // Update once per day
 	},
 
 	// Security settings
@@ -60,7 +58,15 @@ export const auth = betterAuth({
 		useSecureCookies: process.env.NODE_ENV === 'production',
 		// Generate CSRF tokens
 		generateSessionToken: true
-	}
+	},
+
+	/**
+	 * Plugins
+	 * Note: sveltekitCookies must be the last plugin in the array
+	 */
+	plugins: [
+		sveltekitCookies(getRequestEvent) // Automatically handles cookies in SvelteKit
+	]
 });
 
 /**
