@@ -56,25 +56,8 @@ export const signInSchema = z.object({
  * Creates a new user account with email/password
  * Automatically creates user stats record for streak tracking
  */
-export const signUp = form(async (formData) => {
-	// Extract form data
-	const rawData = {
-		name: formData.get('name'),
-		email: formData.get('email'),
-		password: formData.get('password')
-	};
-
-	// Validate input
-	const result = signUpSchema.safeParse(rawData);
-	if (!result.success) {
-		const errors = result.error.flatten().fieldErrors;
-		return {
-			success: false,
-			error: errors.name?.[0] || errors.email?.[0] || errors.password?.[0] || 'Validation failed'
-		};
-	}
-
-	const { name, email, password } = result.data;
+export const signUp = form(signUpSchema, async (data) => {
+	const { name, email, password } = data;
 
 	try {
 		// Create user with Better Auth
@@ -119,24 +102,8 @@ export const signUp = form(async (formData) => {
  *
  * Authenticates user with email/password
  */
-export const signIn = form(async (formData) => {
-	// Extract form data
-	const rawData = {
-		email: formData.get('email'),
-		password: formData.get('password')
-	};
-
-	// Validate input
-	const result = signInSchema.safeParse(rawData);
-	if (!result.success) {
-		const errors = result.error.flatten().fieldErrors;
-		return {
-			success: false,
-			error: errors.email?.[0] || errors.password?.[0] || 'Validation failed'
-		};
-	}
-
-	const { email, password } = result.data;
+export const signIn = form(signInSchema, async (data) => {
+	const { email, password } = data;
 
 	try {
 		// Sign in with Better Auth
