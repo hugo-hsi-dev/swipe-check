@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { db } from '$lib/server/db';
 import { questions, responses, userStats, type Dimension } from '$lib/server/db/schema';
 import { eq, and, sql, desc, inArray, notInArray } from 'drizzle-orm';
-import { auth } from '$lib/server/auth';
 
 /**
  * Quiz Remote Functions
@@ -58,9 +57,33 @@ export const submitAnswerSchema = z.object({
  * Get questions validation schema
  */
 export const getQuestionsSchema = z.object({
-	userId: z.string().min(1, 'User ID is required'),
 	date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (expected YYYY-MM-DD)'),
 	isOnboarding: z.boolean().optional().default(false)
+});
+
+// ============================================================================
+// Query Functions for Session
+// ============================================================================
+
+/**
+ * Get Current User
+ *
+ * Query function to retrieve the current authenticated user
+ * Uses SvelteKit's query deduplication for performance
+ */
+export const getCurrentUser = query(async () => {
+	const event = getRequestEvent();
+	const user = event?.locals.user;
+
+	if (!user?.id) {
+		return null;
+	}
+
+	return {
+		id: user.id,
+		name: user.name,
+		email: user.email
+	};
 });
 
 // ============================================================================
@@ -326,11 +349,20 @@ async function updateStreak(userId: string, completedDate: string): Promise<void
  * - Returns 3 questions for daily quiz, 10 for onboarding
  */
 export const getQuestions = query(getQuestionsSchema, async (data) => {
-	const { userId, date, isOnboarding } = data;
+	const { date, isOnboarding } = data;
+
+	// Get current user from session
+	const user = await getCurrentUser();
+	if (!user) {
+		return {
+			success: false,
+			error: 'You must be logged in to get questions'
+		};
+	}
 
 	try {
 		// Check if user has already completed today's quiz
-		const todayAnswered = await getTodayAnsweredQuestions(userId, date);
+		const todayAnswered = await getTodayAnsweredQuestions(user.id, date);
 		const questionCount = isOnboarding ? ONBOARDING_QUESTION_COUNT : DAILY_QUESTION_COUNT;
 
 		if (todayAnswered.length >= questionCount) {
@@ -343,7 +375,7 @@ export const getQuestions = query(getQuestionsSchema, async (data) => {
 		}
 
 		// Select questions with intelligent rotation
-		const selectedQuestions = await selectQuestions(userId, date, questionCount);
+		const selectedQuestions = await selectQuestions(user.id, date, questionCount);
 
 		return {
 			success: true,
@@ -370,11 +402,9 @@ export const getQuestions = query(getQuestionsSchema, async (data) => {
 export const submitAnswer = form(submitAnswerSchema, async (data) => {
 	const { questionId, answer, respondedAt } = data;
 
-	// Get user ID from session
-	const event = getRequestEvent();
-	const user = event?.locals.user;
-
-	if (!user?.id) {
+	// Get current user from session using query (deduped for performance)
+	const user = await getCurrentUser();
+	if (!user) {
 		return {
 			success: false,
 			error: 'You must be logged in to submit answers'

@@ -78,11 +78,22 @@ You can verify the questions were seeded correctly by:
 
 ## Remote Functions Available
 
-### `getQuestions()`
-Query function to fetch daily questions for a user.
+### `getCurrentUser()`
+Query function to retrieve the current authenticated user.
 
 **Parameters:**
-- `userId`: User ID
+- None (uses session automatically)
+
+**Returns:**
+- User object with `id`, `name`, `email` if authenticated
+- `null` if not authenticated
+
+**Note:** This query is deduped by SvelteKit for performance optimization.
+
+### `getQuestions()`
+Query function to fetch daily questions for the current user.
+
+**Parameters:**
 - `date`: Date in YYYY-MM-DD format
 - `isOnboarding`: Boolean (optional, default: false)
 
@@ -90,6 +101,7 @@ Query function to fetch daily questions for a user.
 - 3 questions for daily quiz
 - 10 questions for onboarding quiz
 - Intelligently selected based on dimension coverage
+- Uses `getCurrentUser()` query internally for session validation
 
 ### `submitAnswer()`
 Form function to submit an answer to a question.
@@ -103,22 +115,28 @@ Form function to submit an answer to a question.
 - Success/error status
 - Quiz completion status
 - Automatically updates user streak when quiz is completed
+- Uses `getCurrentUser()` query internally for session validation
 
 ## Testing the Implementation
 
 ### Manual Testing Steps
 
-1. **Test Question Selection**:
-   - Call `getQuestions()` with a user ID
+1. **Test Session Validation**:
+   - Call `getCurrentUser()` to verify session
+   - Should return user object when authenticated
+   - Should return `null` when not authenticated
+
+2. **Test Question Selection**:
+   - Call `getQuestions()` with a date (user ID comes from session)
    - Verify 3 questions are returned
    - Check that questions are from different dimensions when possible
 
-2. **Test Answer Submission**:
+3. **Test Answer Submission**:
    - Submit answers using `submitAnswer()`
    - Verify answers are saved to database
    - Complete all 3 questions and verify streak update
 
-3. **Test Question Rotation**:
+4. **Test Question Rotation**:
    - Complete multiple daily quizzes
    - Verify questions rotate intelligently
    - Check that under-represented dimensions are prioritized
