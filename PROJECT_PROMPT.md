@@ -89,6 +89,6 @@ Build a web application where users answer 3 questions daily to track their pers
 
 ## Additional Context
 - Questions will be generated separately (not part of initial build)
-- Each question targets one dimension and has a direction (positive/negative) indicating which end of the spectrum agreement represents
+- Each question targets one of 8 MBTI dimensions (E, I, S, N, T, F, J, P) - agreeing with the question indicates the user leans toward that dimension
 - Server timezone determines daily reset time (like games with daily resets)
 - Use Svelte remote functions for all server interactions (components directly import and call server functions)

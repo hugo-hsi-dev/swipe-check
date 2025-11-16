@@ -110,8 +110,10 @@ The `sv` CLI provides quick setup for common dependencies:
 - [ ] Create `questions` table schema
   - id (UUID primary key)
   - text (question content)
-  - dimension (enum: 'EI', 'SN', 'TF', 'JP')
-  - direction (enum: 'positive', 'negative')
+  - targetDimension (enum: 'E', 'I', 'S', 'N', 'T', 'F', 'J', 'P')
+    - Directly indicates which dimension an "agree" response supports
+    - Example: targetDimension='E' means agreeing indicates Extraversion
+    - Example: targetDimension='I' means agreeing indicates Introversion
   - createdAt timestamp
 - [ ] Create `responses` table schema
   - id (UUID primary key)
@@ -254,11 +256,12 @@ The `sv` CLI provides quick setup for common dependencies:
 #### Implementation Steps
 - [ ] Research and compile MBTI questions
   - Research validated MBTI question sets
-  - Ensure even distribution across 4 dimensions
-  - Aim for 60-100 questions minimum for variety
+  - Ensure even distribution across all 8 dimensions (E, I, S, N, T, F, J, P)
+  - Aim for 60-100 questions minimum for variety (roughly 7-12 per dimension)
 - [ ] Create question seed data
   - Create `/src/lib/server/db/seeds/questions.ts`
-  - Format questions with dimension and direction
+  - Format questions with targetDimension (E, I, S, N, T, F, J, or P)
+  - Ensure even distribution across all 8 dimensions
   - Validate question quality and clarity
 - [ ] Create seed script
   - Create database seeding script
@@ -281,16 +284,21 @@ The `sv` CLI provides quick setup for common dependencies:
 
 #### Acceptance Criteria
 - Question bank has 60-100 quality questions
-- Questions evenly distributed across 4 dimensions
+- Questions evenly distributed across all 8 dimensions (E, I, S, N, T, F, J, P)
 - Seed script populates database successfully
 - Question selection algorithm works correctly
 - No duplicate questions in daily quiz
 
 #### Technical Notes
 - Store questions in database, not hardcoded
+- **MBTI Dimension Mapping:**
+  - 4 dimension pairs: E/I (Extraversion/Introversion), S/N (Sensing/Intuition), T/F (Thinking/Feeling), J/P (Judging/Perceiving)
+  - Each question targets one of 8 dimensions directly (E, I, S, N, T, F, J, P)
+  - Agreeing with a question counts toward its targetDimension
+  - Disagreeing counts toward the opposite dimension in the pair
+- Ensure roughly equal number of questions for each of the 8 dimensions
 - Consider question difficulty/clarity
 - Plan for future question additions
-- Document MBTI dimension mapping
 
 ---
 
@@ -317,9 +325,11 @@ The `sv` CLI provides quick setup for common dependencies:
   - Implement `getCurrentPersonality` query function
   - Implement `getPersonalityHistory` query function (Phase 2)
 - [ ] Implement dimension score calculation
-  - Query responses from last 7 days
-  - Calculate percentage for each dimension
-  - Account for question direction (positive/negative)
+  - Query responses from last 7 days with their question's targetDimension
+  - Calculate percentage for each dimension pair (E/I, S/N, T/F, J/P)
+  - For each response: if answer=agree, count toward targetDimension; if disagree, count toward opposite
+  - Example: Question with targetDimension='E', answer=agree → +1 to E
+  - Example: Question with targetDimension='E', answer=disagree → +1 to I
   - Handle edge cases (no responses, all one side)
 - [ ] Create personality change detection
   - Compare current type to previous calculation
