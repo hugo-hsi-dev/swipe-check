@@ -21,6 +21,7 @@ This document outlines all tasks required to reach MVP. Each task is issue-sized
 - Tailwind CSS v4 (can use `npx sv add tailwindcss`)
 - Prettier (can use `npx sv add prettier`)
 - ESLint (can use `npx sv add eslint`)
+- Schema validation library (Zod or Valibot)
 - Bits UI, Tabler Icons, LayerChart
 - vite-plugin-pwa
 - Better Auth
@@ -66,6 +67,10 @@ The `sv` CLI provides quick setup for common dependencies:
   - Run `npx sv add prettier` (auto-configures for Svelte)
   - Run `npx sv add eslint` (auto-configures for Svelte 5)
   - Review and customize `.prettierrc` and `.eslintrc` if needed
+- [ ] Install schema validation library
+  - Run `pnpm add zod` (recommended) OR `pnpm add valibot` (lighter alternative)
+  - Required for validating remote function inputs (form and command functions)
+  - See REMOTE_FUNCTIONS.md for usage examples
 - [ ] Install UI dependencies
   - Run `pnpm add bits-ui` for headless component primitives
   - Run `pnpm add @tabler/icons-svelte` for icon library
@@ -92,6 +97,10 @@ The `sv` CLI provides quick setup for common dependencies:
 - Use pnpm for package management
 - Tailwind v4 uses CSS-first configuration (@theme directive) instead of tailwind.config.js
 - Use OKLCH color format for vibrant, accessible colors
+- **Schema Validation:** Zod is recommended (shown in REMOTE_FUNCTIONS.md), Valibot is a lighter alternative
+  - Required for all form and command remote functions
+  - Validates user inputs before processing
+  - Provides type safety and runtime validation
 - Document custom design tokens and utility patterns in CLAUDE.md
 - Ensure all packages are compatible with Svelte 5
 - Tailwind v4 requires modern browsers (Safari 16.4+, Chrome 111+, Firefox 128+)
@@ -209,10 +218,12 @@ The `sv` CLI provides quick setup for common dependencies:
   - Run `pnpm db:migrate` or `pnpm db:push` to apply migrations
 - [ ] Create authentication remote functions
   - Create `/src/routes/auth.remote.ts`
-  - Implement `signUp` form function
-  - Implement `signIn` form function
+  - Define validation schemas using Zod for auth forms
+  - Implement `signUp` form function with email/password validation
+  - Implement `signIn` form function with input validation
   - Implement `signOut` command function
   - Implement `getSession` query function
+  - Ensure all form/command functions validate inputs before processing
 - [ ] Create auth UI components
   - Create `/src/lib/components/auth/LoginForm.svelte`
   - Create `/src/lib/components/auth/SignUpForm.svelte`
@@ -252,6 +263,11 @@ The `sv` CLI provides quick setup for common dependencies:
   - No separate user table in schema.ts
   - Can extend Better Auth's user table with custom fields if needed
   - Remove the existing example users table from schema.ts (Task 2)
+- **Input Validation:** Use Zod to validate all auth form inputs
+  - Email format validation
+  - Password strength requirements
+  - Sanitize inputs before processing
+  - Return clear validation error messages to UI
 - Store session token securely
 - Use HTTP-only cookies for session
 - Implement CSRF protection
@@ -282,7 +298,10 @@ The `sv` CLI provides quick setup for common dependencies:
   - Implement idempotent seeding (don't duplicate)
 - [ ] Create question remote functions
   - Create `/src/routes/quiz.remote.ts`
-  - Implement `getQuestions` query function
+  - Implement `getQuestions` query function for fetching daily questions
+  - Implement `submitAnswer` form/command function with Zod validation
+    - Validate questionId, answer (boolean), and userId
+    - Store response in database with proper timestamp
   - Implement question selection algorithm
   - Ensure even coverage of dimensions
 - [ ] Implement question rotation logic
@@ -444,10 +463,11 @@ The `sv` CLI provides quick setup for common dependencies:
   - Handle answer submission
   - Show progress indicator
 - [ ] Implement answer submission
-  - Call remote function on swipe complete
-  - Store answer in database
+  - Call `submitAnswer` remote function on swipe complete
+  - Remote function validates inputs and stores answer in database
   - Update UI optimistically
-  - Handle errors gracefully
+  - Handle validation errors and display to user
+  - Handle network errors gracefully
 - [ ] Create question card UI
   - Design playful, card-based layout
   - Add visual feedback (swipe direction hints)
