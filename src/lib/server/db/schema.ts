@@ -10,6 +10,7 @@ import {
 	pgEnum,
 	uniqueIndex
 } from 'drizzle-orm/pg-core';
+import { user } from './auth-schema';
 
 /**
  * MBTI Dimension Enum
@@ -35,14 +36,15 @@ export const questions = pgTable('questions', {
 /**
  * Responses Table
  * Stores user responses to questions
- * Note: userId will reference Better Auth's user table (created in Task 3)
+ * Note: userId references Better Auth's user table
  */
 export const responses = pgTable(
 	'responses',
 	{
 		id: uuid('id').defaultRandom().primaryKey(),
-		// TODO: Add foreign key reference to Better Auth's user table in Task 3
-		userId: uuid('user_id').notNull(),
+		userId: text('user_id')
+			.references(() => user.id, { onDelete: 'cascade' })
+			.notNull(),
 		questionId: uuid('question_id')
 			.references(() => questions.id, { onDelete: 'cascade' })
 			.notNull(),
@@ -65,12 +67,13 @@ export const responses = pgTable(
 /**
  * User Stats Table
  * Tracks user engagement metrics and onboarding status
- * Note: userId will reference Better Auth's user table (created in Task 3)
+ * Note: userId references Better Auth's user table
  */
 export const userStats = pgTable('user_stats', {
 	// Primary key is also a foreign key to Better Auth's user table
-	// TODO: Add foreign key reference to Better Auth's user table in Task 3
-	userId: uuid('user_id').primaryKey(),
+	userId: text('user_id')
+		.primaryKey()
+		.references(() => user.id, { onDelete: 'cascade' }),
 	currentStreak: integer('current_streak').default(0).notNull(),
 	longestStreak: integer('longest_streak').default(0).notNull(),
 	totalDaysCompleted: integer('total_days_completed').default(0).notNull(),
@@ -83,14 +86,15 @@ export const userStats = pgTable('user_stats', {
  * Personality Snapshots Table
  * Stores historical personality type calculations
  * Optional: Useful for tracking personality changes over time
- * Note: userId will reference Better Auth's user table (created in Task 3)
+ * Note: userId references Better Auth's user table
  */
 export const personalitySnapshots = pgTable(
 	'personality_snapshots',
 	{
 		id: uuid('id').defaultRandom().primaryKey(),
-		// TODO: Add foreign key reference to Better Auth's user table in Task 3
-		userId: uuid('user_id').notNull(),
+		userId: text('user_id')
+			.references(() => user.id, { onDelete: 'cascade' })
+			.notNull(),
 		personalityType: text('personality_type').notNull(), // 4-letter type (e.g., 'INFJ')
 		dimensionScores: jsonb('dimension_scores').notNull(), // { E: 60, I: 40, S: 45, N: 55, ... }
 		calculatedAt: date('calculated_at').notNull(),
