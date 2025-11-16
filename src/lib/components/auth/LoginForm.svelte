@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { signIn } from '../../routes/auth.remote';
 	import { authClient } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
 
@@ -6,7 +7,7 @@
 	 * Login Form Component
 	 *
 	 * Playful, game-like form for signing into an existing account
-	 * Uses Better Auth client for authentication
+	 * Uses remote function for server-side validation and authentication
 	 */
 
 	let loading = $state(false);
@@ -17,22 +18,23 @@
 		const form = event.target as HTMLFormElement;
 		const formData = new FormData(form);
 
-		const email = formData.get('email') as string;
-		const password = formData.get('password') as string;
-
 		loading = true;
 		error = null;
 
 		try {
-			await authClient.signIn.email({
-				email,
-				password
-			});
+			// Call remote function for sign in
+			const result = await signIn(formData);
 
-			// Redirect to dashboard after successful login
-			goto('/dashboard');
+			if (result.success) {
+				// Force session refresh to ensure user is authenticated
+				await authClient.session.refresh();
+				// Redirect to dashboard after successful login
+				goto('/dashboard');
+			} else {
+				error = result.error || 'Invalid email or password. Please try again.';
+			}
 		} catch (err: any) {
-			error = err?.message || 'Invalid email or password. Please try again.';
+			error = err?.message || 'An unexpected error occurred. Please try again.';
 			console.error('Sign in error:', err);
 		} finally {
 			loading = false;

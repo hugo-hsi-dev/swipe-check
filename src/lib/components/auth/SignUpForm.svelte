@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { signUp } from '../../routes/auth.remote';
 	import { authClient } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
 
@@ -6,7 +7,7 @@
 	 * Sign Up Form Component
 	 *
 	 * Playful, game-like form for creating a new account
-	 * Uses Better Auth client for authentication
+	 * Uses remote function for server-side validation and user creation
 	 */
 
 	let loading = $state(false);
@@ -18,29 +19,30 @@
 		const form = event.target as HTMLFormElement;
 		const formData = new FormData(form);
 
-		const name = formData.get('name') as string;
-		const email = formData.get('email') as string;
-		const password = formData.get('password') as string;
-
 		loading = true;
 		error = null;
 		success = false;
 
 		try {
-			// Sign up with Better Auth
-			await authClient.signUp.email({
-				name,
-				email,
-				password
-			});
+			// Call remote function for sign up
+			const result = await signUp(formData);
 
-			success = true;
-			// Redirect to login after successful signup
-			setTimeout(() => {
-				goto('/login');
-			}, 1500);
+			if (result.success) {
+				success = true;
+				// Sign in the user automatically after successful signup
+				await authClient.signIn.email({
+					email: formData.get('email') as string,
+					password: formData.get('password') as string
+				});
+				// Redirect to dashboard
+				setTimeout(() => {
+					goto('/dashboard');
+				}, 1500);
+			} else {
+				error = result.error || 'Failed to create account. Please try again.';
+			}
 		} catch (err: any) {
-			error = err?.message || 'Failed to create account. Please try again.';
+			error = err?.message || 'An unexpected error occurred. Please try again.';
 			console.error('Sign up error:', err);
 		} finally {
 			loading = false;
