@@ -1,4 +1,4 @@
-import { form, command } from '$app/server';
+import { form, command, query, getRequestEvent } from '$app/server';
 import { z } from 'zod';
 import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
@@ -8,10 +8,39 @@ import { userStats } from '$lib/server/db/schema';
  * Authentication Remote Functions
  *
  * Provides type-safe server functions for authentication:
+ * - Get current user session (query with deduplication)
  * - Sign up with email/password (with validation and user stats creation)
  * - Sign in with email/password (with validation)
  * - Sign out
  */
+
+// ============================================================================
+// Session Query
+// ============================================================================
+
+/**
+ * Get Current User
+ *
+ * Query function to retrieve the current authenticated user
+ * Uses SvelteKit's query deduplication for performance
+ * Can be imported and used across all remote function files
+ *
+ * @returns User object with id, name, email if authenticated, null otherwise
+ */
+export const getCurrentUser = query(async () => {
+	const event = getRequestEvent();
+	const user = event?.locals.user;
+
+	if (!user?.id) {
+		return null;
+	}
+
+	return {
+		id: user.id,
+		name: user.name,
+		email: user.email
+	};
+});
 
 // ============================================================================
 // Validation Schemas
