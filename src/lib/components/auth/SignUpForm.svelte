@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	/**
 	 * Sign Up Form Component
 	 *
 	 * Playful, game-like form for creating a new account
 	 * Uses remote function for server-side validation and user creation
+	 * Mobile-first optimized for PWA
 	 */
 
 	let loading = $state(false);
@@ -146,19 +148,15 @@
 			{/if}
 
 			<!-- Submit button -->
-			<button
+			<Button
 				type="submit"
+				variant="primary"
 				disabled={loading}
-				class="w-full py-3 px-6 rounded-[--radius-md]
-					   bg-[--color-primary] hover:bg-[--color-primary-hover] active:bg-[--color-primary-active]
-					   text-white font-semibold
-					   disabled:opacity-50 disabled:cursor-not-allowed
-					   transition-all duration-[--duration-normal]
-					   shadow-[--shadow-md] hover:shadow-[--shadow-lg]
-					   transform hover:scale-[1.02] active:scale-[0.98]"
+				{loading}
+				class="w-full"
 			>
-				{loading ? 'Creating account...' : 'Sign Up'}
-			</button>
+				{loading ? 'Creating account...' : 'SIGN UP'}
+			</Button>
 		</form>
 
 		<!-- Footer -->
