@@ -32,7 +32,7 @@
 	{type}
 	{disabled}
 	{onclick}
-	class="min-h-[44px] px-4 py-3 text-base font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 {variantClasses} {className}"
+	class="min-h-[44px] px-4 py-3 text-base font-bold uppercase tracking-wider rounded-full cursor-pointer transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 {variantClasses} {className}"
 >
 	{#if loading}
 		<IconLoader2 size={20} stroke={2.5} class="animate-spin" />
