@@ -1,4 +1,5 @@
 import { query, form, command } from '$app/server';
+import { z } from 'zod';
 
 /**
  * Query function - fetch server data
@@ -15,9 +16,13 @@ export const getServerData = query(async () => {
 /**
  * Query function with parameters - fetch data by ID
  */
-export const getRecord = query(async (id: string) => {
+const getRecordSchema = z.object({
+	id: z.string()
+});
+
+export const getRecord = query(getRecordSchema, async ({ id }) => {
 	// Simulate async database call
-	await new Promise(resolve => setTimeout(resolve, 100));
+	await new Promise((resolve) => setTimeout(resolve, 100));
 
 	return {
 		id,
@@ -29,7 +34,11 @@ export const getRecord = query(async (id: string) => {
 /**
  * Query function - process data on server
  */
-export const processText = query(async (text: string) => {
+const processTextSchema = z.object({
+	text: z.string()
+});
+
+export const processText = query(processTextSchema, async ({ text }) => {
 	return {
 		original: text,
 		processed: text.toUpperCase(),
@@ -41,21 +50,16 @@ export const processText = query(async (text: string) => {
 /**
  * Form function - handle form submissions with progressive enhancement
  */
-export const submitData = form(async (data: FormData) => {
-	const text = data.get('text') as string;
+const submitDataSchema = z.object({
+	text: z.string().min(1, 'Text field is required')
+});
 
-	if (!text || text.trim().length === 0) {
-		return {
-			success: false,
-			error: 'Text field is required'
-		};
-	}
-
+export const submitData = form(submitDataSchema, async (data) => {
 	// Process the data
 	const result = {
-		original: text,
-		processed: text.toUpperCase(),
-		length: text.length,
+		original: data.text,
+		processed: data.text.toUpperCase(),
+		length: data.text.length,
 		submittedAt: new Date().toISOString()
 	};
 
@@ -68,7 +72,11 @@ export const submitData = form(async (data: FormData) => {
 /**
  * Command function - for actions that don't return data
  */
-export const logActivity = command(async (activity: string) => {
+const logActivitySchema = z.object({
+	activity: z.string()
+});
+
+export const logActivity = command(logActivitySchema, async ({ activity }) => {
 	console.log(`Activity logged at ${new Date().toISOString()}: ${activity}`);
 	// Commands don't return values
 });

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { signIn } from '../../routes/auth.remote';
 	import { authClient } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
 
@@ -13,25 +12,29 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 
-	async function handleSubmit(event: Event) {
-		event.preventDefault();
-		const form = event.target as HTMLFormElement;
-		const formData = new FormData(form);
-
+	async function handleSubmit(event: SubmitEvent) {
 		loading = true;
 		error = null;
 
 		try {
-			// Call remote function for sign in
-			const result = await signIn(formData);
+			const form = event.target as HTMLFormElement;
+			const formData = new FormData(form);
 
-			if (result.success) {
-				// Force session refresh to ensure user is authenticated
-				await authClient.session.refresh();
+			// Extract form data
+			const email = formData.get('email') as string;
+			const password = formData.get('password') as string;
+
+			// Call Better Auth client directly
+			const result = await authClient.signIn.email({
+				email,
+				password
+			});
+
+			if (result.error) {
+				error = 'Invalid email or password. Please try again.';
+			} else {
 				// Redirect to dashboard after successful login
 				goto('/dashboard');
-			} else {
-				error = result.error || 'Invalid email or password. Please try again.';
 			}
 		} catch (err: any) {
 			error = err?.message || 'An unexpected error occurred. Please try again.';

@@ -30,7 +30,7 @@
 				<input type="text" bind:value={recordId} />
 			</label>
 			<p>Fetching record with ID: <code>{recordId}</code></p>
-			<pre>{JSON.stringify(await getRecord(recordId), null, 2)}</pre>
+			<pre>{JSON.stringify(await getRecord({ id: recordId }), null, 2)}</pre>
 		</div>
 
 		<div class="demo-box">
@@ -39,7 +39,7 @@
 				Text to process:
 				<input type="text" bind:value={textToProcess} />
 			</label>
-			<pre>{JSON.stringify(await processText(textToProcess), null, 2)}</pre>
+			<pre>{JSON.stringify(await processText({ text: textToProcess }), null, 2)}</pre>
 		</div>
 	</section>
 
@@ -70,7 +70,7 @@
 				Activity to log:
 				<input type="text" bind:value={activityLog} />
 			</label>
-			<button onclick={() => logActivity(activityLog)}>
+			<button onclick={() => logActivity({ activity: activityLog })}>
 				Log Activity (check server console)
 			</button>
 		</div>
@@ -78,7 +78,9 @@
 
 	<section>
 		<h2>More Examples</h2>
-		<p>Check out the <a href="/todos">Todos Demo</a> for a full CRUD example with remote functions.</p>
+		<p>
+			Check out the <a href="/todos">Todos Demo</a> for a full CRUD example with remote functions.
+		</p>
 	</section>
 </div>
 

@@ -104,10 +104,7 @@ export const personalitySnapshots = pgTable(
 	},
 	(table) => ({
 		// Index for efficient querying by user and calculation date
-		userCalculatedAtIdx: uniqueIndex('user_calculated_at_idx').on(
-			table.userId,
-			table.calculatedAt
-		)
+		userCalculatedAtIdx: uniqueIndex('user_calculated_at_idx').on(table.userId, table.calculatedAt)
 	})
 );
 

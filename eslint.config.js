@@ -13,18 +13,17 @@ export default [
 			ecmaVersion: 2022,
 			sourceType: 'module',
 			parser: tsparser,
-			parserOptions: {
-				extraFileExtensions: ['.svelte']
-			}
+			parserOptions: { extraFileExtensions: ['.svelte'] }
 		},
-		plugins: {
-			'@typescript-eslint': tseslint
-		},
+		plugins: { '@typescript-eslint': tseslint },
 		rules: {
 			...tseslint.configs.recommended.rules,
 			'@typescript-eslint/no-unused-vars': [
 				'warn',
-				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_'
+				}
 			],
 			'@typescript-eslint/no-explicit-any': 'warn'
 		}
@@ -38,9 +37,7 @@ export default [
 				extraFileExtensions: ['.svelte']
 			}
 		},
-		plugins: {
-			svelte: sveltePlugin
-		},
+		plugins: { svelte: sveltePlugin },
 		rules: {
 			...sveltePlugin.configs.recommended.rules,
 			'svelte/no-at-html-tags': 'off'
@@ -57,5 +54,6 @@ export default [
 			'*.config.js',
 			'*.config.ts'
 		]
-	}
+	},
+	...sveltePlugin.configs.prettier
 ];

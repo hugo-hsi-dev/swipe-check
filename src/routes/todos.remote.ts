@@ -1,4 +1,5 @@
 import { query, form } from '$app/server';
+import { z } from 'zod';
 
 // In-memory storage (in a real app, use a database)
 interface Todo {
@@ -33,8 +34,12 @@ export const getTodos = query(async () => {
 /**
  * Query function - get a single todo by ID
  */
-export const getTodo = query(async (id: string) => {
-	const todo = todos.find(t => t.id === id);
+const getTodoSchema = z.object({
+	id: z.string()
+});
+
+export const getTodo = query(getTodoSchema, async ({ id }) => {
+	const todo = todos.find((t) => t.id === id);
 	if (!todo) {
 		throw new Error(`Todo with id ${id} not found`);
 	}
@@ -44,19 +49,14 @@ export const getTodo = query(async (id: string) => {
 /**
  * Form function - add a new todo
  */
-export const addTodo = form(async (data: FormData) => {
-	const text = data.get('text') as string;
+const addTodoSchema = z.object({
+	text: z.string().min(1, 'Todo text is required').trim()
+});
 
-	if (!text || text.trim().length === 0) {
-		return {
-			success: false,
-			error: 'Todo text is required'
-		};
-	}
-
+export const addTodo = form(addTodoSchema, async (data) => {
 	const newTodo: Todo = {
 		id: Date.now().toString(),
-		text: text.trim(),
+		text: data.text,
 		completed: false,
 		createdAt: new Date().toISOString()
 	};
@@ -72,10 +72,12 @@ export const addTodo = form(async (data: FormData) => {
 /**
  * Form function - toggle todo completion status
  */
-export const toggleTodo = form(async (data: FormData) => {
-	const id = data.get('id') as string;
+const toggleTodoSchema = z.object({
+	id: z.string()
+});
 
-	const todo = todos.find(t => t.id === id);
+export const toggleTodo = form(toggleTodoSchema, async (data) => {
+	const todo = todos.find((t) => t.id === data.id);
 	if (!todo) {
 		return {
 			success: false,
@@ -94,10 +96,12 @@ export const toggleTodo = form(async (data: FormData) => {
 /**
  * Form function - delete a todo
  */
-export const deleteTodo = form(async (data: FormData) => {
-	const id = data.get('id') as string;
+const deleteTodoSchema = z.object({
+	id: z.string()
+});
 
-	const index = todos.findIndex(t => t.id === id);
+export const deleteTodo = form(deleteTodoSchema, async (data) => {
+	const index = todos.findIndex((t) => t.id === data.id);
 	if (index === -1) {
 		return {
 			success: false,

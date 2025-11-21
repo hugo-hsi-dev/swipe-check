@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { signUp } from '../../routes/auth.remote';
 	import { authClient } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
 
@@ -14,32 +13,35 @@
 	let error = $state<string | null>(null);
 	let success = $state(false);
 
-	async function handleSubmit(event: Event) {
-		event.preventDefault();
-		const form = event.target as HTMLFormElement;
-		const formData = new FormData(form);
-
+	async function handleSubmit(event: SubmitEvent) {
 		loading = true;
 		error = null;
 		success = false;
 
 		try {
-			// Call remote function for sign up
-			const result = await signUp(formData);
+			const form = event.target as HTMLFormElement;
+			const formData = new FormData(form);
 
-			if (result.success) {
+			// Extract form data
+			const name = formData.get('name') as string;
+			const email = formData.get('email') as string;
+			const password = formData.get('password') as string;
+
+			// Call Better Auth client directly
+			const result = await authClient.signUp.email({
+				name,
+				email,
+				password
+			});
+
+			if (result.error) {
+				error = 'Failed to create account. Email may already be in use.';
+			} else {
 				success = true;
-				// Sign in the user automatically after successful signup
-				await authClient.signIn.email({
-					email: formData.get('email') as string,
-					password: formData.get('password') as string
-				});
 				// Redirect to dashboard
 				setTimeout(() => {
 					goto('/dashboard');
 				}, 1500);
-			} else {
-				error = result.error || 'Failed to create account. Please try again.';
 			}
 		} catch (err: any) {
 			error = err?.message || 'An unexpected error occurred. Please try again.';
@@ -120,9 +122,7 @@
 						   text-[--color-gray-900] placeholder:text-[--color-gray-400]"
 					placeholder="At least 8 characters"
 				/>
-				<p class="mt-1 text-xs text-[--color-gray-500]">
-					Must be at least 8 characters long
-				</p>
+				<p class="mt-1 text-xs text-[--color-gray-500]">Must be at least 8 characters long</p>
 			</div>
 
 			<!-- Error message -->

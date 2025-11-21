@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "ESLint Auto-Fix on Save",
+  "description": "When a TypeScript or Svelte file is saved, this hook runs ESLint with auto-fix on the file, then reports any remaining issues that couldn't be fixed automatically and suggests fixes for complex issues",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.svelte"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A TypeScript or Svelte file has been saved. Please:\n\n1. Run ESLint with auto-fix on the file using: `npx eslint --fix [file_path]`\n2. After auto-fixing, run ESLint again to check for remaining issues: `npx eslint [file_path]`\n3. Report any remaining linting issues that couldn't be fixed automatically\n4. For complex issues that remain, analyze the code and suggest specific fixes with code examples\n5. If there are no remaining issues, confirm that the file passes all ESLint checks\n\nFocus on actionable suggestions that help maintain code quality according to the project's ESLint configuration."
+  }
+}

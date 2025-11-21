@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "TypeScript Type Check on Save",
+  "description": "Runs TypeScript type checking using svelte-check whenever TypeScript or Svelte files are saved to catch type errors early",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.svelte"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "pnpm check"
+  }
+}
