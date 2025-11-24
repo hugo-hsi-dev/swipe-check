@@ -28,10 +28,9 @@ describe('UserProfile component with mocked remote queries', () => {
 		mockedFn.mockResolvedValue(mockUserData);
 
 		// Render the component
-		const { container } = render(UserProfile, {
-			target: document.body,
-			props: { userId: 123 }
-		});
+    const { container } = render(UserProfile, {
+      props: { userId: 123 }
+    });
 
 		// Wait a bit for async rendering
 		await new Promise((resolve) => setTimeout(resolve, 100));
@@ -50,10 +49,9 @@ describe('UserProfile component with mocked remote queries', () => {
 		const mockedFn = vi.mocked(getUserData);
 		mockedFn.mockResolvedValue(mockUserData);
 
-		render(UserProfile, {
-			target: document.body,
-			props: { userId: 456 }
-		});
+    render(UserProfile, {
+      props: { userId: 456 }
+    });
 
 		// Wait for the component to call the mock
 		await new Promise((resolve) => setTimeout(resolve, 50));
@@ -73,17 +71,15 @@ describe('UserProfile component with mocked remote queries', () => {
 		const firstMock = vi.mocked(getUserData);
 		firstMock.mockResolvedValue(mockUserData1);
 
-		const { unmount } = render(UserProfile, {
-			target: document.body,
-			props: { userId: 100 }
-		});
+    render(UserProfile, {
+      props: { userId: 100 }
+    });
 
 		await new Promise((resolve) => setTimeout(resolve, 50));
 
 		expect(getUserData).toHaveBeenCalledWith(100);
 
-		// Clean up
-		unmount();
+    // Proceed to render again; automatic cleanup runs after each test
 
 		// Test with different user
 		const mockUserData2 = {
@@ -96,10 +92,9 @@ describe('UserProfile component with mocked remote queries', () => {
 		const secondMock = vi.mocked(getUserData);
 		secondMock.mockResolvedValue(mockUserData2);
 
-		render(UserProfile, {
-			target: document.body,
-			props: { userId: 456 }
-		});
+    render(UserProfile, {
+      props: { userId: 200 }
+    });
 
 		await new Promise((resolve) => setTimeout(resolve, 50));
 
