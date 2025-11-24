@@ -15,6 +15,12 @@ describe('UserProfile component with mocked remote queries', () => {
 		vi.clearAllMocks();
 	});
 
+	const createTarget = () => {
+		const el = document.createElement('div');
+		document.body.appendChild(el);
+		return el;
+	};
+
 	it('should successfully mock remote query and render component', async () => {
 		// Mock the remote function to return a resolved promise
 		const mockUserData = {
@@ -28,9 +34,10 @@ describe('UserProfile component with mocked remote queries', () => {
 		mockedFn.mockResolvedValue(mockUserData);
 
 		// Render the component
-    const { container } = render(UserProfile, {
-      props: { userId: 123 }
-    });
+		const { container } = render(UserProfile, {
+			target: createTarget(),
+			props: { userId: 123 }
+		});
 
 		// Wait a bit for async rendering
 		await new Promise((resolve) => setTimeout(resolve, 100));
@@ -49,9 +56,10 @@ describe('UserProfile component with mocked remote queries', () => {
 		const mockedFn = vi.mocked(getUserData);
 		mockedFn.mockResolvedValue(mockUserData);
 
-    render(UserProfile, {
-      props: { userId: 456 }
-    });
+		render(UserProfile, {
+			target: createTarget(),
+			props: { userId: 456 }
+		});
 
 		// Wait for the component to call the mock
 		await new Promise((resolve) => setTimeout(resolve, 50));
@@ -71,15 +79,16 @@ describe('UserProfile component with mocked remote queries', () => {
 		const firstMock = vi.mocked(getUserData);
 		firstMock.mockResolvedValue(mockUserData1);
 
-    render(UserProfile, {
-      props: { userId: 100 }
-    });
+		render(UserProfile, {
+			target: createTarget(),
+			props: { userId: 100 }
+		});
 
 		await new Promise((resolve) => setTimeout(resolve, 50));
 
 		expect(getUserData).toHaveBeenCalledWith(100);
 
-    // Proceed to render again; automatic cleanup runs after each test
+		// Proceed to render again; automatic cleanup runs after each test
 
 		// Test with different user
 		const mockUserData2 = {
@@ -92,11 +101,12 @@ describe('UserProfile component with mocked remote queries', () => {
 		const secondMock = vi.mocked(getUserData);
 		secondMock.mockResolvedValue(mockUserData2);
 
-    render(UserProfile, {
-      props: { userId: 200 }
-    });
+		render(UserProfile, {
+			target: createTarget(),
+			props: { userId: 200 }
+		});
 
-		await new Promise((resolve) => setTimeout(resolve, 50));
+		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		expect(getUserData).toHaveBeenCalledWith(200);
 	});
