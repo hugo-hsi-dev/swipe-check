@@ -12,19 +12,16 @@ export const echoMessage = query(v.string(), async (message: string) => {
 });
 
 // Query with validation that simulates a database operation
-export const getUserData = query(
-	v.number(),
-	async (userId: number) => {
-		// Simulate database delay
-		await new Promise((resolve) => setTimeout(resolve, 100));
+export const getUserData = query(v.number(), async (userId: number) => {
+	// Simulate database delay
+	await new Promise((resolve) => setTimeout(resolve, 100));
 
-		return {
-			id: userId,
-			name: `User ${userId}`,
-			email: `user${userId}@example.com`
-		};
-	}
-);
+	return {
+		id: userId,
+		name: `User ${userId}`,
+		email: `user${userId}@example.com`
+	};
+});
 
 // Command to update user status
 export const updateUserStatus = command(

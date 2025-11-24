@@ -12,16 +12,16 @@ Remote functions are enabled in `svelte.config.js`:
 
 ```js
 export default {
-  kit: {
-    experimental: {
-      remoteFunctions: true
-    }
-  },
-  compilerOptions: {
-    experimental: {
-      async: true  // Optional: enables await in components
-    }
-  }
+	kit: {
+		experimental: {
+			remoteFunctions: true
+		}
+	},
+	compilerOptions: {
+		experimental: {
+			async: true // Optional: enables await in components
+		}
+	}
 };
 ```
 
@@ -55,21 +55,21 @@ Keep remote functions as thin wrappers and test business logic independently:
 ```typescript
 // ✅ Good: Testable business logic
 export async function fetchUserFromDatabase(userId: number) {
-  const user = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
-  return user;
+	const user = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
+	return user;
 }
 
 // Remote function as a thin wrapper
 export const getUser = query(v.number(), async (userId) => {
-  return fetchUserFromDatabase(userId);
+	return fetchUserFromDatabase(userId);
 });
 
 // Test the business logic directly
 describe('fetchUserFromDatabase', () => {
-  it('should fetch user by ID', async () => {
-    const user = await fetchUserFromDatabase(123);
-    expect(user.id).toBe(123);
-  });
+	it('should fetch user by ID', async () => {
+		const user = await fetchUserFromDatabase(123);
+		expect(user.id).toBe(123);
+	});
 });
 ```
 
@@ -80,27 +80,27 @@ When testing components that consume remote functions, mock them:
 ```typescript
 // ✅ Mock the remote function module
 vi.mock('$lib/server/queries.remote', () => ({
-  getUserData: vi.fn()
+	getUserData: vi.fn()
 }));
 
 import { getUserData } from '$lib/server/queries.remote';
 
 describe('UserProfile component', () => {
-  it('should render with mocked data', async () => {
-    // Mock the return value
-    (getUserData as any).mockResolvedValue({
-      id: 123,
-      name: 'Test User',
-      email: 'test@example.com'
-    });
+	it('should render with mocked data', async () => {
+		// Mock the return value
+		(getUserData as any).mockResolvedValue({
+			id: 123,
+			name: 'Test User',
+			email: 'test@example.com'
+		});
 
-    render(UserProfile, { props: { userId: 123 } });
+		render(UserProfile, { props: { userId: 123 } });
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
+		await new Promise((resolve) => setTimeout(resolve, 50));
 
-    // Verify the mock was called
-    expect(getUserData).toHaveBeenCalledWith(123);
-  });
+		// Verify the mock was called
+		expect(getUserData).toHaveBeenCalledWith(123);
+	});
 });
 ```
 
@@ -119,7 +119,7 @@ Test server-side logic using regular async functions:
 ```typescript
 // testQuery.ts - Regular server functions (testable)
 export async function getTestNumber(): Promise<number> {
-  return 42;
+	return 42;
 }
 
 // testQuery.remote.ts - Remote function wrapper
@@ -127,15 +127,15 @@ import { query } from '$app/server';
 import { getTestNumber } from './testQuery';
 
 export const getTestNumberRemote = query(async () => {
-  return getTestNumber();
+	return getTestNumber();
 });
 
 // testQuery.spec.ts - Unit test
 describe('Server functions', () => {
-  it('should return test number', async () => {
-    const result = await getTestNumber();
-    expect(result).toBe(42);
-  });
+	it('should return test number', async () => {
+		const result = await getTestNumber();
+		expect(result).toBe(42);
+	});
 });
 ```
 
@@ -149,19 +149,19 @@ import { query, command, form } from '$app/server';
 import * as v from 'valibot';
 
 export const getUser = query(v.number(), async (userId: number) => {
-  const user = await db.users.findById(userId);
-  return user;
+	const user = await db.users.findById(userId);
+	return user;
 });
 
 export const updateUser = command(
-  v.object({
-    userId: v.number(),
-    name: v.string()
-  }),
-  async ({ userId, name }) => {
-    await db.users.update(userId, { name });
-    return { success: true };
-  }
+	v.object({
+		userId: v.number(),
+		name: v.string()
+	}),
+	async ({ userId, name }) => {
+		await db.users.update(userId, { name });
+		return { success: true };
+	}
 );
 ```
 
@@ -170,15 +170,15 @@ export const updateUser = command(
 ```svelte
 <!-- src/components/UserProfile.svelte -->
 <script lang="ts">
-  import { getUser } from '$lib/server/users.remote';
+	import { getUser } from '$lib/server/users.remote';
 
-  let { userId } = $props();
-  const user = $derived(await getUser(userId));
+	let { userId } = $props();
+	const user = $derived(await getUser(userId));
 </script>
 
 <div class="user-profile">
-  <h2>{user.name}</h2>
-  <p>{user.email}</p>
+	<h2>{user.name}</h2>
+	<p>{user.email}</p>
 </div>
 ```
 
@@ -191,24 +191,24 @@ import { render } from 'vitest-browser-svelte';
 import UserProfile from './UserProfile.svelte';
 
 vi.mock('$lib/server/users.remote', () => ({
-  getUser: vi.fn()
+	getUser: vi.fn()
 }));
 
 import { getUser } from '$lib/server/users.remote';
 
 describe('UserProfile', () => {
-  it('should call getUser with correct userId', async () => {
-    (getUser as any).mockResolvedValue({
-      id: 123,
-      name: 'Test User',
-      email: 'test@example.com'
-    });
+	it('should call getUser with correct userId', async () => {
+		(getUser as any).mockResolvedValue({
+			id: 123,
+			name: 'Test User',
+			email: 'test@example.com'
+		});
 
-    render(UserProfile, { props: { userId: 123 } });
-    await new Promise((resolve) => setTimeout(resolve, 50));
+		render(UserProfile, { props: { userId: 123 } });
+		await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(getUser).toHaveBeenCalledWith(123);
-  });
+		expect(getUser).toHaveBeenCalledWith(123);
+	});
 });
 ```
 
