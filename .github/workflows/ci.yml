@@ -81,7 +81,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run type check
-        run: pnpm run check
+        run: pnpm run svelte:check
 
   test-unit:
     name: Unit Tests
