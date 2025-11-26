@@ -106,6 +106,10 @@ jobs:
 
       - name: Run unit tests
         run: pnpm run test:unit
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          BETTER_AUTH_SECRET: test-secret-for-ci
+          APP_URL: http://localhost:5173
 
   test-component:
     name: Component Tests
