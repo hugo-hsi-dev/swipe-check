@@ -1,6 +1,6 @@
-import { pgTable, serial, integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text } from 'drizzle-orm/pg-core';
 
-export const user = pgTable('user', {
+export const placeholder = pgTable('placeholder', {
 	id: serial('id').primaryKey(),
-	age: integer('age')
+	name: text('name')
 });
