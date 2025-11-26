@@ -16,10 +16,11 @@
 		"test:unit": "vitest --run --project=server",
 		"test:component": "vitest --run --project=client",
 		"db:start": "docker compose up",
-		"db:push": "drizzle-kit push",
+		"db:push": "drizzle-kit push --force",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"db:studio": "drizzle-kit studio",
+		"auth:generate": "npx @better-auth/cli@latest generate --config src/lib/server/auth.ts --output auth-schema.ts --yes"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",
@@ -52,6 +53,7 @@
 		"vitest-browser-svelte": "^2.0.1"
 	},
 	"dependencies": {
+		"better-auth": "^1.4.2",
 		"postgres": "^3.4.7",
 		"valibot": "^1.1.0"
 	}
