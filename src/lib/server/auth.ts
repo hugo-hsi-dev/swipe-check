@@ -7,13 +7,13 @@ import { env } from '$env/dynamic/private';
 import { db } from './db';
 
 export const auth = betterAuth({
-    secret: env.BETTER_AUTH_SECRET,
-    baseURL: env.APP_URL,
-    database: drizzleAdapter(db, {
-        provider: 'pg'
-    }),
-    emailAndPassword: {
-        enabled: true
-    },
-    plugins: [sveltekitCookies(getRequestEvent)]
+	secret: env.BETTER_AUTH_SECRET,
+	baseURL: env.APP_URL,
+	database: drizzleAdapter(db, {
+		provider: 'pg'
+	}),
+	emailAndPassword: {
+		enabled: true
+	},
+	plugins: [sveltekitCookies(getRequestEvent)]
 });
