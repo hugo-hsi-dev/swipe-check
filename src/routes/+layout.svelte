@@ -1,20 +1,23 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { authClient } from '$lib/auth-client';
-	import { goto } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 
-	let { children } = $props();
-	const session = authClient.useSession();
-	async function signOut() {
-		await authClient.signOut({
-			fetchOptions: {
-				onSuccess: () => {
-					goto('/auth/sign-in');
-				}
+	let { children, data } = $props();
+
+	const logoutEnhanced = logoutForm.enhance(async () => {
+		const response = await fetch('/auth/logout', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
 			}
 		});
-	}
+
+		if (response.ok) {
+			invalidateAll();
+		}
+		return response;
+	});
 </script>
 
 <svelte:head>
@@ -23,13 +26,15 @@
 
 {@render children()}
 
-{#if $session.data}
-	<div>
-		<span>Signed in as {$session.data.user?.email}</span>
-		<button onclick={signOut}>Sign out</button>
+{#if data.currentUser}
+	<div class="auth-status">
+		<span>Signed in as {data.currentUser.email}</span>
+		<form action="/auth/logout" method="POST">
+			<button type="submit">Sign out</button>
+		</form>
 	</div>
 {:else}
-	<div>
-		<a href="/auth/sign-in" data-sveltekit-preload-data="hover">Sign in</a>
+	<div class="auth-status">
+		<a href="/auth/login" data-sveltekit-preload-data="hover">Sign in</a>
 	</div>
 {/if}
