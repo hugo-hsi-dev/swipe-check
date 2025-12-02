@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { registerUser } from '$lib/auth.remote';
+	import { loginUser } from '$lib/auth.remote';
 	import { toast } from 'svelte-sonner';
 	import { isHttpError } from '@sveltejs/kit';
 	import { Button } from '$lib/components/ui/button';
@@ -17,19 +17,19 @@
 </script>
 
 <svelte:head>
-	<title>Register - Register</title>
-	<meta name="description" content="Register a new account" />
+	<title>Login - Login</title>
+	<meta name="description" content="Login to your account" />
 </svelte:head>
 
 <div class="container mx-auto flex h-screen w-screen flex-col items-center justify-center px-4">
 	<Card class="w-full max-w-md">
 		<CardHeader class="space-y-1">
-			<CardTitle class="text-2xl font-bold">Register</CardTitle>
-			<CardDescription>Enter your information to create a new account</CardDescription>
+			<CardTitle class="text-2xl font-bold">Login</CardTitle>
+			<CardDescription>Enter your credentials to access your account</CardDescription>
 		</CardHeader>
 		<CardContent>
 			<form
-				{...registerUser.enhance(async ({ submit }) => {
+				{...loginUser.enhance(async ({ submit }) => {
 					try {
 						await submit();
 					} catch (error) {
@@ -45,43 +45,33 @@
 					<Label for="username">Username</Label>
 					<Input
 						id="username"
-						{...registerUser.fields.username.as('text')}
-						placeholder="Choose a username"
+						{...loginUser.fields.username.as('text')}
+						placeholder="Enter your username"
 					/>
-					<FieldError errors={registerUser.fields.username.issues()} />
+					<FieldError errors={loginUser.fields.username.issues()} />
 				</Field>
 
 				<Field>
 					<Label for="password">Password</Label>
 					<Input
 						id="password"
-						{...registerUser.fields.password.as('password')}
+						{...loginUser.fields.password.as('password')}
 						placeholder="Enter your password"
 					/>
-					<FieldError errors={registerUser.fields.password.issues()} />
+					<FieldError errors={loginUser.fields.password.issues()} />
 				</Field>
 
-				<Field>
-					<Label for="confirmPassword">Confirm Password</Label>
-					<Input
-						id="confirmPassword"
-						{...registerUser.fields.confirmPassword.as('password')}
-						placeholder="Confirm your password"
-					/>
-					<FieldError errors={registerUser.fields.confirmPassword.issues()} />
-				</Field>
-
-				<Button type="submit" class="w-full" disabled={!!registerUser.pending}>
-					{#if registerUser.pending}
+				<Button type="submit" class="w-full" disabled={!!loginUser.pending}>
+					{#if loginUser.pending}
 						<Spinner class="mr-2 h-4 w-4" />
 					{/if}
-					Register
+					Login
 				</Button>
 			</form>
 
 			<div class="mt-6 text-center text-sm">
-				Already have an account?
-				<a href="/login" class="text-primary hover:underline">Login</a>
+				Don't have an account?
+				<a href="/register" class="text-primary hover:underline">Register</a>
 			</div>
 		</CardContent>
 	</Card>
