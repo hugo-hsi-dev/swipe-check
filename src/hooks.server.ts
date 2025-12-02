@@ -1,24 +1,32 @@
+import { sequence } from '@sveltejs/kit/hooks';
+import * as auth from '$lib/server/auth';
 import type { Handle } from '@sveltejs/kit';
-import { building } from '$app/environment';
-import { svelteKitHandler } from 'better-auth/svelte-kit';
 
-import { auth } from '$lib/server/auth';
+const originalHandle: Handle = async ({ event, resolve }) => {
+	// TODO: Implement Lucia Auth middleware here
+	return resolve(event);
+};
 
-export const handle: Handle = async ({ event, resolve }) => {
-	// Fetch current session from Better Auth
-	const session = await auth.api.getSession({
-		headers: event.request.headers
-	});
+const handleAuth: Handle = async ({ event, resolve }) => {
+	const sessionToken = event.cookies.get(auth.sessionCookieName);
 
-	// Make session and user available on server via event.locals
-	if (session) {
-		event.locals.session = session.session;
-		event.locals.user = session.user;
-	} else {
-		event.locals.session = null;
+	if (!sessionToken) {
 		event.locals.user = null;
+		event.locals.session = null;
+		return resolve(event);
 	}
 
-	// Delegate to Better Auth's SvelteKit handler to manage /api/auth and cookies
-	return svelteKitHandler({ event, resolve, auth, building });
+	const { session, user } = await auth.validateSessionToken(sessionToken);
+
+	if (session) {
+		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+	} else {
+		auth.deleteSessionTokenCookie(event);
+	}
+
+	event.locals.user = user;
+	event.locals.session = session;
+	return resolve(event);
 };
+
+export const handle = sequence(originalHandle, handleAuth);
