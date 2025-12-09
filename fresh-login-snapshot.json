@@ -1,0 +1,13 @@
+uid=28_0 RootWebArea "Login - Swipe Check" url="http://localhost:5173/auth/login"
+  uid=28_1 heading "Sign In" level="1"
+  uid=28_2 StaticText "Welcome back to Swipe Check"
+  uid=28_3 StaticText "Email"
+  uid=28_4 textbox
+  uid=28_5 StaticText "Password"
+  uid=28_6 textbox
+  uid=28_7 button "Sign In"
+  uid=28_8 StaticText "Don't have an account? "
+  uid=28_9 link "Create account" url="http://localhost:5173/auth/register"
+    uid=28_10 StaticText "Create account"
+  uid=28_11 link "Sign in" url="http://localhost:5173/auth/login"
+    uid=28_12 StaticText "Sign in"

@@ -4,7 +4,7 @@ import { render } from 'vitest-browser-svelte';
 import RegisterForm from './RegisterForm.svelte';
 
 // Mock the registerUser function
-vi.mock('$lib/auth.remote', () => ({
+vi.mock('$lib/auth/remotes/registerUser', () => ({
 	registerUser: {
 		fields: {
 			name: {
@@ -35,7 +35,7 @@ describe('RegisterForm.svelte', () => {
 		vi.clearAllMocks();
 
 		// Get the mocked module
-		const { registerUser } = await import('$lib/auth.remote');
+		const { registerUser } = await import('$lib/auth/remotes/registerUser');
 		mockRegisterUser = registerUser;
 
 		// Reset all mock functions to default values

@@ -1,6 +1,6 @@
 import { query, form, command, getRequestEvent } from '$app/server';
 import { invalid, redirect, isRedirect } from '@sveltejs/kit';
-import * as v from 'valibot';
+import { z } from 'zod';
 import { auth } from './auth';
 import { APIError, BetterAuthError } from 'better-auth';
 
@@ -15,11 +15,11 @@ export const getCurrentUser = query(async () => {
 
 // Form for user registration
 export const registerUser = form(
-	v.object({
-		name: v.pipe(v.string(), v.nonEmpty()),
-		email: v.pipe(v.string(), v.email()),
-		password: v.pipe(v.string(), v.minLength(8)),
-		confirmPassword: v.string()
+	z.object({
+		name: z.string().min(1, 'Name is required'),
+		email: z.string().email('Invalid email address'),
+		password: z.string().min(8, 'Password must be at least 8 characters'),
+		confirmPassword: z.string()
 	}),
 	async (data, issue) => {
 		// Programmatic confirmPassword validation
@@ -64,9 +64,9 @@ export const registerUser = form(
 
 // Form for user login
 export const loginUser = form(
-	v.object({
-		email: v.pipe(v.string(), v.email()),
-		password: v.string()
+	z.object({
+		email: z.string().email('Invalid email address'),
+		password: z.string().min(1, 'Password is required')
 	}),
 	async (data, issue) => {
 		try {
@@ -86,9 +86,9 @@ export const loginUser = form(
 
 			// Handle Better Auth errors with proper typing
 			if (error instanceof APIError) {
-			if (error.message === auth.$ERROR_CODES.INVALID_EMAIL) {
-			invalid(issue.email(''))
-			}
+				if (error.message === auth.$ERROR_CODES.INVALID_EMAIL) {
+					invalid(issue.email(''));
+				}
 				if (error.status === 401) {
 					// HTTP 401 Unauthorized for invalid credentials
 					invalid(issue.email('Invalid email or password'));

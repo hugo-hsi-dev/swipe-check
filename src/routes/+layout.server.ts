@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { getCurrentUser } from '$lib/auth.remote';
+import { getCurrentUser } from '$lib/auth/remotes/getCurrentUser';
 
 export const load: LayoutServerLoad = async () => {
 	const currentUser = await getCurrentUser();

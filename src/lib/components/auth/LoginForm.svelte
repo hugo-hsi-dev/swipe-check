@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { loginUser } from '$lib/auth.remote';
 	import Field from '$lib/components/ui/field/field.svelte';
 	import FieldLabel from '$lib/components/ui/field/field-label.svelte';
 	import FieldError from '$lib/components/ui/field/field-error.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { loginUser } from '$lib/auth/remotes/loginUser';
 </script>
 
 <form {...loginUser}>

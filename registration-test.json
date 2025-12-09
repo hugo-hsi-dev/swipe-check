@@ -1,0 +1,17 @@
+uid=34_0 RootWebArea "Register - Swipe Check" url="http://localhost:5173/auth/register"
+  uid=34_1 heading "Create Account" level="1"
+  uid=34_2 StaticText "Sign up to get started with Swipe Check"
+  uid=34_3 StaticText "Name"
+  uid=34_4 textbox
+  uid=34_5 StaticText "Email"
+  uid=34_6 textbox
+  uid=34_7 StaticText "Password"
+  uid=34_8 textbox
+  uid=34_9 StaticText "Confirm Password"
+  uid=34_10 textbox
+  uid=34_11 button "Create Account"
+  uid=34_12 StaticText "Already have an account? "
+  uid=34_13 link "Sign in" url="http://localhost:5173/auth/login"
+    uid=34_14 StaticText "Sign in"
+  uid=34_15 link "Sign in" url="http://localhost:5173/auth/login"
+    uid=34_16 StaticText "Sign in"

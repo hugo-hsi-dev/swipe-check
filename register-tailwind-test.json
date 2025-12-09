@@ -1,0 +1,45 @@
+uid=43_0 RootWebArea "Internal Error" url="http://localhost:5174/auth/register"
+  uid=43_1 StaticText "500"
+  uid=43_2 heading "Internal Error" level="1"
+  uid=43_3 StaticText "Cannot find module '$lib/auth.remote' imported from '/home/hugo/projects/swipe-check/src/routes/+layout.server.ts'"
+  uid=43_4 StaticText "Error: Cannot find module '$lib/auth.remote' imported from '/home/hugo/projects/swipe-check/src/routes/+layout.server.ts'
+    at fetchModule ("
+  uid=43_5 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/chunks/config.js:34628:34"
+  uid=43_6 StaticText ")
+    at RunnableDevEnvironment.fetchModule ("
+  uid=43_7 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/chunks/config.js:35474:10"
+  uid=43_8 StaticText ")
+    at fetchModule ("
+  uid=43_9 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/chunks/config.js:35432:17"
+  uid=43_10 StaticText ")
+    at handleInvoke ("
+  uid=43_11 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/chunks/config.js:26482:27"
+  uid=43_12 StaticText ")
+    at EventEmitter.listenerForInvokeHandler ("
+  uid=43_13 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/chunks/config.js:26537:19"
+  uid=43_14 StaticText ")
+    at EventEmitter.emit (node:events:508:28)
+    at Object.send ("
+  uid=43_15 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/chunks/config.js:15709:39"
+  uid=43_16 StaticText ")
+    at Object.invoke ("
+  uid=43_17 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/module-runner.js:535:31"
+  uid=43_18 StaticText ")
+    at Object.invoke ("
+  uid=43_19 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/module-runner.js:584:31"
+  uid=43_20 StaticText ")
+    at SSRCompatModuleRunner.getModuleInformation ("
+  uid=43_21 StaticText "file:///home/hugo/projects/swipe-check/node_modules/.pnpm/vite@7.2.4_@types+node@24.10.1_jiti@2.6.1_lightningcss@1.30.2/node_modules/vite/dist/node/module-runner.js:1086:28"
+  uid=43_22 StaticText ")"
+  uid=43_23 StaticText "Click outside, press "
+  uid=43_24 StaticText "Esc"
+  uid=43_25 StaticText " key, or fix the code to dismiss."
+  uid=43_26 LineBreak "
+"
+  uid=43_27 StaticText "You can also disable this overlay by setting "
+  uid=43_28 StaticText "server.hmr.overlay"
+  uid=43_29 StaticText " to "
+  uid=43_30 StaticText "false"
+  uid=43_31 StaticText " in "
+  uid=43_32 StaticText "vite.config.ts"
+  uid=43_33 StaticText "."

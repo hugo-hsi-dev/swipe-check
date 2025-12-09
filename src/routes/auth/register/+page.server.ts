@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { getCurrentUser } from '$lib/auth.remote';
+import { getCurrentUser } from '$lib/auth/remotes/getCurrentUser';
 import { redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {
