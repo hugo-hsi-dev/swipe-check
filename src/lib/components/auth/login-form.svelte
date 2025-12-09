@@ -4,23 +4,23 @@
 	import FieldError from '$lib/components/ui/field/field-error.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { loginUser } from '$lib/auth/remotes/loginUser';
+	import { login } from '$lib/auth/remotes/login';
 </script>
 
-<form {...loginUser}>
+<form {...login}>
 	<Field orientation="vertical">
 		<FieldLabel for="email">Email</FieldLabel>
-		<Input {...loginUser.fields.email.as('email')} />
-		<FieldError errors={loginUser.fields.email.issues()} />
+		<Input {...login.fields.email.as('email')} />
+		<FieldError errors={login.fields.email.issues()} />
 	</Field>
 
 	<Field orientation="vertical">
 		<FieldLabel for="password">Password</FieldLabel>
-		<Input {...loginUser.fields.password.as('password')} />
-		<FieldError errors={loginUser.fields.password.issues()} />
+		<Input {...login.fields.password.as('password')} />
+		<FieldError errors={login.fields.password.issues()} />
 	</Field>
 
-	<Button type="submit" disabled={!!loginUser.pending}
-		>{loginUser.pending ? 'Signing In...' : 'Sign In'}</Button
+	<Button type="submit" disabled={!!login.pending}
+		>{login.pending ? 'Signing In...' : 'Sign In'}</Button
 	>
 </form>

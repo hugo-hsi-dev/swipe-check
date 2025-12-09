@@ -21,7 +21,7 @@ const schema = z
 		error: 'Passwords must match'
 	});
 
-export const registerUser = form(schema, async (data, issue) => {
+export const register = form(schema, async (data, issue) => {
 	try {
 		const { user, token } = await auth.api.signUpEmail({
 			body: {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import RegisterForm from '$lib/components/auth/RegisterForm.svelte';
+	import Register from '$lib/components/auth/register-form.svelte';
 </script>
 
 <svelte:head>
@@ -10,7 +10,7 @@
 	<h1 class="text-center mb-2 text-card-foreground">Create Account</h1>
 	<p class="text-center mb-8 text-muted-foreground">Sign up to get started with Swipe Check</p>
 
-	<RegisterForm />
+	<Register />
 
 	<p class="text-center mt-6 text-muted-foreground">
 		Already have an account? <a href="/auth/login" class="text-primary hover:underline">Sign in</a>

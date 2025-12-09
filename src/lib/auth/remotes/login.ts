@@ -10,7 +10,7 @@ const schema = z.object({
 	password: z.string().min(1, 'Password is required')
 });
 
-export const loginUser = form(schema, async (data, issue) => {
+export const login = form(schema, async (data, issue) => {
 	try {
 		const { token, user } = await auth.api.signInEmail({
 			body: {

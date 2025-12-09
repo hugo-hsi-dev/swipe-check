@@ -1,7 +1,0 @@
-uid=40_0 RootWebArea url="http://localhost:5173/dashboard"
-  uid=40_1 heading "Dashboard" level="1"
-  uid=40_2 StaticText "Welcome!"
-  uid=40_3 StaticText "Signed in as newtest@example.com"
-  uid=40_4 StaticText " "
-  uid=40_5 link "Sign out" url="http://localhost:5173/auth/logout"
-    uid=40_6 StaticText "Sign out"

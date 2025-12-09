@@ -13,7 +13,7 @@
 		"format:check": "prettier --check .",
 		"lint": "eslint . --fix",
 		"lint:check": "eslint .",
-		"test:unit": "DATABASE_URL=${DATABASE_URL:-postgresql://test:test@localhost:5432/test} BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-test-secret-for-ci} APP_URL=${APP_URL:-http://localhost:5173} vitest --run --project=server",
+		"test:unit": "vitest --run --project=server",
 		"test:component": "vitest --run --project=client",
 		"db:start": "docker compose up",
 		"db:push": "drizzle-kit push --force",

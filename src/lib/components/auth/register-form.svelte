@@ -4,35 +4,35 @@
 	import FieldError from '$lib/components/ui/field/field-error.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { registerUser } from '$lib/auth/remotes/registerUser';
+	import { register } from '$lib/auth/remotes/register';
 </script>
 
-<form {...registerUser}>
+<form {...register}>
 	<Field orientation="vertical">
 		<FieldLabel for="name">Name</FieldLabel>
-		<Input {...registerUser.fields.name.as('text')} />
-		<FieldError errors={registerUser.fields.name.issues()} />
+		<Input {...register.fields.name.as('text')} />
+		<FieldError errors={register.fields.name.issues()} />
 	</Field>
 
 	<Field orientation="vertical">
 		<FieldLabel for="email">Email</FieldLabel>
-		<Input {...registerUser.fields.email.as('email')} />
-		<FieldError errors={registerUser.fields.email.issues()} />
+		<Input {...register.fields.email.as('email')} />
+		<FieldError errors={register.fields.email.issues()} />
 	</Field>
 
 	<Field orientation="vertical">
 		<FieldLabel for="password">Password</FieldLabel>
-		<Input {...registerUser.fields.password.as('password')} />
-		<FieldError errors={registerUser.fields.password.issues()} />
+		<Input {...register.fields.password.as('password')} />
+		<FieldError errors={register.fields.password.issues()} />
 	</Field>
 
 	<Field orientation="vertical">
 		<FieldLabel for="confirmPassword">Confirm Password</FieldLabel>
-		<Input {...registerUser.fields.confirmPassword.as('password')} />
-		<FieldError errors={registerUser.fields.confirmPassword.issues()} />
+		<Input {...register.fields.confirmPassword.as('password')} />
+		<FieldError errors={register.fields.confirmPassword.issues()} />
 	</Field>
 
-	<Button type="submit" disabled={!!registerUser.pending}
-		>{registerUser.pending ? 'Creating Account...' : 'Create Account'}</Button
+	<Button type="submit" disabled={!!register.pending}
+		>{register.pending ? 'Creating Account...' : 'Create Account'}</Button
 	>
 </form>
