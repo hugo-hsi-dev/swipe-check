@@ -9,9 +9,22 @@ interface SignOutResponse {
 }
 
 // Mock the SvelteKit server module
-vi.mock(import('$app/server'), () => ({
-	command: vi.fn((fn) => fn)
-}));
+vi.mock('$app/server', () => {
+	const command = (schemaOrHandler: unknown, arg2: unknown) => {
+		const handler = (arg2 ?? schemaOrHandler) as { __?: { type: string } };
+
+		handler.__ = {
+			type: 'command'
+		};
+
+		// Could wrap this in a schema check as well for good measure
+		return handler;
+	};
+
+	return {
+		command
+	};
+});
 
 // Mock the auth module
 vi.mock('$lib/server/auth', () => ({

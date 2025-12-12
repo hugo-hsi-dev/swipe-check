@@ -4,9 +4,20 @@ import { getValidatedUser } from '../getValidatedUser.remote';
 import { getCurrentUser } from '../getCurrentUser.remote';
 
 // Mock the dependencies
-vi.mock('$app/server', () => ({
-	query: vi.fn((fn) => fn)
-}));
+vi.mock('$app/server', () => {
+	const query = (schemaOrHandler: unknown, arg2: unknown) => {
+		const handler = (arg2 ?? schemaOrHandler) as { __?: { type: string } };
+
+		handler.__ = {
+			type: 'query'
+		};
+
+		// Could wrap this in a schema check as well for good measure
+		return handler;
+	};
+
+	return { query };
+});
 
 vi.mock(import('../getCurrentUser.remote'), () => ({
 	getCurrentUser: vi.fn()

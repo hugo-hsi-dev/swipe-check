@@ -4,10 +4,22 @@ import { getCurrentUser } from '../getCurrentUser.remote';
 import { getRequestEvent } from '$app/server';
 
 // Mock the SKit server module
-vi.mock('$app/server', () => ({
-	getRequestEvent: vi.fn(),
-	query: vi.fn((fn) => fn)
-}));
+vi.mock('$app/server', () => {
+	const query = (schemaOrHandler: unknown, arg2: unknown) => {
+		const handler = (arg2 ?? schemaOrHandler) as { __?: { type: string } };
+
+		handler.__ = {
+			type: 'query'
+		};
+
+		// Could wrap this in a schema check as well for good measure
+		return handler;
+	};
+	return {
+		query,
+		getRequestEvent: vi.fn()
+	};
+});
 
 describe('getCurrentUser', () => {
 	beforeEach(async () => {
