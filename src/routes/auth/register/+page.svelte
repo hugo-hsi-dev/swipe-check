@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Register from '$lib/components/auth/register-form.svelte';
+	import Register from '$lib/features/auth/components/register-form.svelte';
 </script>
 
 <svelte:head>

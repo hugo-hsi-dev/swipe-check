@@ -1,13 +1,13 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { auth } from '$lib/server/auth';
 
+import type { Session, User } from '$lib/features/auth/types';
 declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			user: (typeof auth.$Infer.Session)['user'] | null;
-			session: (typeof auth.$Infer.Session)['session'] | null;
+			user: User | null;
+			session: Session | null;
 		}
 		// interface PageData {}
 		// interface PageState {}
