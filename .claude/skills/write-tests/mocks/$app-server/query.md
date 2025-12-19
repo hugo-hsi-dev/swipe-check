@@ -1,3 +1,14 @@
+---
+# When to use this
+Use this when: Testing a remote function that uses `query` from `$app/server`
+Example: Testing `getCurrentUser = query(async () => {...})` in a `.remote.ts` file
+Next steps: Load test structure and assertion patterns from `patterns/` directory
+---
+
+# $app/server query Mock
+
+This mock provides the `query` function from `$app/server` for testing remote functions that use query operations.
+
 ```ts
 import { vi } from 'vitest';
 
@@ -43,3 +54,11 @@ vi.mock('$app/server', () => {
 	};
 });
 ```
+
+## Usage
+
+Place this mock at the top of your test file for `.remote.ts` files that use the `query` function from `$app/server`.
+
+## Related Files
+
+For testing components that consume query remotes, use: `mocks/consumed-remotes/query.md`
