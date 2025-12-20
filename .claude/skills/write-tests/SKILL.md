@@ -1,7 +1,7 @@
 ---
 name: write-tests
 description: how to write tests for this project
-allowed-tools: Read, Write, Edit, Glob, Grep, Skill, Bash, LspHover, LspDiagnostics
+allowed-tools: Read, Write, Edit, Glob, Grep, Skill, Bash
 ---
 
 # Write Tests

@@ -1,0 +1,9 @@
+{
+	"spinnerTipsEnabled": false,
+	"env": {
+		"ENABLE_LSP_TOOL": 1
+	},
+	"remote": {
+		"defaultEnvironmentId": "env_01D6LxXaChn9ciQpW5y9RDyL"
+	}
+}
