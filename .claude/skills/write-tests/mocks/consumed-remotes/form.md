@@ -10,10 +10,9 @@ Next steps: Load test structure and assertion patterns from `patterns/` director
 This mock provides a detailed mock for consumed form remote functions in component tests.
 
 ```ts
-vi.mock(import('../../remotes/*.remote'), () => {
-	// These modules will only have one export, so we'll inline the return for simplicity
+vi.mock(import('../../remotes/{remote-name}.remote'), () => {
 	return {
-		'*': {
+		'{remote-name}': {
 			action: '',
 			buttonProps: {
 				enhance: vi.fn(),

@@ -2,14 +2,26 @@
 
 Basic templates and patterns for organizing SKit tests in both client and server environments.
 
+## Where to put tests (folder structure)
+
+This repo generally keeps tests **close to the code they cover**, in a sibling `tests/` directory under the relevant module.
+
+Recommended conventions (matches existing auth feature patterns):
+
+- **Components**: put tests under `components/tests/` and name them `*.svelte.test.ts`
+  - Example: `src/lib/features/auth/components/tests/batch.svelte.test.ts`
+- **Remote functions**: put tests under `remotes/tests/` and name them `*.test.ts` or `*.spec.ts`
+  - Example: `src/lib/features/auth/remotes/tests/batch-test.test.ts`
+
+Rationale: this keeps tests discoverable without cluttering the module directories, and keeps client (browser) vs server (node) tests easy to distinguish.
+
 ## Client Test Structure
 
 ### Component Test Template
 
 ```ts
-import { render, screen } from '@testing-library/svelte';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { vi } from 'vitest';
+import { render, screen } from 'vitest-browser-svelte';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { ComponentProps } from 'svelte';
 
 // Import the component being tested
@@ -52,7 +64,8 @@ describe('YourComponent', () => {
 			const { component } = render(YourComponent, { props: mockProps });
 
 			// Test user interactions
-			await userEvent.click(screen.getByRole('button'));
+			const button = screen.getByRole('button');
+			await button.click();
 
 			// Assert expected behavior
 			expect(/* expected outcome */).toBe(true);
@@ -133,7 +146,7 @@ describe('ComponentName', () => {
 ### Remote Function Test Template
 
 ```ts
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
 // Mock $app/server

@@ -7,7 +7,7 @@ Common assertion patterns and best practices for SKit testing, covering forms, c
 ### Basic Assertions
 
 ```ts
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 
 // Truthiness
 expect(value).toBe(true);
@@ -71,7 +71,7 @@ describe('form validation', () => {
 		const submitButton = getByRole('button', { name: /submit/i });
 
 		// Test empty required field
-		await userEvent.click(submitButton);
+		await submitButton.click();
 
 		expect(getByLabelText('Email')).toBeInvalid();
 		expect(getByLabelText('Email')).toHaveErrorMessage('Email is required');
@@ -82,8 +82,9 @@ describe('form validation', () => {
 		const { getByLabelText } = render(MyForm);
 
 		const emailInput = getByLabelText('Email');
-		await userEvent.type(emailInput, 'invalid-email');
-		await userEvent.tab(); // Trigger validation
+		await emailInput.type('invalid-email');
+		// Tab or blur to trigger validation
+		await emailInput.blur();
 
 		expect(emailInput).toBeInvalid();
 		expect(emailInput).toHaveErrorMessage(/invalid email/i);
@@ -94,10 +95,12 @@ describe('form validation', () => {
 		const mockSubmit = vi.fn();
 
 		// Fill valid form
-		await userEvent.type(getByLabelText('Name'), 'John Doe');
-		await userEvent.type(getByLabelText('Email'), 'john@example.com');
+		const nameInput = getByLabelText('Name');
+		const emailInput = getByLabelText('Email');
+		await nameInput.type('John Doe');
+		await emailInput.type('john@example.com');
 
-		await userEvent.click(getByRole('button', { name: /submit/i }));
+		await getByRole('button', { name: /submit/i }).click();
 
 		expect(mockSubmit).toHaveBeenCalledWith({
 			name: 'John Doe',
@@ -119,7 +122,7 @@ it('should handle form loading state', async () => {
 	expect(queryByRole('progressbar')).not.toBeInTheDocument();
 
 	// Simulate loading
-	await userEvent.click(submitButton);
+	await submitButton.click();
 
 	// Loading state
 	expect(submitButton).toBeDisabled();
@@ -155,7 +158,7 @@ describe('command execution', () => {
 	it('should update UI after successful command', async () => {
 		const { getByRole, getByText } = render(CommandComponent);
 
-		await userEvent.click(getByRole('button', { name: /execute/i }));
+		await getByRole('button', { name: /execute/i }).click();
 
 		await waitFor(() => {
 			expect(getByText(/success/i)).toBeInTheDocument();
@@ -284,9 +287,11 @@ describe('authentication', () => {
 
 		const { getByLabelText, getByRole } = render(LoginForm);
 
-		await userEvent.type(getByLabelText('Email'), 'test@example.com');
-		await userEvent.type(getByLabelText('Password'), 'password123');
-		await userEvent.click(getByRole('button', { name: /login/i }));
+		const emailInput = getByLabelText('Email');
+		const passwordInput = getByLabelText('Password');
+		await emailInput.type('test@example.com');
+		await passwordInput.type('password123');
+		await getByRole('button', { name: /login/i }).click();
 
 		await waitFor(() => {
 			expect(command).toHaveBeenCalledWith({
@@ -304,9 +309,11 @@ describe('authentication', () => {
 
 		const { getByLabelText, getByRole, getByText } = render(LoginForm);
 
-		await userEvent.type(getByLabelText('Email'), 'test@example.com');
-		await userEvent.type(getByLabelText('Password'), 'wrongpassword');
-		await userEvent.click(getByRole('button', { name: /login/i }));
+		const emailInput = getByLabelText('Email');
+		const passwordInput = getByLabelText('Password');
+		await emailInput.type('test@example.com');
+		await passwordInput.type('wrongpassword');
+		await getByRole('button', { name: /login/i }).click();
 
 		await waitFor(() => {
 			expect(getByText(/invalid credentials/i)).toBeInTheDocument();
@@ -355,11 +362,11 @@ it('should update reactive state correctly', async () => {
 
 	expect(getByText(/count: 0/i)).toBeInTheDocument();
 
-	await userEvent.click(getByRole('button', { name: /increment/i }));
+	await getByRole('button', { name: /increment/i }).click();
 
 	expect(getByText(/count: 1/i)).toBeInTheDocument();
 
-	await userEvent.click(getByRole('button', { name: /decrement/i }));
+	await getByRole('button', { name: /decrement/i }).click();
 
 	expect(getByText(/count: 0/i)).toBeInTheDocument();
 });
@@ -419,7 +426,7 @@ it('should handle network timeouts', async () => {
 
 	const { getByRole, getByText } = render(NetworkComponent);
 
-	await userEvent.click(getByRole('button', { name: /submit/i }));
+	await getByRole('button', { name: /submit/i }).click();
 
 	await waitFor(() => {
 		expect(getByText(/network error/i)).toBeInTheDocument();

@@ -1,7 +1,7 @@
 ---
 name: write-tests
 description: how to write tests for this project
-allowed-tools: Read, Write, Edit, Glob, Grep, Skill
+allowed-tools: Read, Write, Edit, Glob, Grep, Skill, Bash, LspHover, LspDiagnostics
 ---
 
 # Write Tests
@@ -24,9 +24,8 @@ If the test you are writing doesn't fit into either of these categories, ask the
 
 Use the Bash tool to run tests:
 
-- `npm run test` - run all tests
-- `npm run test:ui` - run tests with Vitest UI
-- `npm run test:coverage` - run tests with coverage report
+- `npm run test:unit` - run server-side tests (--run flag built-in)
+- `npm run test:component` - run client-side component tests (--run flag built-in)
 
 ## mocks
 

@@ -1,15 +1,15 @@
-Client side tests use vitest's new browser mode
+Client side tests use vitest's browser mode with Playwright.
 
-general browser mode documentation: https://vitest.dev/guide/browser/why.html
-component testing with browsermode guide: https://vitest.dev/guide/browser/component-testing.html
+Browser mode documentation: https://vitest.dev/guide/browser/why.html
+Component testing guide: https://vitest.dev/guide/browser/component-testing.html
 
-And as the name suggests, all tests are really run on the browser, which gives more accurate and realistic test results
+All tests run in actual browser environment for accurate and realistic test results using `vitest-browser-svelte`.
 
-You will, for the most part, only be testing components. If you find a need to test something other than a component, ask the user first for guidance.
+You will primarily test components. If you need to test something other than a component, ask the user first for guidance.
 
-component tests must be named as so: `*.svelte.test.ts`
+Component tests must be named as: `*.svelte.test.ts`
 
-the `.svelte.` segment in the filename is important, as it tells vitest to use the client environment for this test
+The `.svelte.` segment tells vitest to use the client browser environment for this test.
 
 ## Quick Start - Mock Setup
 
