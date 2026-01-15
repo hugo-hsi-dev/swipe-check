@@ -2,8 +2,10 @@ import { pgTable, integer, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
-	age: integer('age'),
-	username: text('username')
+	email: text('email').notNull().unique(),
+	username: text('username').notNull().unique(),
+	passwordHash: text('password_hash').notNull(),
+	age: integer('age')
 });
 
 export const session = pgTable('session', {
