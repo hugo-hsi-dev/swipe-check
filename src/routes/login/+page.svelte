@@ -10,15 +10,7 @@
 
 	// Type assertion for form errors to handle SvelteKit's union type
 	const errors = $derived(
-		form?.errors as
-			| {
-					email?: string;
-					username?: string;
-					password?: string;
-					passwordConfirmation?: string;
-					form?: string;
-			  }
-			| undefined
+		form?.errors as { email?: string; password?: string; form?: string } | undefined
 	);
 </script>
 
@@ -30,14 +22,14 @@
 	>
 		<Card.Header class="space-y-1">
 			<Card.Title class="text-center text-3xl font-semibold tracking-tight">
-				Create your account
+				Welcome back
 			</Card.Title>
 			<Card.Description class="text-center text-muted-foreground">
-				Already have an account?
+				Don't have an account?
 				<a
-					href={resolve('/login' as '/')}
+					href={resolve('/signup' as '/')}
 					class="font-medium text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline"
-					>Sign in</a
+					>Sign up</a
 				>
 			</Card.Description>
 		</Card.Header>
@@ -63,51 +55,16 @@
 					</Field.Field>
 
 					<Field.Field>
-						<Field.Label>Username</Field.Label>
-						<Field.Content>
-							<Input
-								name="username"
-								type="text"
-								placeholder="username"
-								value={form?.data?.username || ''}
-								autocapitalize="none"
-								autocomplete="username"
-							/>
-							{#if errors?.username}
-								<Field.Error errors={[{ message: errors.username }]} />
-							{/if}
-						</Field.Content>
-					</Field.Field>
-
-					<Field.Field>
 						<Field.Label>Password</Field.Label>
 						<Field.Content>
 							<Input
 								name="password"
 								type="password"
 								placeholder="••••••••"
-								autocomplete="new-password"
+								autocomplete="current-password"
 							/>
-							<Field.Description>
-								At least 8 characters, 1 uppercase, 1 lowercase, 1 number
-							</Field.Description>
 							{#if errors?.password}
 								<Field.Error errors={[{ message: errors.password }]} />
-							{/if}
-						</Field.Content>
-					</Field.Field>
-
-					<Field.Field>
-						<Field.Label>Confirm Password</Field.Label>
-						<Field.Content>
-							<Input
-								name="passwordConfirmation"
-								type="password"
-								placeholder="••••••••"
-								autocomplete="new-password"
-							/>
-							{#if errors?.passwordConfirmation}
-								<Field.Error errors={[{ message: errors.passwordConfirmation }]} />
 							{/if}
 						</Field.Content>
 					</Field.Field>
@@ -124,7 +81,7 @@
 						type="submit"
 						class="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]"
 					>
-						Sign up
+						Sign in
 					</Button>
 				</Field.Group>
 			</form>

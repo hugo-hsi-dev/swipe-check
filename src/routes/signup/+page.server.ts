@@ -1,4 +1,5 @@
-import { fail, redirect } from '@sveltejs/kit';
+import type { RequestEvent } from '@sveltejs/kit';
+import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { encodeBase64url } from '@oslojs/encoding';
 import { db } from '$lib/server/db';
@@ -68,7 +69,7 @@ function validatePassword(password: string): string | null {
 }
 
 export const actions = {
-	default: async (event) => {
+	default: async (event: RequestEvent) => {
 		const formData = await event.request.formData();
 		const email = (formData.get('email') as string)?.trim() || '';
 		const username = (formData.get('username') as string)?.trim() || '';
@@ -116,7 +117,8 @@ export const actions = {
 				.limit(1);
 
 			if (existingEmail.length > 0) {
-				return fail(400, { errors: { email: 'Email already registered' } });
+				const errors: FieldErrors = { email: 'Email already registered' };
+				return fail(400, { errors, data: { email, username } });
 			}
 
 			// Normalize username to lowercase for case-insensitive comparison
@@ -130,7 +132,8 @@ export const actions = {
 				.limit(1);
 
 			if (existingUsername.length > 0) {
-				return fail(400, { errors: { username: 'Username already taken' } });
+				const errors: FieldErrors = { username: 'Username already taken' };
+				return fail(400, { errors, data: { email, username } });
 			}
 
 			// Hash password
@@ -154,19 +157,22 @@ export const actions = {
 			// Redirect to home
 			throw redirect(303, '/');
 		} catch (error) {
+			if (isRedirect(error)) {
+				throw error;
+			}
 			console.error('Signup error:', error);
 
 			// Handle unique constraint violations (race condition fallback)
 			const errorMessage = error instanceof Error ? error.message : '';
 			if (errorMessage.includes('unique') || errorMessage.includes('duplicate')) {
-				return fail(400, {
-					errors: { form: 'This email or username is already registered. Please try another.' }
-				});
+				const errors: FieldErrors = {
+					form: 'This email or username is already registered. Please try another.'
+				};
+				return fail(400, { errors, data: { email, username } });
 			}
 
-			return fail(500, {
-				errors: { form: 'An error occurred during signup. Please try again.' }
-			});
+			const errors: FieldErrors = { form: 'An error occurred during signup. Please try again.' };
+			return fail(500, { errors, data: { email, username } });
 		}
 	}
 };

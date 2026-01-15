@@ -42,7 +42,9 @@ test.describe('Sign-up Flow', () => {
 
 		const errorPattern = /required|empty|missing|blank/i;
 
-		await expect(page.locator('text=' + errorPattern.source).first()).toBeVisible();
+		await expect(
+			page.locator('[data-slot="field-error"]').filter({ hasText: errorPattern }).first()
+		).toBeVisible();
 
 		expect(page.url()).toContain('/signup');
 	});
