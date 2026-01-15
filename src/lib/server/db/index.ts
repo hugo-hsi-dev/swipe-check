@@ -1,10 +1,15 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from './schema';
-import { env } from '$env/dynamic/private';
+import { NODE_ENV } from '$env/static/private';
 
-if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
+export * from './schema';
 
-const client = postgres(env.DATABASE_URL);
+let db;
 
-export const db = drizzle(client, { schema });
+if (NODE_ENV === 'production') {
+	const { db: pgDb } = await import('./postgres');
+	db = pgDb;
+} else {
+	const { db: pgliteDb } = await import('./pglite');
+	db = pgliteDb;
+}
+
+export { db };
