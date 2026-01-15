@@ -19,9 +19,9 @@ const generateUniqueUser = () => {
 	};
 };
 
-test.describe('Sign-up Flow', () => {
+test.describe('Registration Flow', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/signup');
+		await page.goto('/register');
 	});
 
 	test('Successful Registration (Happy Path)', async ({ page }) => {
@@ -32,13 +32,13 @@ test.describe('Sign-up Flow', () => {
 		await page.locator('input[name="password"]').fill(user.password);
 		await page.locator('input[name="passwordConfirmation"]').fill(user.password);
 
-		await page.getByRole('button', { name: /sign up|submit|register/i }).click();
+		await page.getByRole('button', { name: /register|submit/i }).click();
 
 		await expect(page).toHaveURL('/');
 	});
 
 	test('Form Validation - Required Fields', async ({ page }) => {
-		await page.getByRole('button', { name: /sign up|submit|register/i }).click();
+		await page.getByRole('button', { name: /register|submit/i }).click();
 
 		const errorPattern = /required|empty|missing|blank/i;
 
@@ -46,12 +46,12 @@ test.describe('Sign-up Flow', () => {
 			page.locator('[data-slot="field-error"]').filter({ hasText: errorPattern }).first()
 		).toBeVisible();
 
-		expect(page.url()).toContain('/signup');
+		expect(page.url()).toContain('/register');
 	});
 
 	test('Form Validation - Invalid Email Format', async ({ page }) => {
 		await page.locator('input[name="email"]').fill('not-an-email');
-		await page.getByRole('button', { name: /sign up|submit|register/i }).click();
+		await page.getByRole('button', { name: /register|submit/i }).click();
 
 		await expect(page.locator('text=/invalid|format|email/i').first()).toBeVisible();
 	});
@@ -61,12 +61,12 @@ test.describe('Sign-up Flow', () => {
 
 		await page.locator('input[name="password"]').fill('123');
 		await page.locator('input[name="passwordConfirmation"]').fill('123');
-		await page.getByRole('button', { name: /sign up|submit|register/i }).click();
+		await page.getByRole('button', { name: /register|submit/i }).click();
 		await expect(page.locator('text=/short|length|at least/i').first()).toBeVisible();
 
 		await page.locator('input[name="password"]').fill(user.password);
 		await page.locator('input[name="passwordConfirmation"]').fill('MismatchedPass123!');
-		await page.getByRole('button', { name: /sign up|submit|register/i }).click();
+		await page.getByRole('button', { name: /register|submit/i }).click();
 		await expect(page.locator('text=/match|confirm/i').first()).toBeVisible();
 	});
 
@@ -81,7 +81,7 @@ test.describe('Sign-up Flow', () => {
 		await page.locator('input[name="password"]').fill(password);
 		await page.locator('input[name="passwordConfirmation"]').fill(password);
 
-		await page.getByRole('button', { name: /sign up|submit|register/i }).click();
+		await page.getByRole('button', { name: /register|submit/i }).click();
 
 		await expect(page).toHaveURL('/');
 	});
@@ -93,18 +93,18 @@ test.describe('Sign-up Flow', () => {
 		await page.locator('input[name="username"]').fill(user.username);
 		await page.locator('input[name="password"]').fill(user.password);
 		await page.locator('input[name="passwordConfirmation"]').fill(user.password);
-		await page.getByRole('button', { name: /sign up|submit|register/i }).click();
+		await page.getByRole('button', { name: /register|submit/i }).click();
 		await expect(page).toHaveURL('/');
 
 		const page2 = await context.newPage();
-		await page2.goto('/signup');
+		await page2.goto('/register');
 		await page2.locator('input[name="email"]').fill(user.email);
 		await page2.locator('input[name="username"]').fill(user.username + '_new');
 		await page2.locator('input[name="password"]').fill(user.password);
 		await page2.locator('input[name="passwordConfirmation"]').fill(user.password);
-		await page2.getByRole('button', { name: /sign up|submit|register/i }).click();
+		await page2.getByRole('button', { name: /register|submit/i }).click();
 
 		await expect(page2.locator('text=/already|exists|taken/i').first()).toBeVisible();
-		expect(page2.url()).toContain('/signup');
+		expect(page2.url()).toContain('/register');
 	});
 });

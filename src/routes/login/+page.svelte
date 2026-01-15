@@ -27,9 +27,9 @@
 			<Card.Description class="text-center text-muted-foreground">
 				Don't have an account?
 				<a
-					href={resolve('/signup' as '/')}
+					href={resolve('/register' as '/')}
 					class="font-medium text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline"
-					>Sign up</a
+					>Register</a
 				>
 			</Card.Description>
 		</Card.Header>
@@ -81,7 +81,7 @@
 						type="submit"
 						class="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]"
 					>
-						Sign in
+						Login
 					</Button>
 				</Field.Group>
 			</form>

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 const BASE_URL = 'http://localhost:4173';
 
 test('debug: check form submission', async ({ page }) => {
-	await page.goto(`${BASE_URL}/signup`);
+	await page.goto(`${BASE_URL}/register`);
 
 	// Fill form with invalid password
 	await page.fill('input[name="email"]', 'test@example.com');

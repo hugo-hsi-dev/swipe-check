@@ -37,7 +37,7 @@
 				<a
 					href={resolve('/login' as '/')}
 					class="font-medium text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline"
-					>Sign in</a
+					>Login</a
 				>
 			</Card.Description>
 		</Card.Header>
@@ -124,7 +124,7 @@
 						type="submit"
 						class="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]"
 					>
-						Sign up
+						Register
 					</Button>
 				</Field.Group>
 			</form>
