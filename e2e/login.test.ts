@@ -33,7 +33,7 @@ test.describe('Login Flow', () => {
 	test('Successful Login', async ({ page }) => {
 		await page.locator('input[name="email"]').fill(user.email);
 		await page.locator('input[name="password"]').fill(user.password);
-		await page.getByRole('button', { name: /log in|sign in/i }).click();
+		await page.getByRole('button', { name: /log in|sign in|login/i }).click();
 
 		await expect(page).toHaveURL('/');
 	});
@@ -41,14 +41,14 @@ test.describe('Login Flow', () => {
 	test('Invalid Credentials', async ({ page }) => {
 		await page.locator('input[name="email"]').fill(user.email);
 		await page.locator('input[name="password"]').fill('WrongPassword123!');
-		await page.getByRole('button', { name: /log in|sign in/i }).click();
+		await page.getByRole('button', { name: /log in|sign in|login/i }).click();
 
 		await expect(page.locator('text=/invalid|failed|incorrect/i').first()).toBeVisible();
 		expect(page.url()).toContain('/login');
 	});
 
 	test('Form Validation', async ({ page }) => {
-		await page.getByRole('button', { name: /log in|sign in/i }).click();
+		await page.getByRole('button', { name: /log in|sign in|login/i }).click();
 
 		await expect(page.locator('text=/required/i').first()).toBeVisible();
 	});
@@ -56,7 +56,7 @@ test.describe('Login Flow', () => {
 	test('Logout', async ({ page }) => {
 		await page.locator('input[name="email"]').fill(user.email);
 		await page.locator('input[name="password"]').fill(user.password);
-		await page.getByRole('button', { name: /log in|sign in/i }).click();
+		await page.getByRole('button', { name: /log in|sign in|login/i }).click();
 		await expect(page).toHaveURL('/');
 
 		await page.evaluate(() => {

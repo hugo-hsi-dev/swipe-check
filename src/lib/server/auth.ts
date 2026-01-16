@@ -7,6 +7,8 @@ import { verifyPassword, hashPassword } from '$lib/server/password';
 import type { RequestEvent } from '@sveltejs/kit';
 import type { AuthResult, SessionValidationResult } from './auth-types';
 
+export type { AuthResult, SessionValidationResult };
+
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
 export const sessionCookieName = 'auth-session';
@@ -27,17 +29,18 @@ export class AuthService {
 			await this.database.insert(table.user).values({
 				id: userId,
 				email: data.email.toLowerCase(),
-				username: data.username,
+				username: data.username.toLowerCase(),
 				passwordHash: passwordHash
 			});
 
 			return { success: true, data: { userId } };
-		} catch (error: any) {
-			if (error?.message?.includes('unique') || error?.message?.includes('duplicate')) {
-				if (error.message.includes('email')) {
+		} catch (error) {
+			const message = error instanceof Error ? error.message : '';
+			if (message.includes('unique') || message.includes('duplicate')) {
+				if (message.includes('email')) {
 					return { success: false, error: 'Email already exists' };
 				}
-				if (error.message.includes('username')) {
+				if (message.includes('username')) {
 					return { success: false, error: 'Username already exists' };
 				}
 				return { success: false, error: 'User already exists' };
