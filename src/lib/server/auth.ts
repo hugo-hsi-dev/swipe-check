@@ -7,6 +7,8 @@ import { verifyPassword, hashPassword } from '$lib/server/password';
 import type { RequestEvent } from '@sveltejs/kit';
 import type { AuthResult, SessionValidationResult } from './auth-types';
 
+export type { AuthResult, SessionValidationResult };
+
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
 export const sessionCookieName = 'auth-session';
@@ -27,7 +29,7 @@ export class AuthService {
 			await this.database.insert(table.user).values({
 				id: userId,
 				email: data.email.toLowerCase(),
-				username: data.username,
+				username: data.username.toLowerCase(),
 				passwordHash: passwordHash
 			});
 

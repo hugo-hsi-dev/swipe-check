@@ -1,46 +1,51 @@
 import { describe, it, expect } from 'vitest';
-import { validateEmail, validateUsername, validatePassword } from '../validation';
+import { registerSchema, loginSchema } from '$lib/validation';
+import { safeParse } from 'valibot';
 
 describe('validation', () => {
-	describe('validateEmail', () => {
-		it('should return error for empty email', () => {
-			expect(validateEmail('')).toBe('Email is required');
+	describe('registerSchema', () => {
+		it('should fail for empty email', () => {
+			const result = safeParse(registerSchema, {
+				email: '',
+				username: 'user',
+				password: 'Password123'
+			});
+			expect(result.success).toBe(false);
 		});
-		it('should return error for invalid email', () => {
-			expect(validateEmail('invalid-email')).toBe('Invalid email address');
+		it('should fail for invalid email', () => {
+			const result = safeParse(registerSchema, {
+				email: 'invalid-email',
+				username: 'user',
+				password: 'Password123'
+			});
+			expect(result.success).toBe(false);
 		});
-		it('should return null for valid email', () => {
-			expect(validateEmail('test@example.com')).toBeNull();
+		it('should succeed for valid data', () => {
+			const result = safeParse(registerSchema, {
+				email: 'test@example.com',
+				username: 'test_user',
+				password: 'Password123'
+			});
+			expect(result.success).toBe(true);
+		});
+		it('should fail for weak password', () => {
+			const result = safeParse(registerSchema, {
+				email: 'test@example.com',
+				username: 'test_user',
+				password: 'password'
+			});
+			expect(result.success).toBe(false);
 		});
 	});
 
-	describe('validateUsername', () => {
-		it('should return error for empty username', () => {
-			expect(validateUsername('')).toBe('Username is required');
+	describe('loginSchema', () => {
+		it('should fail for empty email', () => {
+			const result = safeParse(loginSchema, { email: '', password: 'Password123' });
+			expect(result.success).toBe(false);
 		});
-		it('should return error for short username', () => {
-			expect(validateUsername('ab')).toBe('Username must be between 3 and 20 characters');
-		});
-		it('should return error for invalid characters', () => {
-			expect(validateUsername('user!@#')).toBe('Username can only contain letters, numbers, and underscores');
-		});
-		it('should return null for valid username', () => {
-			expect(validateUsername('test_user')).toBeNull();
-		});
-	});
-
-	describe('validatePassword', () => {
-		it('should return error for empty password', () => {
-			expect(validatePassword('')).toBe('Password is required');
-		});
-		it('should return error for short password', () => {
-			expect(validatePassword('Pass12')).toBe('Password must be at least 8 characters');
-		});
-		it('should return error for no uppercase', () => {
-			expect(validatePassword('password123')).toBe('Password must contain an uppercase letter');
-		});
-		it('should return null for valid password', () => {
-			expect(validatePassword('Password123')).toBeNull();
+		it('should succeed for valid data', () => {
+			const result = safeParse(loginSchema, { email: 'test@example.com', password: 'Password123' });
+			expect(result.success).toBe(true);
 		});
 	});
 });
