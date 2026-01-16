@@ -98,6 +98,19 @@ test.describe('Registration Flow', () => {
 
 		const page2 = await context.newPage();
 		await page2.goto('/register');
+
+		if (page2.url().endsWith('/app')) {
+			await page2.evaluate(() => {
+				const form = document.createElement('form');
+				form.method = 'POST';
+				form.action = '/logout';
+				document.body.appendChild(form);
+				form.submit();
+			});
+			await page2.waitForURL('/login');
+			await page2.goto('/register');
+		}
+
 		await page2.locator('input[name="email"]').fill(user.email);
 		await page2.locator('input[name="username"]').fill(user.username + '_new');
 		await page2.locator('input[name="password"]').fill(user.password);
