@@ -7,5 +7,5 @@ export const db = drizzle(pgliteInstance, { schema });
 
 // Apply schema to database on startup
 const { pushSchema } = await import('drizzle-kit/api');
-const { apply } = await pushSchema(schema, db);
+const { apply } = await pushSchema(schema, db as any);
 await apply();

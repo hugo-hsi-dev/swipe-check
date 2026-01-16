@@ -35,11 +35,12 @@ export class AuthService {
 
 			return { success: true, data: { userId } };
 		} catch (error) {
-			if (error instanceof Error && error.message.includes('unique') || error?.message?.includes('duplicate')) {
-				if (error.message.includes('email')) {
+			const message = error instanceof Error ? error.message : '';
+			if (message.includes('unique') || message.includes('duplicate')) {
+				if (message.includes('email')) {
 					return { success: false, error: 'Email already exists' };
 				}
-				if (error.message.includes('username')) {
+				if (message.includes('username')) {
 					return { success: false, error: 'Username already exists' };
 				}
 				return { success: false, error: 'User already exists' };
