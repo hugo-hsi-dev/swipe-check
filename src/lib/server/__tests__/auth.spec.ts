@@ -34,6 +34,7 @@ describe('AuthService', () => {
 			await authService.register(data);
 
 			expect(db.insert).toHaveBeenCalledWith(table.user);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			expect((db as any).values).toHaveBeenCalledWith(
 				expect.objectContaining({
 					email: 'test@example.com',
