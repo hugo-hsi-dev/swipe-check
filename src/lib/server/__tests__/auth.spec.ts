@@ -34,7 +34,7 @@ describe('AuthService', () => {
 			await authService.register(data);
 
 			expect(db.insert).toHaveBeenCalledWith(table.user);
-			expect((db as any).values).toHaveBeenCalledWith(
+			expect((db).values).toHaveBeenCalledWith(
 				expect.objectContaining({
 					email: 'test@example.com',
 					username: 'testuser',

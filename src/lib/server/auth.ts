@@ -34,8 +34,8 @@ export class AuthService {
 			});
 
 			return { success: true, data: { userId } };
-		} catch (error: any) {
-			if (error?.message?.includes('unique') || error?.message?.includes('duplicate')) {
+		} catch (error) {
+			if (error instanceof Error && error.message.includes('unique') || error?.message?.includes('duplicate')) {
 				if (error.message.includes('email')) {
 					return { success: false, error: 'Email already exists' };
 				}
