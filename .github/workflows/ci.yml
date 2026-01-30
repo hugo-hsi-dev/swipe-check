@@ -19,8 +19,6 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgres://root:mysecretpassword@localhost:5432/dev
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -35,8 +33,6 @@ jobs:
 
   format:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgres://root:mysecretpassword@localhost:5432/dev
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -51,8 +47,6 @@ jobs:
 
   test-unit:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgres://root:mysecretpassword@localhost:5432/dev
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -100,7 +94,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgres://root:mysecretpassword@localhost:5432/dev
+      DATABASE_URL: DUMMY-URL
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
