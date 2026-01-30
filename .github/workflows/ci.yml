@@ -17,6 +17,21 @@ permissions:
   contents: read
 
 jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run format:check
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -32,8 +47,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint:check
 
-  format:
-    name: Format
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +60,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run format:check
+      - run: pnpm run check
 
   test-unit:
     name: Unit Tests
