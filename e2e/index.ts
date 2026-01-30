@@ -1,3 +1,5 @@
+/* eslint-disable no-empty-pattern */
+
 import { test as base } from '@playwright/test';
 import { db } from '../src/lib/server/db';
 import { reset, seed } from 'drizzle-seed';
