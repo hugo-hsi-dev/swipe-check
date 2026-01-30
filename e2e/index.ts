@@ -5,14 +5,14 @@ import * as schema from '../src/lib/server/db/schema';
 
 export const test = base.extend<{ db: typeof db; schema: typeof schema }>({
 	db: [
-		async (_, use) => {
+		async ({}, use) => {
 			await seed(db as never, schema);
 			await use(db);
 			await reset(db as never, schema);
 		},
 		{ auto: true }
 	],
-	schema: async (_, use) => {
+	schema: async ({}, use) => {
 		await use(schema);
 	}
 });
