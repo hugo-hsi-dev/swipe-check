@@ -43,8 +43,6 @@ pnpm db:studio              # Open Drizzle Studio
 - Never use `any` type without a good reason.
   - Explicitly ask the user for permission before using `any`
 
-
-
 ### Naming Conventions
 
 - Functions/variables: camelCase
@@ -52,14 +50,10 @@ pnpm db:studio              # Open Drizzle Studio
 - Database tables: lowercase singular (e.g., `user`, `post`)
 - Files: kebab-case for all filenames (e.g., `user-card.svelte`, `format-date.ts`, `database-client.ts`)
 
-
-
-
 ### Key Directories
 
 - `src/routes/` - SvelteKit routes
 - `src/lib/` - Shared components and utilities
-- `src/lib/server/` - Server-only code (DB, API)
 - `e2e/` - Playwright end-to-end tests
 
 ## Environment Variables
