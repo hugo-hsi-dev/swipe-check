@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+
 import { test } from '.';
 
 test('home page has expected h1', async ({ page }) => {

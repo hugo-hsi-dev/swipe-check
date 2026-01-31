@@ -1,5 +1,5 @@
-import { mdsvex } from 'mdsvex';
 import adapter from '@sveltejs/adapter-node';
+import { mdsvex } from 'mdsvex';
 import dotenv from 'dotenv';
 
 // Inject env variables
@@ -8,14 +8,14 @@ dotenv.config({ path: '.env' });
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	kit: { adapter: adapter(), experimental: { remoteFunctions: true } },
+	kit: { experimental: { remoteFunctions: true }, adapter: adapter() },
 	compilerOptions: {
 		experimental: {
 			async: true
 		}
 	},
-	preprocess: [mdsvex()],
-	extensions: ['.svelte', '.svx']
+	extensions: ['.svelte', '.svx'],
+	preprocess: [mdsvex()]
 };
 
 export default config;
