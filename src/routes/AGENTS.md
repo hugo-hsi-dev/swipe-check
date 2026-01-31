@@ -1,4 +1,4 @@
-This directory is used for routing in sveltekit. 
+This directory is used for routing in sveltekit.
 
 - NEVER make changes to `./layout.css`
 - NEVER use load or form actions
@@ -7,7 +7,8 @@ This directory is used for routing in sveltekit.
     - load -> query
     - form action -> command/form
 
-### Testing 
+### Testing
+
 - Every route needs to be accompanied with a `page.svelte.spec.ts` which will run some basic route-related tests.
   - tests do not need to be extensive. Heavy functionality tests should be tested with e2e tests that test entire user journeys.
-  - Do not use *.test.ts naming pattern for testing route components
+  - Do not use \*.test.ts naming pattern for testing route components

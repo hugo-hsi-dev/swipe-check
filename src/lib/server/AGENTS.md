@@ -4,6 +4,7 @@ All code in this directory is server-only and can only be imported by:
 - Remote functions
 
 ### Error Handling
+
 - Error handling on the server should be absolutely minimal.
 - DO NOT randomly put try catch around everything that could throw
   - Let errors go uncaught if they are unexpected, for example database errors.
