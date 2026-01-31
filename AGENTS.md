@@ -1,23 +1,71 @@
-You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
+# AGENTS.md
 
-## Available MCP Tools:
+This document provides guidelines for AI agents working in this repository.
 
-### 1. list-sections
+## Project Overview
 
-Use this FIRST to discover all available documentation sections. Returns a structured list with titles, use_cases, and paths.
-When asked about Svelte or SvelteKit topics, ALWAYS use this tool at the start of the chat to find relevant sections.
+This is a SvelteKit application using Svelte 5, TypeScript, PostgreSQL with Drizzle ORM, Tailwind CSS, and Vitest for testing. Uses pnpm as package manager.
 
-### 2. get-documentation
+## Build/Lint/Test Commands
 
-Retrieves full documentation content for specific sections. Accepts single or multiple sections.
-After calling the list-sections tool, you MUST analyze the returned documentation sections (especially the use_cases field) and then use the get-documentation tool to fetch ALL documentation sections that are relevant for the user's task.
+```bash
+# Development
+pnpm dev                    # Start dev server
+pnpm build                  # Production build
+pnpm preview                # Preview production build
 
-### 3. svelte-autofixer
+# Code quality
+pnpm check                  # Type-check with svelte-check
+pnpm lint                   # ESLint with auto-fix
+pnpm lint:check             # ESLint without fixing
+pnpm format                 # Prettier format with write
+pnpm format:check           # Prettier format check only
 
-Analyzes Svelte code and returns issues and suggestions.
-You MUST use this tool whenever writing Svelte code before sending it to the user. Keep calling it until no issues or suggestions are returned.
+# Testing (single test)
+pnpm test:unit -- src/path/to/file.spec.ts    # Run single test file
+pnpm test:unit -- --run --reporter=verbose     # Run all tests with verbose output
+pnpm test:e2e                                 # Run Playwright E2E tests
+pnpm test                                     # Run both unit and E2E tests
 
-### 4. playground-link
+# Database
+pnpm db:start               # Start PostgreSQL via Docker
+pnpm db:push                # Push schema changes to database
+pnpm db:generate            # Generate Drizzle migrations
+pnpm db:migrate             # Run Drizzle migrations
+pnpm db:studio              # Open Drizzle Studio
+```
 
-Generates a Svelte Playground link with the provided code.
-After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+## Code Style Guidelines
+
+### TypeScript
+
+- Use TypeScript for all new code
+- Never use `any` type without a good reason.
+  - Explicitly ask the user for permission before using `any`
+
+
+
+### Naming Conventions
+
+- Functions/variables: camelCase
+- Constants: UPPER_SNAKE_CASE for true constants
+- Database tables: lowercase singular (e.g., `user`, `post`)
+- Files: kebab-case for all filenames (e.g., `user-card.svelte`, `format-date.ts`, `database-client.ts`)
+
+
+
+
+### Key Directories
+
+- `src/routes/` - SvelteKit routes
+- `src/lib/` - Shared components and utilities
+- `src/lib/server/` - Server-only code (DB, API)
+- `e2e/` - Playwright end-to-end tests
+
+## Environment Variables
+
+Required env vars (see `.env.example`):
+
+- `DATABASE_URL` - PostgreSQL connection string
+
+Test env in `.env.test` overrides for E2E tests.
