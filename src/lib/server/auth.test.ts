@@ -14,7 +14,7 @@ describe('auth', () => {
 		expect(typeof auth.api.getSession).toBe('function');
 	});
 
-	it('should have handlers property', () => {
-		expect(auth.handlers).toBeDefined();
+	it('should have options property', () => {
+		expect(auth.options).toBeDefined();
 	});
 });
