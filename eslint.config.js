@@ -14,7 +14,7 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
 export default defineConfig(
 	{
-		ignores: ['src/lib/components/ui/**', 'src/lib/hooks/**']
+		ignores: ['src/lib/components/ui/**', 'src/lib/hooks/**', 'src/lib/server/db/auth.schema.ts']
 	},
 	includeIgnoreFile(gitignorePath),
 	js.configs.recommended,
