@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { User } from 'better-auth';
-import getUserHandler from './get-user.handler';
+
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getRequestEvent } from '$app/server';
+
+import getUserHandler from './get-user.handler';
 
 vi.mock('$app/server', () => ({
 	getRequestEvent: vi.fn()
@@ -9,13 +11,13 @@ vi.mock('$app/server', () => ({
 
 describe('getUserHandler', () => {
 	const mockUser: User = {
-		id: 'user-123',
 		email: 'test@example.com',
-		name: 'Test User',
-		image: null,
-		emailVerified: true,
 		createdAt: new Date(),
-		updatedAt: new Date()
+		updatedAt: new Date(),
+		emailVerified: true,
+		name: 'Test User',
+		id: 'user-123',
+		image: null
 	};
 
 	beforeEach(() => {
@@ -24,10 +26,8 @@ describe('getUserHandler', () => {
 
 	it('should return user from locals when user exists', async () => {
 		vi.mocked(getRequestEvent).mockReturnValue({
-			locals: {
-				user: mockUser
-			}
-		} as any);
+			locals: { user: mockUser }
+		} as unknown as ReturnType<typeof getRequestEvent>);
 
 		const result = await getUserHandler();
 
@@ -36,9 +36,9 @@ describe('getUserHandler', () => {
 	});
 
 	it('should return null when locals.user does not exist', async () => {
-		vi.mocked(getRequestEvent).mockReturnValue({
-			locals: {}
-		} as any);
+		vi.mocked(getRequestEvent).mockReturnValue({ locals: {} } as unknown as ReturnType<
+			typeof getRequestEvent
+		>);
 
 		const result = await getUserHandler();
 
@@ -47,7 +47,9 @@ describe('getUserHandler', () => {
 	});
 
 	it('should return null when locals is undefined', async () => {
-		vi.mocked(getRequestEvent).mockReturnValue({} as any);
+		vi.mocked(getRequestEvent).mockReturnValue({ locals: {} } as unknown as ReturnType<
+			typeof getRequestEvent
+		>);
 
 		const result = await getUserHandler();
 

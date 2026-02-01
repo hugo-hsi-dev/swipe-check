@@ -1,5 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { User } from 'better-auth';
+
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import validateUserHandler from './validate-user.handler';
 
 const mockGetUser = vi.fn();
@@ -8,23 +10,27 @@ vi.mock('$lib/features/auth/remotes/get-user/get-user.remote', () => ({
 	getUser: () => mockGetUser()
 }));
 
+interface HttpError extends Error {
+	status: number;
+}
+
 vi.mock('@sveltejs/kit', () => ({
 	error: vi.fn((status: number, message: string) => {
-		const err = new Error(message);
-		(err as any).status = status;
+		const err = new Error(message) as HttpError;
+		err.status = status;
 		throw err;
 	})
 }));
 
 describe('validateUserHandler', () => {
 	const mockUser: User = {
-		id: 'user-123',
 		email: 'test@example.com',
-		name: 'Test User',
-		image: null,
-		emailVerified: true,
 		createdAt: new Date(),
-		updatedAt: new Date()
+		updatedAt: new Date(),
+		emailVerified: true,
+		name: 'Test User',
+		id: 'user-123',
+		image: null
 	};
 
 	beforeEach(() => {
