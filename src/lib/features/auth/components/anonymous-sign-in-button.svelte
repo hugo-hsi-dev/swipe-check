@@ -34,7 +34,7 @@
 	aria-label="Sign in anonymously"
 >
 	{#if isLoading}
-		<span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+		<span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
 		<span>Signing in...</span>
 	{:else}
 		<span>Continue as Guest</span>
