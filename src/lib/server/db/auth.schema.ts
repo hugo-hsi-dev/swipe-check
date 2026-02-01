@@ -1,9 +1,9 @@
 import { timestamp, pgTable, integer, boolean, text } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
-	emailVerified: boolean('emailVerified').notNull(),
-	createdAt: timestamp('createdAt').notNull(),
-	updatedAt: timestamp('updatedAt').notNull(),
+	emailVerified: boolean('emailVerified').notNull().default(false),
+	createdAt: timestamp('createdAt').notNull().defaultNow(),
+	updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 	email: text('email').notNull().unique(),
 	isAnonymous: boolean('isAnonymous'),
 	name: text('name').notNull(),
@@ -16,6 +16,7 @@ export const session = pgTable('session', {
 		.notNull()
 		.references(() => user.id),
 	expiresAt: timestamp('expiresAt').notNull(),
+	createdAt: timestamp('createdAt').notNull().defaultNow(),
 	ipAddress: text('ipAddress'),
 	userAgent: text('userAgent'),
 	id: text('id').primaryKey()
