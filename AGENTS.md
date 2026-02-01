@@ -60,6 +60,6 @@ pnpm db:studio              # Open Drizzle Studio
 
 Required env vars (see `.env.example`):
 
-- `DATABASE_URL` - PostgreSQL connection string
-
-Test env in `.env.test` overrides for E2E tests.
+- DATABASE_URL - PostgreSQL connection string
+- BETTER_AUTH_SECRET - Better Auth secret key (minimum 32 characters)
+- BETTER_AUTH_URL - Better Auth URL (e.g., http://localhost:5173)
