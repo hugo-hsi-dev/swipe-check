@@ -9,5 +9,6 @@ export default defineConfig({
 		timeout: 300000,
 		port: 4173
 	},
-	testDir: 'e2e'
+	testDir: 'e2e',
+	workers: 1
 });
