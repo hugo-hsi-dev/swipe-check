@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 // Inject env variables
 // Only for db client testing purposes
-dotenv.config({ path: '.env' });
+dotenv.config({ path: '.env', quiet: true });
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

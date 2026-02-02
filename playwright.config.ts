@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: ['.env.test', '.env'] });
+dotenv.config({ path: ['.env.test', '.env'], quiet: true });
 
 export default defineConfig({
 	webServer: {
