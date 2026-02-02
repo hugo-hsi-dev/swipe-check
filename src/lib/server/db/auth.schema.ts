@@ -1,4 +1,4 @@
-import { timestamp, pgTable, integer, boolean, text } from 'drizzle-orm/pg-core';
+import { timestamp, pgTable, boolean, text } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
 	emailVerified: boolean('emailVerified').notNull(),
