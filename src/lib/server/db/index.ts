@@ -12,3 +12,4 @@ const schema = { ...authSchema, ...appSchema };
 const relations = defineRelations(schema, () => ({}));
 
 export const db = drizzle({ casing: 'snake_case', relations, client });
+export { schema };
