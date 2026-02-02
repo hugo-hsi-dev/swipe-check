@@ -1,46 +1,74 @@
-import { timestamp, pgTable, boolean, text } from 'drizzle-orm/pg-core';
+import { index, pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
-	emailVerified: boolean('emailVerified').notNull(),
-	createdAt: timestamp('createdAt').notNull(),
-	updatedAt: timestamp('updatedAt').notNull(),
-	email: text('email').notNull().unique(),
-	isAnonymous: boolean('isAnonymous'),
-	name: text('name').notNull(),
-	id: text('id').primaryKey(),
-	image: text('image')
-});
-
-export const session = pgTable('session', {
-	userId: text('userId')
+	emailVerified: boolean().notNull().default(false),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
 		.notNull()
-		.references(() => user.id),
-	expiresAt: timestamp('expiresAt').notNull(),
-	ipAddress: text('ipAddress'),
-	userAgent: text('userAgent'),
-	id: text('id').primaryKey(),
-	token: text('token').notNull().unique(),
-	createdAt: timestamp('createdAt').notNull(),
-	updatedAt: timestamp('updatedAt').notNull()
+		.$onUpdate(() => new Date())
+		.defaultNow(),
+	email: text().notNull().unique(),
+	isAnonymous: boolean().default(false),
+	name: text().notNull(),
+	id: text().primaryKey(),
+	image: text()
 });
 
-export const account = pgTable('account', {
-	userId: text('userId')
-		.notNull()
-		.references(() => user.id),
-	providerId: text('providerId').notNull(),
-	accountId: text('accountId').notNull(),
-	refreshToken: text('refreshToken'),
-	expiresAt: timestamp('expiresAt'),
-	accessToken: text('accessToken'),
-	id: text('id').primaryKey(),
-	password: text('password'),
-	idToken: text('idToken')
-});
+export const session = pgTable(
+	'session',
+	{
+		userId: text()
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		expiresAt: timestamp().notNull(),
+		ipAddress: text(),
+		userAgent: text(),
+		id: text().primaryKey(),
+		token: text().notNull().unique(),
+		createdAt: timestamp().notNull().defaultNow(),
+		updatedAt: timestamp()
+			.notNull()
+			.$onUpdate(() => new Date())
+			.defaultNow()
+	},
+	(table) => [index('session_user_id_idx').on(table.userId)]
+);
 
-export const verification = pgTable('verification', {
-	expiresAt: timestamp('expiresAt').notNull(),
-	identifier: text('identifier').notNull(),
-	value: text('value').notNull(),
-	id: text('id').primaryKey()
-});
+export const account = pgTable(
+	'account',
+	{
+		userId: text()
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		providerId: text().notNull(),
+		accountId: text().notNull(),
+		refreshToken: text(),
+		expiresAt: timestamp(),
+		accessToken: text(),
+		id: text().primaryKey(),
+		password: text(),
+		idToken: text(),
+		createdAt: timestamp().notNull().defaultNow(),
+		updatedAt: timestamp()
+			.notNull()
+			.$onUpdate(() => new Date())
+			.defaultNow()
+	},
+	(table) => [index('account_user_id_idx').on(table.userId)]
+);
+
+export const verification = pgTable(
+	'verification',
+	{
+		expiresAt: timestamp().notNull(),
+		identifier: text().notNull(),
+		value: text().notNull(),
+		id: text().primaryKey(),
+		createdAt: timestamp().notNull().defaultNow(),
+		updatedAt: timestamp()
+			.notNull()
+			.$onUpdate(() => new Date())
+			.defaultNow()
+	},
+	(table) => [index('verification_identifier_idx').on(table.identifier)]
+);
