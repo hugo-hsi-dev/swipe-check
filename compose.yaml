@@ -1,5 +1,5 @@
 services:
-  db-dev:
+  db:
     image: postgres
     restart: always
     ports:
@@ -7,20 +7,8 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: dev
+      POSTGRES_DB: local
     volumes:
-      - pgdata-dev:/var/lib/postgresql
-  db-test:
-    image: postgres
-    restart: always
-    ports:
-      - 5433:5432
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: test
-    volumes:
-      - pgdata-test:/var/lib/postgresql
+      - pgdata:/var/lib/postgresql
 volumes:
-  pgdata-dev:
-  pgdata-test:
+  pgdata:
