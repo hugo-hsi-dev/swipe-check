@@ -2,17 +2,22 @@ name: CI
 
 on:
   push:
-    branches: ['**']
+    branches:
+      - main
   pull_request:
-    types: [opened, synchronize, reopened]
+
+env:
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   format:
-    if: github.event_name == 'pull_request'
     name: Format
     runs-on: ubuntu-latest
     steps:
@@ -28,7 +33,6 @@ jobs:
       - run: pnpm run format:check
 
   lint:
-    if: github.event_name == 'pull_request'
     name: Lint
     runs-on: ubuntu-latest
     steps:
@@ -44,7 +48,6 @@ jobs:
       - run: pnpm run lint:check
 
   check:
-    if: github.event_name == 'pull_request'
     name: Check
     runs-on: ubuntu-latest
     steps:
@@ -59,24 +62,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
 
-  build:
-    if: github.event_name == 'pull_request'
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: latest
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run build
-
-  unit-tests:
-    if: github.event_name == 'pull_request'
+  test-unit:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
@@ -89,26 +75,26 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm playwright install chromium
       - run: pnpm run test:unit
 
-  e2e-tests:
-    if: github.event_name == 'pull_request'
+  test-e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: mysecretpassword
+          POSTGRES_DB: test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 5433:5432
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -119,18 +105,24 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Set environment variables
-        run: |
-          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> $GITHUB_ENV
-          echo "ORIGIN=http://localhost:4173" >> $GITHUB_ENV
-          echo "BETTER_AUTH_SECRET=test-secret-for-ci-environment" >> $GITHUB_ENV
-      - name: Push database schema
-        run: pnpm run db:push
+      - run: pnpm playwright install chromium
+      - run: pnpm run test:e2e
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-      - name: Run E2E tests
-        run: pnpm run test:e2e
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-          ORIGIN: http://localhost:4173
-          BETTER_AUTH_SECRET: test-secret-for-ci-environment
+          DATABASE_URL: postgres://root:mysecretpassword@localhost:5433/test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: DUMMY-URL
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
