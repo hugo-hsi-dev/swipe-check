@@ -24,11 +24,11 @@ const socialSchema = z.object({
 export const signOut = command(async () => {
 	try {
 		await auth.api.signOut({ headers: {} });
+		return redirect(302, '/demo/better-auth/login');
 	} catch (error) {
 		if (isRedirect(error)) throw error;
 		throw error;
 	}
-	return redirect(302, '/demo/better-auth/login');
 });
 
 export const getCurrentUser = query(async () => {
