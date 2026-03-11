@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   format:
+    if: github.event_name == 'pull_request'
     name: Format
     runs-on: ubuntu-latest
     steps:
@@ -27,6 +28,7 @@ jobs:
       - run: pnpm run format:check
 
   lint:
+    if: github.event_name == 'pull_request'
     name: Lint
     runs-on: ubuntu-latest
     steps:
@@ -42,6 +44,7 @@ jobs:
       - run: pnpm run lint:check
 
   check:
+    if: github.event_name == 'pull_request'
     name: Check
     runs-on: ubuntu-latest
     steps:
@@ -57,6 +60,7 @@ jobs:
       - run: pnpm run check
 
   build:
+    if: github.event_name == 'pull_request'
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -72,6 +76,7 @@ jobs:
       - run: pnpm run build
 
   unit-tests:
+    if: github.event_name == 'pull_request'
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
@@ -87,6 +92,7 @@ jobs:
       - run: pnpm run test:unit
 
   e2e-tests:
+    if: github.event_name == 'pull_request'
     name: E2E Tests
     runs-on: ubuntu-latest
     services:
