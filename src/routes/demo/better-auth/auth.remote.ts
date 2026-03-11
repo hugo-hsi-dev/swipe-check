@@ -5,6 +5,16 @@ import { z } from 'zod';
 import { auth } from '$lib/server/auth';
 import { APIError } from 'better-auth/api';
 
+const signInSchema = z.object({
+	email: z.string().email(),
+	_password: z.string().min(1)
+});
+
+const socialSchema = z.object({
+	provider: z.enum(['github']),
+	callbackURL: z.string().optional()
+});
+
 export const signOut = command(async () => {
 	try {
 		await auth.api.signOut({ headers: {} });
@@ -17,11 +27,6 @@ export const signOut = command(async () => {
 export const getCurrentUser = query(async () => {
 	const event = getRequestEvent();
 	return event?.locals.user ?? null;
-});
-
-const signInSchema = z.object({
-	email: z.string().email(),
-	_password: z.string().min(1)
 });
 
 export const signInEmail = form(signInSchema, async ({ email, _password }, issue) => {
@@ -47,6 +52,21 @@ export const signInEmail = form(signInSchema, async ({ email, _password }, issue
 			}
 			return invalid({ message: error.message || 'Sign in failed' });
 		}
+		throw error;
+	}
+});
+
+export const signInSocial = command(socialSchema, async ({ provider, callbackURL }) => {
+	try {
+		const result = await auth.api.signInSocial({
+			body: {
+				provider,
+				callbackURL: callbackURL ?? '/demo/better-auth'
+			}
+		});
+		return result.url;
+	} catch (error) {
+		if (isRedirect(error)) throw error;
 		throw error;
 	}
 });
