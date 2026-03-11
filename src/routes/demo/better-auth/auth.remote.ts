@@ -1,4 +1,4 @@
-import { query, form } from '$app/server';
+import { command, query, form } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { redirect, isRedirect, invalid } from '@sveltejs/kit';
 import { z } from 'zod';
@@ -14,6 +14,20 @@ const signUpSchema = z.object({
 	email: z.string().email(),
 	_password: z.string().min(1),
 	name: z.string().min(1)
+});
+
+const socialSchema = z.object({
+	provider: z.enum(['github']),
+	callbackURL: z.string().optional()
+});
+
+export const signOut = command(async () => {
+	try {
+		await auth.api.signOut({ headers: {} });
+	} catch (error) {
+		if (isRedirect(error)) throw error;
+		throw error;
+	}
 });
 
 export const getCurrentUser = query(async () => {
@@ -81,6 +95,21 @@ export const signUpEmail = form(signUpSchema, async ({ email, _password, name },
 			}
 			return invalid({ message: error.message || 'Registration failed' });
 		}
+		throw error;
+	}
+});
+
+export const signInSocial = command(socialSchema, async ({ provider, callbackURL }) => {
+	try {
+		const result = await auth.api.signInSocial({
+			body: {
+				provider,
+				callbackURL: callbackURL ?? '/demo/better-auth'
+			}
+		});
+		return result.url;
+	} catch (error) {
+		if (isRedirect(error)) throw error;
 		throw error;
 	}
 });
