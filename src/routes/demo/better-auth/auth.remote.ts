@@ -1,7 +1,7 @@
 import { query } from '$app/server';
-import { auth } from '$lib/server/auth';
+import { getRequestEvent } from '$app/server';
 
 export const getCurrentUser = query(async () => {
-	const session = await auth.api.getSession({ headers: {} });
-	return session?.user ?? null;
+	const event = getRequestEvent();
+	return event?.locals.user ?? null;
 });
