@@ -1,4 +1,4 @@
-import { query, form } from '$app/server';
+import { query, form, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { redirect, isRedirect, invalid } from '@sveltejs/kit';
 import { z } from 'zod';
@@ -8,6 +8,11 @@ import { APIError } from 'better-auth/api';
 const signInSchema = z.object({
 	email: z.string().email(),
 	_password: z.string().min(1)
+});
+
+const socialSchema = z.object({
+	provider: z.enum(['github']),
+	callbackURL: z.string().optional()
 });
 
 export const getCurrentUser = query(async () => {
@@ -38,6 +43,21 @@ export const signInEmail = form(signInSchema, async ({ email, _password }, issue
 			}
 			return invalid({ message: error.message || 'Sign in failed' });
 		}
+		throw error;
+	}
+});
+
+export const signInSocial = command(socialSchema, async ({ provider, callbackURL }) => {
+	try {
+		const result = await auth.api.signInSocial({
+			body: {
+				provider,
+				callbackURL: callbackURL ?? '/demo/better-auth'
+			}
+		});
+		return result.url;
+	} catch (error) {
+		if (isRedirect(error)) throw error;
 		throw error;
 	}
 });
