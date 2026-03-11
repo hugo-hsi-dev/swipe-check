@@ -10,7 +10,6 @@
 
 	async function handleSignOut() {
 		await signOut();
-		window.location.href = '/demo/better-auth/login';
 	}
 </script>
 

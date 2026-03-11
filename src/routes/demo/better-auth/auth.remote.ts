@@ -28,6 +28,7 @@ export const signOut = command(async () => {
 		if (isRedirect(error)) throw error;
 		throw error;
 	}
+	return redirect(302, '/demo/better-auth/login');
 });
 
 export const getCurrentUser = query(async () => {
