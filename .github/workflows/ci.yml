@@ -114,7 +114,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: DUMMY-URL
+      DATABASE_URL: postgres://root:mysecretpassword@localhost:5433/build
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
