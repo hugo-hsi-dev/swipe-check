@@ -1,14 +1,25 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import type { PageServerData } from './$types';
+	import { getCurrentUser, signOut } from './auth.remote';
+	import { redirect } from '@sveltejs/kit';
 
-	let { data }: { data: PageServerData } = $props();
+	const user = await getCurrentUser();
+
+	if (!user) {
+		redirect(302, '/demo/better-auth/login');
+	}
+
+	async function handleSignOut() {
+		await signOut();
+		window.location.href = '/demo/better-auth/login';
+	}
 </script>
 
-<h1>Hi, {data.user.name}!</h1>
-<p>Your user ID is {data.user.id}.</p>
-<form method="post" action="?/signOut" use:enhance>
-	<button class="rounded-md bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
-		>Sign out</button
-	>
-</form>
+<h1>Hi, {user.name}!</h1>
+<p>Your user ID is {user.id}.</p>
+
+<button
+	onclick={handleSignOut}
+	class="rounded-md bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
+>
+	Sign out
+</button>
