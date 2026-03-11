@@ -24,6 +24,7 @@ const socialSchema = z.object({
 export const signOut = command(async () => {
 	try {
 		await auth.api.signOut({ headers: {} });
+		return redirect(302, '/demo/better-auth/login');
 	} catch (error) {
 		if (isRedirect(error)) throw error;
 		throw error;
@@ -33,6 +34,15 @@ export const signOut = command(async () => {
 export const getCurrentUser = query(async () => {
 	const event = getRequestEvent();
 	return event?.locals.user ?? null;
+});
+
+export const requireUser = query(async () => {
+	const event = getRequestEvent();
+	const user = event?.locals.user ?? null;
+	if (!user) {
+		return redirect(302, '/demo/better-auth/login');
+	}
+	return user;
 });
 
 export const signInEmail = form(signInSchema, async ({ email, _password }, issue) => {
