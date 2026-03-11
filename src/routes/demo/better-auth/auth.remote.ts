@@ -36,6 +36,15 @@ export const getCurrentUser = query(async () => {
 	return event?.locals.user ?? null;
 });
 
+export const requireUser = query(async () => {
+	const event = getRequestEvent();
+	const user = event?.locals.user ?? null;
+	if (!user) {
+		return redirect(302, '/demo/better-auth/login');
+	}
+	return user;
+});
+
 export const signInEmail = form(signInSchema, async ({ email, _password }, issue) => {
 	try {
 		await auth.api.signInEmail({

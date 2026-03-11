@@ -1,12 +1,7 @@
 <script lang="ts">
-	import { getCurrentUser, signOut } from './auth.remote';
-	import { redirect } from '@sveltejs/kit';
+	import { requireUser, signOut } from './auth.remote';
 
-	const user = await getCurrentUser();
-
-	if (!user) {
-		redirect(302, '/demo/better-auth/login');
-	}
+	const user = await requireUser();
 
 	async function handleSignOut() {
 		await signOut();
