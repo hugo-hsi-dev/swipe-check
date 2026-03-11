@@ -1,4 +1,5 @@
-import { form } from '$app/server';
+import { query, form } from '$app/server';
+import { getRequestEvent } from '$app/server';
 import { redirect, isRedirect, invalid } from '@sveltejs/kit';
 import { z } from 'zod';
 import { auth } from '$lib/server/auth';
@@ -7,6 +8,11 @@ import { APIError } from 'better-auth/api';
 const signInSchema = z.object({
 	email: z.string().email(),
 	_password: z.string().min(1)
+});
+
+export const getCurrentUser = query(async () => {
+	const event = getRequestEvent();
+	return event?.locals.user ?? null;
 });
 
 export const signInEmail = form(signInSchema, async ({ email, _password }, issue) => {
