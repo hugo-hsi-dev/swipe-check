@@ -25,6 +25,11 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set Git Author
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
         env:
