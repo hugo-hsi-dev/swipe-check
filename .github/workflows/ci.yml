@@ -81,6 +81,9 @@ jobs:
   test-e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    env:
+      BETTER_AUTH_SECRET: test-secret-for-ci-environment
+      ORIGIN: http://localhost:4173
     services:
       postgres:
         image: postgres
@@ -115,6 +118,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgres://root:mysecretpassword@localhost:5433/build
+      BETTER_AUTH_SECRET: test-secret-for-ci-environment
+      ORIGIN: http://localhost:4173
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
