@@ -34,7 +34,7 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tailwindcss/vite": "^4.1.18",
 		"@types/node": "^25",
-		"@typescript/native-preview": "^7.0.0-dev.20260310.1",
+		"@typescript/native-preview": "^7.0.0-dev.20260317.1",
 		"@vitest/browser-playwright": "^4.0.18",
 		"better-auth": "~1.5.4",
 		"drizzle-kit": "^0.31.8",
