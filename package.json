@@ -37,7 +37,7 @@
 		"@typescript/native-preview": "^7.0.0-dev.20260310.1",
 		"@vitest/browser-playwright": "^4.0.18",
 		"better-auth": "~1.5.4",
-		"drizzle-kit": "^0.31.8",
+		"drizzle-kit": "^0.31.10",
 		"drizzle-orm": "^0.45.1",
 		"eslint": "^10.0.3",
 		"eslint-config-prettier": "^10.1.8",
