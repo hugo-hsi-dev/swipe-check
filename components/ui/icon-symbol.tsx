@@ -9,7 +9,8 @@ type IconSymbolName =
   | 'house.fill'
   | 'paperplane.fill'
   | 'chevron.left.forwardslash.chevron.right'
-  | 'chevron.right';
+  | 'chevron.right'
+  | 'book.fill';
 
 type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['name']>;
 
@@ -23,6 +24,7 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'book.fill': 'book',
 } as IconMapping;
 
 /**
