@@ -177,6 +177,7 @@ export const QUESTIONS: Question[] = [
   },
 
   // Daily pool questions (fully distinct from onboarding)
+  // E/I axis - Extraversion vs Introversion
   {
     id: 'q-013',
     prompt: 'I looked for chances to connect with new people today.',
@@ -187,6 +188,35 @@ export const QUESTIONS: Question[] = [
     metadata: { version: 1 },
   },
   {
+    id: 'q-017',
+    prompt: 'I felt drained after extended social interaction today.',
+    axisId: 'e-i',
+    agreePoleId: 'i',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-018',
+    prompt: 'I spent time today reflecting on my own thoughts rather than engaging outwardly.',
+    axisId: 'e-i',
+    agreePoleId: 'i',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-019',
+    prompt: 'I initiated conversations with people I encountered today.',
+    axisId: 'e-i',
+    agreePoleId: 'e',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+
+  // S/N axis - Sensing vs Intuition
+  {
     id: 'q-014',
     prompt: 'Today I relied on prior evidence before trying a new approach.',
     axisId: 's-n',
@@ -195,6 +225,35 @@ export const QUESTIONS: Question[] = [
     isActive: true,
     metadata: { version: 1 },
   },
+  {
+    id: 'q-020',
+    prompt: 'I noticed several small details that others seemed to miss today.',
+    axisId: 's-n',
+    agreePoleId: 's',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-021',
+    prompt: 'I found myself imagining future possibilities rather than focusing on present facts.',
+    axisId: 's-n',
+    agreePoleId: 'n',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-022',
+    prompt: 'I connected unrelated ideas to form new insights today.',
+    axisId: 's-n',
+    agreePoleId: 'n',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+
+  // T/F axis - Thinking vs Feeling
   {
     id: 'q-015',
     prompt: 'When a tradeoff came up today, I prioritized harmony over strict consistency.',
@@ -205,10 +264,66 @@ export const QUESTIONS: Question[] = [
     metadata: { version: 1 },
   },
   {
+    id: 'q-023',
+    prompt: 'I made a decision today by weighing objective pros and cons first.',
+    axisId: 't-f',
+    agreePoleId: 't',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-024',
+    prompt: 'I considered how my actions would affect others emotionally before proceeding.',
+    axisId: 't-f',
+    agreePoleId: 'f',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-025',
+    prompt: 'I valued logical consistency over personal circumstances in a judgment today.',
+    axisId: 't-f',
+    agreePoleId: 't',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+
+  // J/P axis - Judging vs Perceiving
+  {
     id: 'q-016',
     prompt: 'I felt better with a structured plan than with a flexible outline today.',
     axisId: 'j-p',
     agreePoleId: 'j',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-026',
+    prompt: 'I adapted my schedule spontaneously when something interesting came up.',
+    axisId: 'j-p',
+    agreePoleId: 'p',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-027',
+    prompt: 'I completed tasks ahead of deadline to avoid last-minute pressure.',
+    axisId: 'j-p',
+    agreePoleId: 'j',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-028',
+    prompt: 'I preferred to explore multiple options rather than commit to one path today.',
+    axisId: 'j-p',
+    agreePoleId: 'p',
     pool: 'daily',
     isActive: true,
     metadata: { version: 1 },
