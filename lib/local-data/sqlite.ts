@@ -32,6 +32,7 @@ class ExpoSQLiteAdapter implements LocalDatabaseAdapter {
 
 async function openAdapter(dbName: string): Promise<ExpoSQLiteAdapter> {
   const db = await openDatabaseAsync(dbName);
+  await db.execAsync('PRAGMA foreign_keys = ON;');
   return new ExpoSQLiteAdapter(db);
 }
 
