@@ -1,271 +1,225 @@
 import type { Axis, Question } from './question-contract';
 
 /**
- * Core axes for personality assessment.
- * Each axis defines a spectrum between two opposing poles.
+ * Core MBTI-style axes for personality assessment.
  */
 export const AXES: Axis[] = [
   {
-    id: 'structure-spontaneity',
-    name: 'Structure vs. Spontaneity',
+    id: 'e-i',
+    name: 'Extraversion vs. Introversion',
     poleA: {
-      id: 'structure',
-      label: 'Structure',
-      description: 'Preference for planning, organization, and predictability',
+      id: 'e',
+      label: 'Extraversion',
+      description: 'Energy from external interaction and active engagement',
     },
     poleB: {
-      id: 'spontaneity',
-      label: 'Spontaneity',
-      description: 'Preference for flexibility, improvisation, and going with the flow',
+      id: 'i',
+      label: 'Introversion',
+      description: 'Energy from internal reflection and lower-stimulation settings',
     },
   },
   {
-    id: 'independence-collaboration',
-    name: 'Independence vs. Collaboration',
+    id: 's-n',
+    name: 'Sensing vs. Intuition',
     poleA: {
-      id: 'independence',
-      label: 'Independence',
-      description: 'Preference for working alone and making decisions autonomously',
+      id: 's',
+      label: 'Sensing',
+      description: 'Preference for concrete details, facts, and present realities',
     },
     poleB: {
-      id: 'collaboration',
-      label: 'Collaboration',
-      description: 'Preference for teamwork and collective decision-making',
+      id: 'n',
+      label: 'Intuition',
+      description: 'Preference for patterns, possibilities, and future implications',
     },
   },
   {
-    id: 'analytical-intuitive',
-    name: 'Analytical vs. Intuitive',
+    id: 't-f',
+    name: 'Thinking vs. Feeling',
     poleA: {
-      id: 'analytical',
-      label: 'Analytical',
-      description: 'Preference for data, logic, and systematic analysis',
+      id: 't',
+      label: 'Thinking',
+      description: 'Preference for objective analysis and consistent principles',
     },
     poleB: {
-      id: 'intuitive',
-      label: 'Intuitive',
-      description: 'Preference for gut feelings, patterns, and holistic thinking',
+      id: 'f',
+      label: 'Feeling',
+      description: 'Preference for values, empathy, and interpersonal impact',
     },
   },
   {
-    id: 'stability-growth',
-    name: 'Stability vs. Growth',
+    id: 'j-p',
+    name: 'Judging vs. Perceiving',
     poleA: {
-      id: 'stability',
-      label: 'Stability',
-      description: 'Preference for consistency, security, and maintaining status quo',
+      id: 'j',
+      label: 'Judging',
+      description: 'Preference for structure, plans, and clear closure',
     },
     poleB: {
-      id: 'growth',
-      label: 'Growth',
-      description: 'Preference for change, risk-taking, and continuous improvement',
-    },
-  },
-  {
-    id: 'detail-bigpicture',
-    name: 'Detail vs. Big Picture',
-    poleA: {
-      id: 'detail',
-      label: 'Detail',
-      description: 'Focus on specifics, precision, and thoroughness',
-    },
-    poleB: {
-      id: 'bigpicture',
-      label: 'Big Picture',
-      description: 'Focus on vision, patterns, and overarching themes',
+      id: 'p',
+      label: 'Perceiving',
+      description: 'Preference for flexibility, openness, and adaptive choices',
     },
   },
 ] as const;
 
 /**
  * Active questions for the assessment system.
- *
- * Each question clearly identifies:
- * - Its prompt text (what the user sees)
- * - Its axis pair (what dimension it measures)
- * - Which pole 'Agree' supports (for scoring)
- * - Whether it belongs to onboarding or daily pool
- * - Whether it is active
- *
- * This contract allows assessment logic to consume questions without
- * making assumptions about their meaning or scoring behavior.
  */
 export const QUESTIONS: Question[] = [
-  // Onboarding questions
+  // Onboarding questions: 12 total (3 per axis)
   {
     id: 'q-001',
-    prompt: 'I prefer to have a detailed plan before starting a project.',
-    axisId: 'structure-spontaneity',
-    agreePoleId: 'structure',
+    prompt: 'Group conversations usually leave me energized rather than drained.',
+    axisId: 'e-i',
+    agreePoleId: 'e',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-002',
-    prompt: 'I enjoy figuring things out as I go rather than following a set plan.',
-    axisId: 'structure-spontaneity',
-    agreePoleId: 'spontaneity',
+    prompt: 'I prefer one-on-one or solo time over frequent social activity.',
+    axisId: 'e-i',
+    agreePoleId: 'i',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-003',
-    prompt: 'I produce my best work when I collaborate with others.',
-    axisId: 'independence-collaboration',
-    agreePoleId: 'collaboration',
+    prompt: 'I think best by talking ideas out loud with other people.',
+    axisId: 'e-i',
+    agreePoleId: 'e',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-004',
-    prompt: 'I prefer to work independently and make my own decisions.',
-    axisId: 'independence-collaboration',
-    agreePoleId: 'independence',
+    prompt: 'I trust practical evidence more than abstract possibilities.',
+    axisId: 's-n',
+    agreePoleId: 's',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-005',
-    prompt: 'I trust data and analysis more than gut feelings when making decisions.',
-    axisId: 'analytical-intuitive',
-    agreePoleId: 'analytical',
+    prompt: 'I am drawn to ideas about what could be, even without full details.',
+    axisId: 's-n',
+    agreePoleId: 'n',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-006',
-    prompt: 'I often make decisions based on intuition rather than careful analysis.',
-    axisId: 'analytical-intuitive',
-    agreePoleId: 'intuitive',
+    prompt: 'I notice concrete facts before I notice broad themes.',
+    axisId: 's-n',
+    agreePoleId: 's',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-007',
-    prompt: 'I feel most comfortable when things stay consistent and predictable.',
-    axisId: 'stability-growth',
-    agreePoleId: 'stability',
+    prompt: 'I prioritize fairness and consistency when making hard decisions.',
+    axisId: 't-f',
+    agreePoleId: 't',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-008',
-    prompt: 'I actively seek out new challenges and opportunities to grow.',
-    axisId: 'stability-growth',
-    agreePoleId: 'growth',
+    prompt: 'I weigh people’s feelings heavily when choosing what to do.',
+    axisId: 't-f',
+    agreePoleId: 'f',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-009',
-    prompt: 'I pay close attention to details and notice small errors others miss.',
-    axisId: 'detail-bigpicture',
-    agreePoleId: 'detail',
+    prompt: 'Clear logic is more convincing to me than emotional appeal.',
+    axisId: 't-f',
+    agreePoleId: 't',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-010',
-    prompt: 'I naturally think about how individual tasks connect to larger goals.',
-    axisId: 'detail-bigpicture',
-    agreePoleId: 'bigpicture',
+    prompt: 'I like having a clear plan before I begin important work.',
+    axisId: 'j-p',
+    agreePoleId: 'j',
     pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
-
-  // Daily pool questions (additional depth)
   {
     id: 'q-011',
-    prompt: 'I get frustrated when meetings run over because they lack an agenda.',
-    axisId: 'structure-spontaneity',
-    agreePoleId: 'structure',
-    pool: 'daily',
+    prompt: 'I prefer to keep options open until the last responsible moment.',
+    axisId: 'j-p',
+    agreePoleId: 'p',
+    pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-012',
-    prompt: 'Some of my best ideas come from impromptu conversations.',
-    axisId: 'structure-spontaneity',
-    agreePoleId: 'spontaneity',
-    pool: 'daily',
+    prompt: 'Checking tasks off a schedule feels more satisfying than improvising.',
+    axisId: 'j-p',
+    agreePoleId: 'j',
+    pool: 'onboarding',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
+
+  // Daily pool questions (fully distinct from onboarding)
   {
     id: 'q-013',
-    prompt: 'Brainstorming sessions energize me more than working solo.',
-    axisId: 'independence-collaboration',
-    agreePoleId: 'collaboration',
+    prompt: 'I looked for chances to connect with new people today.',
+    axisId: 'e-i',
+    agreePoleId: 'e',
     pool: 'daily',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-014',
-    prompt: 'I prefer to process information alone before discussing with others.',
-    axisId: 'independence-collaboration',
-    agreePoleId: 'independence',
+    prompt: 'Today I relied on prior evidence before trying a new approach.',
+    axisId: 's-n',
+    agreePoleId: 's',
     pool: 'daily',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
   },
   {
     id: 'q-015',
-    prompt: 'I like to see evidence before accepting new ideas.',
-    axisId: 'analytical-intuitive',
-    agreePoleId: 'analytical',
+    prompt: 'When a tradeoff came up today, I prioritized harmony over strict consistency.',
+    axisId: 't-f',
+    agreePoleId: 'f',
     pool: 'daily',
     isActive: true,
-    metadata: {
-      version: 1,
-    },
+    metadata: { version: 1 },
+  },
+  {
+    id: 'q-016',
+    prompt: 'I felt better with a structured plan than with a flexible outline today.',
+    axisId: 'j-p',
+    agreePoleId: 'j',
+    pool: 'daily',
+    isActive: true,
+    metadata: { version: 1 },
   },
 
   // Inactive question example (for documentation purposes)
   {
     id: 'q-099',
     prompt: '[DEPRECATED] I prefer email over instant messaging.',
-    axisId: 'structure-spontaneity',
-    agreePoleId: 'structure',
+    axisId: 'e-i',
+    agreePoleId: 'e',
     pool: 'daily',
     isActive: false,
     metadata: {

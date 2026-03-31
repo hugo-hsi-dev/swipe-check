@@ -39,9 +39,9 @@ export type QuestionPool = 'onboarding' | 'daily';
  * @example
  * {
  *   id: 'q-001',
- *   prompt: 'I prefer detailed plans over spontaneous decisions.',
- *   axisId: 'structure-spontaneity',
- *   agreePoleId: 'structure',
+ *   prompt: 'I feel energized by group conversations.',
+ *   axisId: 'e-i',
+ *   agreePoleId: 'e',
  *   pool: 'onboarding',
  *   isActive: true
  * }
@@ -76,7 +76,7 @@ export type Question = {
 /**
  * Helper type for question responses.
  */
-export type QuestionResponse = 'agree' | 'disagree' | 'skip';
+export type QuestionResponse = 'agree' | 'disagree';
 
 /**
  * Result of answering a question, with resolved axis information.
