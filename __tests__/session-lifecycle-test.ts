@@ -2,12 +2,16 @@ import type { QuestionResponse } from '@/constants/question-contract';
 import {
   completeSession,
   getOrCreateDailySessionForLocalDay,
+  readAllTypeSnapshots,
   readSessionAnswers,
+  readSessionTypeSnapshot,
   startOrResumeOnboardingSession,
   toLocalDayKey,
+  upsertTypeSnapshot,
   upsertSessionAnswer,
 } from '@/lib/local-data/session-lifecycle';
 import type { LocalDatabaseAdapter } from '@/lib/local-data/bootstrap';
+import type { TypeSnapshot } from '@/constants/scoring-contract';
 
 type SessionRecord = {
   id: string;
@@ -32,6 +36,7 @@ type SessionAnswerRecord = {
 class FakeSessionAdapter implements LocalDatabaseAdapter {
   private readonly sessions = new Map<string, SessionRecord>();
   private readonly answers = new Map<string, SessionAnswerRecord>();
+  private readonly snapshots = new Map<string, TypeSnapshot>();
 
   async execAsync(_sql: string): Promise<void> {
     // no-op for tests
@@ -115,6 +120,34 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
         completedAt,
         updatedAt,
       });
+      return;
+    }
+
+    if (sql.includes('INSERT INTO type_snapshots')) {
+      const [
+        id,
+        sessionId,
+        currentType,
+        axisScoresJson,
+        axisStrengthsJson,
+        sourceType,
+        sourceSessionId,
+        questionCount,
+        createdAt,
+      ] = params as [string, string | null, string, string, string, 'onboarding' | 'daily' | 'manual', string | null, number, string];
+
+      this.snapshots.set(id, {
+        id,
+        currentType,
+        axisScores: JSON.parse(axisScoresJson),
+        axisStrengths: JSON.parse(axisStrengthsJson),
+        createdAt: new Date(createdAt),
+        source: {
+          type: sourceType,
+          sessionId: sourceSessionId ?? undefined,
+        },
+        questionCount,
+      });
     }
   }
 
@@ -162,6 +195,29 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
       } as T;
     }
 
+    if (sql.includes('FROM type_snapshots') && sql.includes('WHERE session_id = ?')) {
+      const [sessionId] = params as [string];
+      const snapshot = [...this.snapshots.values()]
+        .filter((entry) => entry.source.sessionId === sessionId)
+        .sort((a, b) => b.createdAt.toISOString().localeCompare(a.createdAt.toISOString()))[0];
+
+      if (!snapshot) {
+        return null;
+      }
+
+      return {
+        id: snapshot.id,
+        session_id: snapshot.source.sessionId ?? null,
+        current_type: snapshot.currentType,
+        axis_scores_json: JSON.stringify(snapshot.axisScores),
+        axis_strengths_json: JSON.stringify(snapshot.axisStrengths),
+        source_type: snapshot.source.type,
+        source_session_id: snapshot.source.sessionId ?? null,
+        question_count: snapshot.questionCount,
+        created_at: snapshot.createdAt.toISOString(),
+      } as T;
+    }
+
     return null;
   }
 
@@ -177,6 +233,22 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
           question_id: answer.questionId,
           answer: answer.answer,
           answered_at: answer.answeredAt,
+        })) as T[];
+    }
+
+    if (sql.includes('FROM type_snapshots')) {
+      return [...this.snapshots.values()]
+        .sort((a, b) => a.createdAt.toISOString().localeCompare(b.createdAt.toISOString()) || a.id.localeCompare(b.id))
+        .map((snapshot) => ({
+          id: snapshot.id,
+          session_id: snapshot.source.sessionId ?? null,
+          current_type: snapshot.currentType,
+          axis_scores_json: JSON.stringify(snapshot.axisScores),
+          axis_strengths_json: JSON.stringify(snapshot.axisStrengths),
+          source_type: snapshot.source.type,
+          source_session_id: snapshot.source.sessionId ?? null,
+          question_count: snapshot.questionCount,
+          created_at: snapshot.createdAt.toISOString(),
         })) as T[];
     }
 
@@ -245,5 +317,28 @@ describe('session lifecycle persistence helpers', () => {
 
   it('generates local day keys using device-local calendar boundaries', () => {
     expect(toLocalDayKey(new Date('2026-01-01T23:59:59.999Z'))).toMatch(/^2026-\d{2}-\d{2}$/);
+  });
+
+  it('persists and reloads type snapshots for completed sessions', async () => {
+    const adapter = new FakeSessionAdapter();
+    const session = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
+
+    const snapshot: TypeSnapshot = {
+      id: 'snap-001',
+      currentType: 'INTJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:04:00.000Z'),
+      source: { type: 'onboarding', sessionId: session.id },
+      questionCount: 12,
+    };
+
+    await upsertTypeSnapshot(adapter, snapshot);
+
+    const storedForSession = await readSessionTypeSnapshot(adapter, session.id);
+    const history = await readAllTypeSnapshots(adapter);
+
+    expect(storedForSession).toEqual(snapshot);
+    expect(history).toEqual([snapshot]);
   });
 });

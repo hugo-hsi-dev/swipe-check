@@ -1,4 +1,5 @@
 import type { QuestionResponse } from '@/constants/question-contract';
+import type { TypeSnapshot } from '@/constants/scoring-contract';
 import type { LocalDatabaseAdapter } from '@/lib/local-data/bootstrap';
 
 export type PersistedSessionType = 'onboarding' | 'daily';
@@ -38,6 +39,18 @@ type SessionAnswerRow = {
   question_id: string;
   answer: QuestionResponse;
   answered_at: string;
+};
+
+type TypeSnapshotRow = {
+  id: string;
+  session_id: string | null;
+  current_type: string;
+  axis_scores_json: string;
+  axis_strengths_json: string;
+  source_type: TypeSnapshot['source']['type'];
+  source_session_id: string | null;
+  question_count: number;
+  created_at: string;
 };
 
 function createSessionId(): string {
@@ -222,6 +235,83 @@ export async function completeSession(
     completedAtIso,
     sessionId
   );
+}
+
+function mapTypeSnapshotRow(row: TypeSnapshotRow): TypeSnapshot {
+  return {
+    id: row.id,
+    currentType: row.current_type,
+    axisScores: JSON.parse(row.axis_scores_json),
+    axisStrengths: JSON.parse(row.axis_strengths_json),
+    createdAt: new Date(row.created_at),
+    source: {
+      type: row.source_type,
+      sessionId: row.source_session_id ?? undefined,
+    },
+    questionCount: row.question_count,
+  };
+}
+
+export async function upsertTypeSnapshot(
+  adapter: LocalDatabaseAdapter,
+  snapshot: TypeSnapshot
+): Promise<void> {
+  const nowIso = new Date().toISOString();
+  const createdAtIso = snapshot.createdAt.toISOString();
+  const sessionId = snapshot.source.sessionId ?? null;
+
+  await adapter.runAsync(
+    `INSERT INTO type_snapshots
+     (id, session_id, current_type, axis_scores_json, axis_strengths_json, source_type, source_session_id, question_count, created_at, inserted_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+      session_id = excluded.session_id,
+      current_type = excluded.current_type,
+      axis_scores_json = excluded.axis_scores_json,
+      axis_strengths_json = excluded.axis_strengths_json,
+      source_type = excluded.source_type,
+      source_session_id = excluded.source_session_id,
+      question_count = excluded.question_count,
+      created_at = excluded.created_at,
+      updated_at = excluded.updated_at;`,
+    snapshot.id,
+    sessionId,
+    snapshot.currentType,
+    JSON.stringify(snapshot.axisScores),
+    JSON.stringify(snapshot.axisStrengths),
+    snapshot.source.type,
+    sessionId,
+    snapshot.questionCount,
+    createdAtIso,
+    nowIso,
+    nowIso
+  );
+}
+
+export async function readSessionTypeSnapshot(
+  adapter: LocalDatabaseAdapter,
+  sessionId: string
+): Promise<TypeSnapshot | null> {
+  const row = await adapter.getFirstAsync<TypeSnapshotRow>(
+    `SELECT id, session_id, current_type, axis_scores_json, axis_strengths_json, source_type, source_session_id, question_count, created_at
+     FROM type_snapshots
+     WHERE session_id = ?
+     ORDER BY created_at DESC, id DESC
+     LIMIT 1;`,
+    sessionId
+  );
+
+  return row ? mapTypeSnapshotRow(row) : null;
+}
+
+export async function readAllTypeSnapshots(adapter: LocalDatabaseAdapter): Promise<TypeSnapshot[]> {
+  const rows = await adapter.getAllAsync<TypeSnapshotRow>(
+    `SELECT id, session_id, current_type, axis_scores_json, axis_strengths_json, source_type, source_session_id, question_count, created_at
+     FROM type_snapshots
+     ORDER BY created_at ASC, id ASC;`
+  );
+
+  return rows.map(mapTypeSnapshotRow);
 }
 
 export function toLocalDayKey(date: Date): string {

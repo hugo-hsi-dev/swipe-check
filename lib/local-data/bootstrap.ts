@@ -1,7 +1,7 @@
 import { QUESTIONS } from '@/constants/questions';
 import type { Question, QuestionPool } from '@/constants/question-contract';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export type BootstrapResult = {
   initializedAt: string;
@@ -86,6 +86,25 @@ const createTableStatements = [
     FOREIGN KEY (question_id) REFERENCES question_catalog(id),
     CHECK (answer IN ('agree', 'disagree'))
   );`,
+  `CREATE TABLE IF NOT EXISTS type_snapshots (
+    id TEXT PRIMARY KEY NOT NULL,
+    session_id TEXT,
+    current_type TEXT NOT NULL,
+    axis_scores_json TEXT NOT NULL,
+    axis_strengths_json TEXT NOT NULL,
+    source_type TEXT NOT NULL,
+    source_session_id TEXT,
+    question_count INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    inserted_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE SET NULL,
+    CHECK (source_type IN ('onboarding', 'daily', 'manual'))
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_type_snapshots_created_at
+   ON type_snapshots(created_at);`,
+  `CREATE INDEX IF NOT EXISTS idx_type_snapshots_session_id
+   ON type_snapshots(session_id);`,
 ];
 
 function serializeMetadata(question: Question): string | null {
