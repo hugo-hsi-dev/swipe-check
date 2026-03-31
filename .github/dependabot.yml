@@ -1,0 +1,41 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    versioning-strategy: increase-if-necessary
+    groups:
+      expo-and-react-native:
+        patterns:
+          - "expo*"
+          - "@expo/*"
+          - "react"
+          - "react-dom"
+          - "react-native"
+          - "react-native-*"
+          - "@react-navigation/*"
+      testing-and-linting:
+        patterns:
+          - "jest*"
+          - "@testing-library/*"
+          - "@types/*"
+          - "eslint*"
+          - "typescript"
+      tailwind-and-ui:
+        patterns:
+          - "tailwind*"
+          - "uniwind"
+          - "heroui-native"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
