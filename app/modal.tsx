@@ -1,29 +1,23 @@
-import { Link } from 'expo-router';
-import { StyleSheet } from 'react-native';
-
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { router } from 'expo-router';
+import { View } from 'react-native';
+import { Button, Card } from 'heroui-native';
 
 export default function ModalScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">This is a modal</ThemedText>
-      <Link href="/" dismissTo style={styles.link}>
-        <ThemedText type="link">Go to home screen</ThemedText>
-      </Link>
-    </ThemedView>
+    <View className="flex-1 justify-center bg-background px-4">
+      <Card>
+        <Card.Body className="gap-3">
+          <Card.Title>Modal route</Card.Title>
+          <Card.Description>
+            Even the standalone Expo Router modal route now uses HeroUI Native surfaces and actions.
+          </Card.Description>
+        </Card.Body>
+        <Card.Footer>
+          <Button variant="secondary" onPress={() => router.dismissTo('/')}>
+            <Button.Label>Back home</Button.Label>
+          </Button>
+        </Card.Footer>
+      </Card>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
-});
