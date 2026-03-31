@@ -1,5 +1,5 @@
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import {
   Avatar,
@@ -14,8 +14,9 @@ import {
   Switch,
   TextField,
 } from 'heroui-native';
+import { useState } from 'react';
 
-export default function HomeScreen() {
+export default function TodayScreen() {
   const [email, setEmail] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,9 +31,9 @@ export default function HomeScreen() {
               <Avatar.Fallback>SC</Avatar.Fallback>
             </Avatar>
             <View className="shrink">
-              <Card.Title>HeroUI Native is wired up</Card.Title>
+              <Card.Title>Today</Card.Title>
               <Card.Description>
-                This screen is built with library components instead of the Expo starter views.
+                Your daily overview and quick actions.
               </Card.Description>
             </View>
           </View>
@@ -99,6 +100,19 @@ export default function HomeScreen() {
             <Button.Label>Danger</Button.Label>
           </Button>
         </Card.Footer>
+      </Card>
+
+      <Card>
+        <Card.Body className="gap-3">
+          <Card.Title>Settings</Card.Title>
+          <Card.Description>
+            Manage your preferences and account settings.
+          </Card.Description>
+          <Button variant="secondary" onPress={() => router.push('/settings')}>
+            <Ionicons name="settings-outline" size={16} />
+            <Button.Label>Open Settings</Button.Label>
+          </Button>
+        </Card.Body>
       </Card>
 
       <Dialog isOpen={dialogOpen} onOpenChange={setDialogOpen}>

@@ -7,14 +7,14 @@ export default function ModalScreen() {
     <View className="flex-1 justify-center bg-background px-4">
       <Card>
         <Card.Body className="gap-3">
-          <Card.Title>Modal route</Card.Title>
+          <Card.Title>Check Details</Card.Title>
           <Card.Description>
-            Even the standalone Expo Router modal route now uses HeroUI Native surfaces and actions.
+            View detailed information about this verification session. Results and flagged items will appear here.
           </Card.Description>
         </Card.Body>
         <Card.Footer>
-          <Button variant="secondary" onPress={() => router.dismissTo('/')}>
-            <Button.Label>Back home</Button.Label>
+          <Button variant="secondary" onPress={() => router.back()} className="w-full">
+            <Button.Label>Close</Button.Label>
           </Button>
         </Card.Footer>
       </Card>

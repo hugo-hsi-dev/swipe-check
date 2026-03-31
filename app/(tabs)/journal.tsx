@@ -2,14 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, View } from 'react-native';
 import { Avatar, Card, Chip, ListGroup } from 'heroui-native';
 
-export default function ExploreScreen() {
+export default function JournalScreen() {
   return (
     <ScrollView className="flex-1 bg-background" contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
       <Card>
         <Card.Body className="gap-2">
-          <Card.Title>Component gallery</Card.Title>
+          <Card.Title>Journal</Card.Title>
           <Card.Description>
-            A second screen showing list rows, avatars, chips, and themed icons from HeroUI Native.
+            Record your daily thoughts, reflections, and experiences.
           </Card.Description>
         </Card.Body>
       </Card>
@@ -17,14 +17,14 @@ export default function ExploreScreen() {
       <ListGroup>
         <ListGroup.Item>
           <ListGroup.ItemPrefix>
-            <Avatar alt="UI preview" color="accent" variant="soft">
-              <Avatar.Fallback>UI</Avatar.Fallback>
+            <Avatar alt="Entry" color="accent" variant="soft">
+              <Avatar.Fallback>1</Avatar.Fallback>
             </Avatar>
           </ListGroup.ItemPrefix>
           <ListGroup.ItemContent>
-            <ListGroup.ItemTitle>Compound components</ListGroup.ItemTitle>
+            <ListGroup.ItemTitle>Today&apos;s Entry</ListGroup.ItemTitle>
             <ListGroup.ItemDescription>
-              Cards, buttons, dialogs, and lists are all composed with library subcomponents.
+              Start writing your thoughts for today.
             </ListGroup.ItemDescription>
           </ListGroup.ItemContent>
         </ListGroup.Item>
@@ -32,13 +32,13 @@ export default function ExploreScreen() {
         <ListGroup.Item>
           <ListGroup.ItemPrefix>
             <View className="size-10 items-center justify-center rounded-full bg-accent-soft">
-              <Ionicons name="color-palette-outline" size={18} />
+              <Ionicons name="calendar-outline" size={18} />
             </View>
           </ListGroup.ItemPrefix>
           <ListGroup.ItemContent>
-            <ListGroup.ItemTitle>Theme tokens</ListGroup.ItemTitle>
+            <ListGroup.ItemTitle>Past Entries</ListGroup.ItemTitle>
             <ListGroup.ItemDescription>
-              Icons and surfaces are reading semantic colors from `useThemeColor`.
+              Browse and search through your previous journal entries.
             </ListGroup.ItemDescription>
           </ListGroup.ItemContent>
         </ListGroup.Item>
@@ -46,13 +46,13 @@ export default function ExploreScreen() {
         <ListGroup.Item>
           <ListGroup.ItemPrefix>
             <View className="size-10 items-center justify-center rounded-full bg-surface-secondary">
-              <Ionicons name="phone-portrait-outline" size={18} />
+              <Ionicons name="bookmark-outline" size={18} />
             </View>
           </ListGroup.ItemPrefix>
           <ListGroup.ItemContent>
-            <ListGroup.ItemTitle>Native-first styling</ListGroup.ItemTitle>
+            <ListGroup.ItemTitle>Saved</ListGroup.ItemTitle>
             <ListGroup.ItemDescription>
-              Uniwind powers `className` styling while HeroUI supplies the primitives and variants.
+              Access your favorite and bookmarked entries.
             </ListGroup.ItemDescription>
           </ListGroup.ItemContent>
         </ListGroup.Item>
@@ -60,17 +60,17 @@ export default function ExploreScreen() {
 
       <Card className="gap-4">
         <Card.Body className="gap-3">
-          <Card.Title>Status badges</Card.Title>
+          <Card.Title>Quick Tags</Card.Title>
           <View className="flex-row flex-wrap gap-2">
-            <Chip>Default</Chip>
+            <Chip>Personal</Chip>
             <Chip color="success" variant="secondary">
-              Synced
+              Work
             </Chip>
             <Chip color="warning" variant="tertiary">
-              Review
+              Ideas
             </Chip>
-            <Chip color="danger" variant="soft">
-              Blocked
+            <Chip color="accent" variant="soft">
+              Gratitude
             </Chip>
           </View>
         </Card.Body>
