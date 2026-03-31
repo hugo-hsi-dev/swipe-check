@@ -1,11 +1,17 @@
 import type { Question } from './question-contract';
-import { QUESTIONS } from './questions';
+import { AXES, QUESTIONS } from './questions';
 
 /**
  * Axis exposure tracking.
  * Maps axis ID to count of how many times it has appeared in completed daily sessions.
  */
 export type AxisExposureMap = Record<string, number>;
+
+/**
+ * Axis pole exposure tracking.
+ * Maps axis ID to per-pole usage counts across completed daily sessions.
+ */
+export type AxisPoleExposureMap = Record<string, Record<string, number>>;
 
 /**
  * Question usage tracking.
@@ -31,6 +37,8 @@ export type DailySelectionInput = {
   today: string;
   /** Axis exposure counts across all completed daily sessions */
   axisExposure: AxisExposureMap;
+  /** Per-pole usage counts across all completed daily sessions */
+  axisPoleExposure?: AxisPoleExposureMap;
   /** Last used timestamp for each question */
   questionLastUsed: QuestionLastUsedMap;
   /** Yesterday's session history (to avoid repetition) */
@@ -80,6 +88,17 @@ function getActiveDailyQuestionsForAxis(axisId: string): Question[] {
 }
 
 /**
+ * Gets the exposure count for a specific pole on an axis.
+ */
+function getAxisPoleExposureCount(
+  axisPoleExposure: AxisPoleExposureMap,
+  axisId: string,
+  poleId: string
+): number {
+  return axisPoleExposure[axisId]?.[poleId] ?? 0;
+}
+
+/**
  * Sorts axis IDs by exposure (ascending), then by recency (least recent first),
  * then by fixed axis order.
  */
@@ -123,10 +142,12 @@ function sortAxesBySelectionPriority(
 
 /**
  * Selects the best question for an axis based on usage history.
- * Prefers least-recently-used questions and avoids yesterday's question.
+ * Prefers the least-used coding direction first, then least-recently-used questions,
+ * and avoids yesterday's question when possible.
  */
 function selectQuestionForAxis(
   axisId: string,
+  axisPoleExposure: AxisPoleExposureMap,
   questionLastUsed: QuestionLastUsedMap,
   yesterdayQuestionIds: string[]
 ): Question | null {
@@ -142,8 +163,20 @@ function selectQuestionForAxis(
   );
   const candidates = alternatives.length > 0 ? alternatives : axisQuestions;
 
+  // Prefer the least-used coding direction for the axis before recency.
+  const leastUsedDirectionExposure = Math.min(
+    ...candidates.map((question) =>
+      getAxisPoleExposureCount(axisPoleExposure, axisId, question.agreePoleId)
+    )
+  );
+  const directionBalancedCandidates = candidates.filter(
+    (question) =>
+      getAxisPoleExposureCount(axisPoleExposure, axisId, question.agreePoleId) ===
+      leastUsedDirectionExposure
+  );
+
   // Sort by last used timestamp (ascending - least recent first)
-  const sorted = [...candidates].sort((a, b) => {
+  const sorted = [...directionBalancedCandidates].sort((a, b) => {
     const lastUsedA = questionLastUsed[a.id] ?? 0;
     const lastUsedB = questionLastUsed[b.id] ?? 0;
     return lastUsedA - lastUsedB;
@@ -163,7 +196,14 @@ function selectQuestionForAxis(
 export function selectDailyQuestions(
   input: DailySelectionInput
 ): DailySelectionResult {
-  const { axisExposure, questionLastUsed, yesterdaySession } = input;
+  const {
+    axisExposure,
+    axisPoleExposure,
+    questionLastUsed,
+    yesterdaySession,
+  } = input;
+  const resolvedAxisPoleExposure =
+    axisPoleExposure ?? createEmptyAxisPoleExposure();
   const activeDailyQuestions = getActiveDailyQuestions();
   const yesterdayQuestionIds = yesterdaySession?.questionIds ?? [];
 
@@ -200,6 +240,7 @@ export function selectDailyQuestions(
   for (const axisId of selectedAxisIds) {
     const question = selectQuestionForAxis(
       axisId,
+      resolvedAxisPoleExposure,
       questionLastUsed,
       yesterdayQuestionIds
     );
@@ -231,6 +272,21 @@ export function createEmptyAxisExposure(): AxisExposureMap {
 }
 
 /**
+ * Creates an empty per-pole exposure map with all axis poles initialized to 0.
+ */
+export function createEmptyAxisPoleExposure(): AxisPoleExposureMap {
+  return Object.fromEntries(
+    AXES.map((axis) => [
+      axis.id,
+      {
+        [axis.poleA.id]: 0,
+        [axis.poleB.id]: 0,
+      },
+    ])
+  ) as AxisPoleExposureMap;
+}
+
+/**
  * Updates axis exposure counts after a daily session is completed.
  */
 export function updateAxisExposure(
@@ -243,6 +299,32 @@ export function updateAxisExposure(
     const question = QUESTIONS.find((q) => q.id === questionId);
     if (question && question.axisId) {
       newExposure[question.axisId] = (newExposure[question.axisId] ?? 0) + 1;
+    }
+  }
+
+  return newExposure;
+}
+
+/**
+ * Updates per-pole exposure counts after a daily session is completed.
+ */
+export function updateAxisPoleExposure(
+  currentExposure: AxisPoleExposureMap,
+  completedQuestionIds: string[]
+): AxisPoleExposureMap {
+  const newExposure: AxisPoleExposureMap = {};
+
+  for (const [axisId, poleExposure] of Object.entries(currentExposure)) {
+    newExposure[axisId] = { ...poleExposure };
+  }
+
+  for (const questionId of completedQuestionIds) {
+    const question = QUESTIONS.find((q) => q.id === questionId);
+    if (question && question.axisId) {
+      const axisExposure = newExposure[question.axisId] ?? {};
+      axisExposure[question.agreePoleId] =
+        (axisExposure[question.agreePoleId] ?? 0) + 1;
+      newExposure[question.axisId] = axisExposure;
     }
   }
 

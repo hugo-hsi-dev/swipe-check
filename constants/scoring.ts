@@ -298,12 +298,53 @@ export function recalculateTypeHistory(
   snapshots: TypeSnapshot[],
   allAnswers: AnsweredQuestion[][]
 ): TypeResult[] {
+  if (snapshots.length > 0 && snapshots.length !== allAnswers.length) {
+    throw new Error('Snapshot history must align with answer history.');
+  }
+
   const results: TypeResult[] = [];
   let previousResult: TypeResult | undefined;
 
   for (let i = 0; i < allAnswers.length; i++) {
     const answers = allAnswers[i];
-    const result = calculateType(answers, { previousResult });
+    const snapshot = snapshots[i];
+    const result = calculateType(answers, {
+      previousResult,
+      computedAt: snapshot?.computedAt,
+    });
+
+    if (snapshot) {
+      const matchesSnapshot =
+        result.typeCode === snapshot.typeCode &&
+        result.totalAnswers === snapshot.totalAnswers &&
+        result.axesWithMinimumData === snapshot.axesWithMinimumData &&
+        result.isComplete === snapshot.isComplete &&
+        result.axes.length === snapshot.axes.length &&
+        result.axes.every((axis, index) => {
+          const snapshotAxis = snapshot.axes[index];
+          if (!snapshotAxis) {
+            return false;
+          }
+
+          return (
+            axis.axisId === snapshotAxis.axisId &&
+            axis.winningPoleId === snapshotAxis.winningPoleId &&
+            axis.displayLetter === snapshotAxis.displayLetter &&
+            axis.poleACount === snapshotAxis.poleACount &&
+            axis.poleBCount === snapshotAxis.poleBCount &&
+            axis.totalAnswers === snapshotAxis.totalAnswers &&
+            axis.strength === snapshotAxis.strength &&
+            axis.hasMinimumData === snapshotAxis.hasMinimumData &&
+            axis.wasTieBroken === snapshotAxis.wasTieBroken
+          );
+        }) &&
+        result.computedAt.getTime() === snapshot.computedAt.getTime();
+
+      if (!matchesSnapshot) {
+        throw new Error(`Snapshot history does not match answer history at index ${i}.`);
+      }
+    }
+
     results.push(result);
     previousResult = result;
   }

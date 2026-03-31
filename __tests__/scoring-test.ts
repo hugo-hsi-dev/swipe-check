@@ -350,6 +350,33 @@ describe('calculateType', () => {
         result2.axes.map((a) => a.winningPoleId)
       );
     });
+
+    it('should validate provided snapshot history when present', () => {
+      const session1Answers = [
+        createAnswer('q-001', 'agree'),
+        createAnswer('q-004', 'agree'),
+        createAnswer('q-007', 'agree'),
+      ];
+
+      const session2Answers = [
+        ...session1Answers,
+        createAnswer('q-002', 'disagree'),
+        createAnswer('q-005', 'agree'),
+        createAnswer('q-008', 'disagree'),
+      ];
+
+      const result1 = calculateType(session1Answers);
+      const result2 = calculateType(session2Answers, { previousResult: result1 });
+      const snapshot1 = createTypeSnapshot(result1, 'session-1');
+      const snapshot2 = createTypeSnapshot(result2, 'session-2');
+
+      expect(() =>
+        recalculateTypeHistory(
+          [snapshot1, { ...snapshot2, typeCode: 'XXXX' }],
+          [session1Answers, session2Answers]
+        )
+      ).toThrow('Snapshot history does not match answer history at index 1.');
+    });
   });
 
   describe('Model honesty', () => {
