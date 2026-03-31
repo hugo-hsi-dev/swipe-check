@@ -192,24 +192,17 @@ export async function upsertSessionAnswer(
   answer: QuestionResponse,
   answeredAt = new Date()
 ): Promise<void> {
-  const session = await adapter.getFirstAsync<{ status: PersistedSessionStatus }>(
-    `SELECT status
-     FROM sessions
-     WHERE id = ?
-     LIMIT 1;`,
-    sessionId
-  );
-
-  if (session?.status === 'completed') {
-    throw new Error('Cannot modify answers for a completed session.');
-  }
-
   const answeredAtIso = answeredAt.toISOString();
 
-  await adapter.runAsync(
+  const result = await adapter.runAsync(
     `INSERT INTO session_answers
      (session_id, question_id, answer, answered_at, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?)
+     SELECT ?, ?, ?, ?, ?, ?
+     WHERE EXISTS (
+       SELECT 1
+       FROM sessions
+       WHERE id = ? AND status = 'in_progress'
+     )
      ON CONFLICT(session_id, question_id) DO UPDATE SET
        answer = excluded.answer,
        answered_at = excluded.answered_at,
@@ -219,8 +212,13 @@ export async function upsertSessionAnswer(
     answer,
     answeredAtIso,
     answeredAtIso,
-    answeredAtIso
+    answeredAtIso,
+    sessionId
   );
+
+  if (typeof result === 'object' && result !== null && 'changes' in result && (result as { changes?: number }).changes === 0) {
+    throw new Error('Cannot modify answers for a completed session.');
+  }
 }
 
 export async function readSessionAnswers(
