@@ -443,6 +443,43 @@ describe('session lifecycle persistence helpers', () => {
     expect(reopened.status).toBe('completed');
   });
 
+  it('resumes same in-progress daily session across restarts with partial answers', async () => {
+    const adapter = new FakeSessionAdapter();
+    const localDayKey = '2026-01-01';
+
+    // First launch - create daily session and add partial answers
+    const firstSession = await getOrCreateDailySessionForLocalDay(
+      adapter,
+      localDayKey,
+      new Date('2026-01-01T08:00:00.000Z')
+    );
+
+    await upsertSessionAnswer(adapter, firstSession.id, 'q-013', 'agree', new Date('2026-01-01T08:01:00.000Z'));
+    await upsertSessionAnswer(adapter, firstSession.id, 'q-014', 'disagree', new Date('2026-01-01T08:02:00.000Z'));
+
+    // Simulate app restart - same day, later time
+    const resumedSession = await getOrCreateDailySessionForLocalDay(
+      adapter,
+      localDayKey,
+      new Date('2026-01-01T12:00:00.000Z')
+    );
+
+    // Should be the same session
+    expect(resumedSession.id).toBe(firstSession.id);
+    expect(resumedSession.status).toBe('in_progress');
+
+    // Answers should persist
+    const answers = await readSessionAnswers(adapter, resumedSession.id);
+    expect(answers).toHaveLength(2);
+    expect(answers.map((a) => a.questionId)).toContain('q-013');
+    expect(answers.map((a) => a.questionId)).toContain('q-014');
+
+    // Can continue adding answers
+    await upsertSessionAnswer(adapter, resumedSession.id, 'q-023', 'agree', new Date('2026-01-01T12:05:00.000Z'));
+    const updatedAnswers = await readSessionAnswers(adapter, resumedSession.id);
+    expect(updatedAnswers).toHaveLength(3);
+  });
+
   it('generates local day keys using device-local calendar boundaries', () => {
     expect(toLocalDayKey(new Date('2026-01-01T23:59:59.999Z'))).toMatch(/^2026-\d{2}-\d{2}$/);
   });
