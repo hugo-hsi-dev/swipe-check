@@ -320,7 +320,11 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
     }
 
     if (sql.includes('FROM sessions s') && sql.includes("WHERE s.status = 'completed'")) {
-      return [...this.sessions.values()]
+      const [limit] = params as [number | undefined];
+      const normalizedLimit =
+        typeof limit === 'number' && Number.isFinite(limit) && limit >= 0 ? Math.trunc(limit) : null;
+
+      const rows = [...this.sessions.values()]
         .filter((session) => session.status === 'completed')
         .sort(
           (a, b) =>
@@ -355,7 +359,9 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
             question_count: snapshot?.questionCount ?? null,
             snapshot_created_at: snapshot?.createdAt.toISOString() ?? null,
           };
-        }) as T[];
+        });
+
+      return (normalizedLimit === null ? rows : rows.slice(0, normalizedLimit)) as T[];
     }
 
     if (sql.includes('FROM type_snapshots')) {

@@ -370,6 +370,7 @@ export async function readCompletedSessionHistory(
   adapter: LocalDatabaseAdapter,
   limit?: number
 ): Promise<PersistedHistoryEntry[]> {
+  const normalizedLimit = typeof limit === 'number' ? Math.max(0, Math.trunc(limit)) : null;
   const rows = await adapter.getAllAsync<
     SessionRow & {
       snapshot_id: string | null;
@@ -396,7 +397,9 @@ export async function readCompletedSessionHistory(
       LIMIT 1
      )
      WHERE s.status = 'completed'
-     ORDER BY s.completed_at DESC, s.started_at DESC, s.id DESC;`
+     ORDER BY s.completed_at DESC, s.started_at DESC, s.id DESC
+     LIMIT ?;`,
+    normalizedLimit ?? -1
   );
 
   const history = rows.map((row) => ({
@@ -423,7 +426,7 @@ export async function readCompletedSessionHistory(
         : null,
   }));
 
-  return typeof limit === 'number' ? history.slice(0, Math.max(0, limit)) : history;
+  return history;
 }
 
 export async function readCompletedSessionDetail(
