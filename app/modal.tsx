@@ -13,8 +13,7 @@ export default function ModalScreen() {
           </Card.Description>
         </Card.Body>
         <Card.Footer>
-          <Button variant="secondary" onPress={() => router.dismissTo('/')}
-            className="w-full">
+          <Button variant="secondary" onPress={() => router.back()} className="w-full">
             <Button.Label>Close</Button.Label>
           </Button>
         </Card.Footer>
