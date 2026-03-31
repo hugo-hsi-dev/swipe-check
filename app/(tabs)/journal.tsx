@@ -22,7 +22,7 @@ export default function JournalScreen() {
             </Avatar>
           </ListGroup.ItemPrefix>
           <ListGroup.ItemContent>
-            <ListGroup.ItemTitle>Today's Entry</ListGroup.ItemTitle>
+            <ListGroup.ItemTitle>Today&apos;s Entry</ListGroup.ItemTitle>
             <ListGroup.ItemDescription>
               Start writing your thoughts for today.
             </ListGroup.ItemDescription>

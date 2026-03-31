@@ -81,7 +81,7 @@ export default function InsightsScreen() {
         <Card.Body className="gap-2">
           <Card.Title>Weekly Summary</Card.Title>
           <Card.Description>
-            Your journaling has been consistent this week. You've written about work, personal growth, and gratitude most frequently.
+            Your journaling has been consistent this week. You&apos;ve written about work, personal growth, and gratitude most frequently.
           </Card.Description>
         </Card.Body>
       </Card>
