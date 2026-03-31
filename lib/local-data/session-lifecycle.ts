@@ -192,6 +192,18 @@ export async function upsertSessionAnswer(
   answer: QuestionResponse,
   answeredAt = new Date()
 ): Promise<void> {
+  const session = await adapter.getFirstAsync<{ status: PersistedSessionStatus }>(
+    `SELECT status
+     FROM sessions
+     WHERE id = ?
+     LIMIT 1;`,
+    sessionId
+  );
+
+  if (session?.status === 'completed') {
+    throw new Error('Cannot modify answers for a completed session.');
+  }
+
   const answeredAtIso = answeredAt.toISOString();
 
   await adapter.runAsync(
