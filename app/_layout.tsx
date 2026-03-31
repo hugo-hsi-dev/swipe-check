@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import 'react-native-reanimated';
@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInitialRoute } from '@/hooks/use-initial-route';
 import '@/global.css';
 
 export const unstable_settings = {
@@ -17,13 +18,20 @@ export const unstable_settings = {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { bootstrapError, isBootstrapping } = useAppBootstrap();
+  const { isDeterminingRoute, routeError, targetRoute } = useInitialRoute();
 
-  if (isBootstrapping) {
+  // Show nothing while determining where to route to prevent flashing wrong screen
+  if (isBootstrapping || isDeterminingRoute) {
     return null;
   }
 
-  if (bootstrapError) {
-    return <Text>Failed to initialize local data.</Text>;
+  if (bootstrapError || routeError) {
+    return <Text>Failed to initialize app.</Text>;
+  }
+
+  // Route new users to onboarding, returning users to main tabs
+  if (targetRoute === 'onboarding') {
+    return <Redirect href="/onboarding" />;
   }
 
   return (
@@ -33,6 +41,7 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>
