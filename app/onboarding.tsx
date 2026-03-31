@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 
@@ -32,7 +33,7 @@ export default function OnboardingScreen() {
 
   const handleComplete = async () => {
     await completeOnboarding();
-    // Router will automatically redirect to (tabs) after onboarding completes
+    router.replace('/today');
   };
 
   const currentStepData = steps[currentStep];

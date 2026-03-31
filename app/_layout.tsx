@@ -1,9 +1,9 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import 'react-native-reanimated';
-import { Text } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
@@ -19,10 +19,16 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { bootstrapError, isBootstrapping } = useAppBootstrap();
   const { isDeterminingRoute, routeError, targetRoute } = useInitialRoute();
+  const pathname = usePathname();
 
   // Show nothing while determining where to route to prevent flashing wrong screen
   if (isBootstrapping || isDeterminingRoute) {
-    return null;
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator />
+        <Text className="mt-3 text-foreground">Loading app...</Text>
+      </View>
+    );
   }
 
   if (bootstrapError || routeError) {
@@ -30,7 +36,7 @@ export default function RootLayout() {
   }
 
   // Route new users to onboarding, returning users to main tabs
-  if (targetRoute === 'onboarding') {
+  if (targetRoute === 'onboarding' && pathname === '/') {
     return <Redirect href="/onboarding" />;
   }
 
