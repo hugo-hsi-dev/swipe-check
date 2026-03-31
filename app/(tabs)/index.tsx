@@ -1,98 +1,124 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { ScrollView, View } from 'react-native';
+import {
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  Description,
+  Dialog,
+  FieldError,
+  Input,
+  Label,
+  Switch,
+  TextField,
+} from 'heroui-native';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [email, setEmail] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const emailInvalid = email.length > 0 && !email.includes('@');
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  return (
+    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+      <Card className="gap-5">
+        <Card.Header className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-3">
+            <Avatar alt="Swipe Check" color="accent" size="lg">
+              <Avatar.Fallback>SC</Avatar.Fallback>
+            </Avatar>
+            <View className="shrink">
+              <Card.Title>HeroUI Native is wired up</Card.Title>
+              <Card.Description>
+                This screen is built with library components instead of the Expo starter views.
+              </Card.Description>
+            </View>
+          </View>
+          <Chip variant="secondary" color="success">
+            <View className="size-2 rounded-full bg-success" />
+            <Chip.Label>Ready</Chip.Label>
+          </Chip>
+        </Card.Header>
+
+        <Card.Body className="gap-4">
+          <View className="flex-row flex-wrap gap-2">
+            <Chip>Expo 54</Chip>
+            <Chip variant="soft" color="warning">
+              <Ionicons name="sparkles" size={12} />
+              <Chip.Label>HeroUI</Chip.Label>
+            </Chip>
+            <Chip variant="secondary" color="success">
+              <Ionicons name="phone-portrait" size={12} />
+              <Chip.Label>Native</Chip.Label>
+            </Chip>
+          </View>
+
+          <TextField isInvalid={emailInvalid} isRequired>
+            <Label>Work email</Label>
+            <Input
+              autoCapitalize="none"
+              keyboardType="email-address"
+              onChangeText={setEmail}
+              placeholder="you@company.com"
+              value={email}
+            />
+            {emailInvalid ? (
+              <FieldError>Enter a valid email address.</FieldError>
+            ) : (
+              <Description>Input, label, helper text, and validation all come from HeroUI Native.</Description>
+            )}
+          </TextField>
+
+          <View className="gap-3 rounded-2xl bg-surface-secondary p-4">
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="shrink">
+                <Card.Title className="text-base">Push alerts</Card.Title>
+                <Card.Description>
+                  Animated switch component using the HeroUI Native theme tokens.
+                </Card.Description>
+              </View>
+              <Switch isSelected={notificationsEnabled} onSelectedChange={setNotificationsEnabled}>
+                <Switch.Thumb />
+              </Switch>
+            </View>
+          </View>
+        </Card.Body>
+
+        <Card.Footer className="flex-row flex-wrap gap-3">
+          <Button>
+            <Ionicons name="flash" size={16} />
+            <Button.Label>Primary action</Button.Label>
+          </Button>
+          <Button variant="secondary" onPress={() => setDialogOpen(true)}>
+            <Button.Label>Open dialog</Button.Label>
+          </Button>
+          <Button variant="danger">
+            <Ionicons name="trash" size={16} />
+            <Button.Label>Danger</Button.Label>
+          </Button>
+        </Card.Footer>
+      </Card>
+
+      <Dialog isOpen={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay />
+          <Dialog.Content>
+            <View className="gap-3">
+              <Dialog.Title>HeroUI Native dialog</Dialog.Title>
+              <Dialog.Description>
+                The modal layer, overlay, content animation, and close action all come from the UI library.
+              </Dialog.Description>
+              <View className="flex-row justify-end gap-2 pt-2">
+                <Dialog.Close variant="tertiary">
+                  <Button.Label>Close</Button.Label>
+                </Dialog.Close>
+              </View>
+            </View>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
