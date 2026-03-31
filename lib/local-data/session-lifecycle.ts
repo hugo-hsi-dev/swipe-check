@@ -23,6 +23,17 @@ export type PersistedSessionAnswer = {
   answeredAt: string;
 };
 
+export type PersistedHistoryEntry = {
+  session: PersistedSession;
+  snapshot: TypeSnapshot | null;
+};
+
+export type PersistedSessionDetail = {
+  session: PersistedSession;
+  answers: PersistedSessionAnswer[];
+  snapshot: TypeSnapshot | null;
+};
+
 type SessionRow = {
   id: string;
   session_type: PersistedSessionType;
@@ -237,6 +248,34 @@ export async function completeSession(
   );
 }
 
+export async function hasCompletedOnboardingSession(adapter: LocalDatabaseAdapter): Promise<boolean> {
+  const row = await adapter.getFirstAsync<{ id: string }>(
+    `SELECT id
+     FROM sessions
+     WHERE session_type = 'onboarding' AND status = 'completed'
+     LIMIT 1;`
+  );
+
+  return row != null;
+}
+
+export async function readActiveOrLatestDailySession(
+  adapter: LocalDatabaseAdapter
+): Promise<PersistedSession | null> {
+  const row = await adapter.getFirstAsync<SessionRow>(
+    `SELECT id, session_type, status, local_day_key, started_at, completed_at, created_at, updated_at
+     FROM sessions
+     WHERE session_type = 'daily'
+     ORDER BY
+      CASE WHEN status = 'in_progress' THEN 0 ELSE 1 END ASC,
+      started_at DESC,
+      id DESC
+     LIMIT 1;`
+  );
+
+  return row ? mapSessionRow(row) : null;
+}
+
 function mapTypeSnapshotRow(row: TypeSnapshotRow): TypeSnapshot {
   return {
     id: row.id,
@@ -312,6 +351,109 @@ export async function readAllTypeSnapshots(adapter: LocalDatabaseAdapter): Promi
   );
 
   return rows.map(mapTypeSnapshotRow);
+}
+
+export async function readLatestTypeSnapshot(
+  adapter: LocalDatabaseAdapter
+): Promise<TypeSnapshot | null> {
+  const row = await adapter.getFirstAsync<TypeSnapshotRow>(
+    `SELECT id, session_id, current_type, axis_scores_json, axis_strengths_json, source_type, source_session_id, question_count, created_at
+     FROM type_snapshots
+     ORDER BY created_at DESC, id DESC
+     LIMIT 1;`
+  );
+
+  return row ? mapTypeSnapshotRow(row) : null;
+}
+
+export async function readCompletedSessionHistory(
+  adapter: LocalDatabaseAdapter,
+  limit?: number
+): Promise<PersistedHistoryEntry[]> {
+  const normalizedLimit = typeof limit === 'number' ? Math.max(0, Math.trunc(limit)) : null;
+  const rows = await adapter.getAllAsync<
+    SessionRow & {
+      snapshot_id: string | null;
+      snapshot_session_id: string | null;
+      current_type: string | null;
+      axis_scores_json: string | null;
+      axis_strengths_json: string | null;
+      source_type: TypeSnapshot['source']['type'] | null;
+      source_session_id: string | null;
+      question_count: number | null;
+      snapshot_created_at: string | null;
+    }
+  >(
+    `SELECT
+      s.id, s.session_type, s.status, s.local_day_key, s.started_at, s.completed_at, s.created_at, s.updated_at,
+      ts.id AS snapshot_id, ts.session_id AS snapshot_session_id, ts.current_type, ts.axis_scores_json, ts.axis_strengths_json,
+      ts.source_type, ts.source_session_id, ts.question_count, ts.created_at AS snapshot_created_at
+     FROM sessions s
+     LEFT JOIN type_snapshots ts ON ts.id = (
+      SELECT candidate.id
+      FROM type_snapshots candidate
+      WHERE candidate.session_id = s.id
+      ORDER BY candidate.created_at DESC, candidate.id DESC
+      LIMIT 1
+     )
+     WHERE s.status = 'completed'
+     ORDER BY s.completed_at DESC, s.started_at DESC, s.id DESC
+     LIMIT ?;`,
+    normalizedLimit ?? -1
+  );
+
+  const history = rows.map((row) => ({
+    session: mapSessionRow(row),
+    snapshot:
+      row.snapshot_id &&
+      row.current_type &&
+      row.axis_scores_json &&
+      row.axis_strengths_json &&
+      row.source_type &&
+      row.question_count != null &&
+      row.snapshot_created_at
+        ? mapTypeSnapshotRow({
+            id: row.snapshot_id,
+            session_id: row.snapshot_session_id,
+            current_type: row.current_type,
+            axis_scores_json: row.axis_scores_json,
+            axis_strengths_json: row.axis_strengths_json,
+            source_type: row.source_type,
+            source_session_id: row.source_session_id,
+            question_count: row.question_count,
+            created_at: row.snapshot_created_at,
+          })
+        : null,
+  }));
+
+  return history;
+}
+
+export async function readCompletedSessionDetail(
+  adapter: LocalDatabaseAdapter,
+  sessionId: string
+): Promise<PersistedSessionDetail | null> {
+  const sessionRow = await adapter.getFirstAsync<SessionRow>(
+    `SELECT id, session_type, status, local_day_key, started_at, completed_at, created_at, updated_at
+     FROM sessions
+     WHERE id = ? AND status = 'completed'
+     LIMIT 1;`,
+    sessionId
+  );
+
+  if (!sessionRow) {
+    return null;
+  }
+
+  const session = mapSessionRow(sessionRow);
+  const answers = await readSessionAnswers(adapter, sessionId);
+  const snapshot = await readSessionTypeSnapshot(adapter, sessionId);
+
+  return {
+    session,
+    answers,
+    snapshot,
+  };
 }
 
 export function toLocalDayKey(date: Date): string {
