@@ -6,6 +6,7 @@ import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
 type IconSymbolName =
   | 'house.fill'
+  | 'calendar'
   | 'clock.fill'
   | 'paperplane.fill'
   | 'chevron.left.forwardslash.chevron.right'
@@ -24,6 +25,7 @@ type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['
  */
 const MAPPING = {
   'house.fill': 'home',
+  'calendar': 'calendar-today',
   'clock.fill': 'history',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
