@@ -165,6 +165,38 @@ export async function readQuestionCatalog(adapter: LocalDatabaseAdapter): Promis
   });
 }
 
+const dropTableStatements = [
+  `DROP TABLE IF EXISTS session_answers;`,
+  `DROP TABLE IF EXISTS type_snapshots;`,
+  `DROP TABLE IF EXISTS sessions;`,
+  `DROP TABLE IF EXISTS question_catalog;`,
+  `DROP TABLE IF EXISTS app_meta;`,
+  `DROP TABLE IF EXISTS schema_migrations;`,
+];
+
+export type ClearResult = {
+  clearedAt: string;
+};
+
+export async function clearLocalData(adapter: LocalDatabaseAdapter): Promise<ClearResult> {
+  const nowIso = new Date().toISOString();
+
+  await adapter.execAsync('BEGIN IMMEDIATE;');
+
+  try {
+    for (const statement of dropTableStatements) {
+      await adapter.execAsync(statement);
+    }
+
+    await adapter.execAsync('COMMIT;');
+
+    return { clearedAt: nowIso };
+  } catch (error) {
+    await adapter.execAsync('ROLLBACK;');
+    throw error;
+  }
+}
+
 export async function bootstrapLocalData(adapter: LocalDatabaseAdapter): Promise<BootstrapResult> {
   const nowIso = new Date().toISOString();
 
