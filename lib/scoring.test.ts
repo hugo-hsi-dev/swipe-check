@@ -218,10 +218,12 @@ describe('createScoreAccumulator', () => {
     accumulator.addResponse('e-i', 'i', 'e');
 
     const strengths = accumulator.buildStrengths();
+    const eiScores = accumulator.scores.get('e-i');
     const eiStrength = strengths.find(s => s.axisId === 'e-i');
 
-    expect(eiStrength?.poleA.count).toBe(2);
-    expect(eiStrength?.poleB.count).toBe(1);
+    expect(eiScores?.poleA.count).toBe(2);
+    expect(eiScores?.poleB.count).toBe(1);
+    expect(eiStrength?.strength).toBeCloseTo(-1 / 3);
   });
 
   it('should create snapshot from accumulator', () => {
