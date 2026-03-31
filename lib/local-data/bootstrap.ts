@@ -1,7 +1,7 @@
 import { QUESTIONS } from '@/constants/questions';
 import type { Question, QuestionPool } from '@/constants/question-contract';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export type BootstrapResult = {
   initializedAt: string;
@@ -54,6 +54,37 @@ const createTableStatements = [
     sort_index INTEGER NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY NOT NULL,
+    session_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    local_day_key TEXT,
+    started_at TEXT NOT NULL,
+    completed_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    CHECK (session_type IN ('onboarding', 'daily')),
+    CHECK (status IN ('in_progress', 'completed')),
+    CHECK (
+      (session_type = 'daily' AND local_day_key IS NOT NULL)
+      OR (session_type = 'onboarding' AND local_day_key IS NULL)
+    )
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_daily_unique_day
+   ON sessions(session_type, local_day_key);`,
+  `CREATE TABLE IF NOT EXISTS session_answers (
+    session_id TEXT NOT NULL,
+    question_id TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    answered_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (session_id, question_id),
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES question_catalog(id),
+    CHECK (answer IN ('agree', 'disagree'))
   );`,
 ];
 
