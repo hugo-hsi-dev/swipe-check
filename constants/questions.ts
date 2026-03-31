@@ -132,7 +132,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: 'q-008',
-    prompt: 'I weigh people’s feelings heavily when choosing what to do.',
+    prompt: 'I weigh people\'s feelings heavily when choosing what to do.',
     axisId: 't-f',
     agreePoleId: 'f',
     pool: 'onboarding',
