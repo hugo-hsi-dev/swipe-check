@@ -26,7 +26,6 @@ This skill turns an epic document into a structured GitHub issue tree that an au
    - validation examples or tests
 7. Make the epic issue the progress tracker and add every subissue as a dependency of the epic.
 8. Make the final validation subissue depend on the domain-rule subissues it exercises.
-9. Prefer aliasing GraphQL issue fields when fetching multiple issues in one query, and expect `addSubIssue` to fail if the subissue already has a parent.
 
 ## Naming Convention
 - Epic: `Epic XX: <domain name>`
@@ -202,8 +201,6 @@ add_blocking() {
 - Use `parentIssueId` or `addSubIssue` to create a real subissue.
 - Use `addBlockedBy` to encode dependency order.
 - Pass numeric GraphQL values with `-F` when the schema expects `Int`; string inputs can use `-f`.
-- When querying multiple issues in one GraphQL call, alias repeated `issue(number:...)` fields or the request will conflict.
-- `addSubIssue` is not idempotent; if an issue already has a parent, the mutation will fail with a duplicate-parent validation error.
 - After creation, patch the epic body to include the subissue list so humans can read the tracking issue quickly.
 
 ## Lessons From The Epic Workflow
