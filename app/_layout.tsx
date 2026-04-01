@@ -35,8 +35,12 @@ export default function RootLayout() {
     return <Text>Failed to initialize app.</Text>;
   }
 
-  if (targetRoute === 'onboarding' && pathname === '/') {
+  if (targetRoute === 'onboarding' && pathname !== '/onboarding') {
     return <Redirect href="/onboarding" />;
+  }
+
+  if (targetRoute === 'tabs' && pathname === '/onboarding') {
+    return <Redirect href="/today" />;
   }
 
   return (
@@ -53,7 +57,7 @@ export default function RootLayout() {
               name="journal/[id]"
               options={{
                 presentation: 'card',
-                headerShown: false,
+                headerShown: true,
               }}
             />
           </Stack>
