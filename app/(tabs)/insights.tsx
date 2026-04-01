@@ -1,90 +1,87 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, View } from 'react-native';
-import { Card, Chip } from 'heroui-native';
+import { ScrollView, Text, View } from 'react-native';
+import { Card } from 'heroui-native';
+
+import { useCurrentTypeSnapshot } from '@/hooks/use-current-type-snapshot';
+import { AXES } from '@/constants/questions';
 
 export default function InsightsScreen() {
+  const { currentType, snapshot, isLoading } = useCurrentTypeSnapshot();
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerStyle={{
+        padding: 16,
+        paddingTop: 24,
+        paddingBottom: 24,
+        gap: 16,
+      }}>
       <Card>
-        <Card.Body className="gap-2">
-          <Card.Title>Insights</Card.Title>
-          <Card.Description>
-            Analytics and patterns from your activity and journal entries.
-          </Card.Description>
+        <Card.Header>
+          <Card.Title className="text-xl">Insights</Card.Title>
+        </Card.Header>
+      </Card>
+
+      <Card className="bg-accent-soft">
+        <Card.Body className="items-center gap-4 py-8">
+          <Text className="text-4xl font-bold">{currentType ?? '???'}</Text>
+          <Text className="text-text-secondary">Your personality type</Text>
         </Card.Body>
       </Card>
 
-      <Card className="gap-4">
-        <Card.Body className="gap-4">
-          <View className="flex-row items-center gap-3">
-            <View className="size-12 items-center justify-center rounded-full bg-success-soft">
-              <Ionicons name="trending-up" size={24} color="#22c55e" />
-            </View>
-            <View className="shrink">
-              <Card.Title className="text-base">Streak</Card.Title>
-              <Card.Description>
-                12 days of consistent journaling
-              </Card.Description>
-            </View>
-          </View>
+      {snapshot?.axisStrengths.map((strength) => {
+        const axis = AXES.find((a) => a.id === strength.axisId);
+        if (!axis) return null;
 
-          <View className="flex-row items-center gap-3">
-            <View className="size-12 items-center justify-center rounded-full bg-accent-soft">
-              <Ionicons name="create-outline" size={24} />
-            </View>
-            <View className="shrink">
-              <Card.Title className="text-base">Total Entries</Card.Title>
-              <Card.Description>
-                48 journal entries this month
-              </Card.Description>
-            </View>
-          </View>
+        const poleAName = axis.poleA.label;
+        const poleBName = axis.poleB.label;
+        const isPoleADominant = strength.strength < 0;
+        const dominancePercent = Math.round(Math.abs(strength.strength) * 100);
 
-          <View className="flex-row items-center gap-3">
-            <View className="size-12 items-center justify-center rounded-full bg-warning-soft">
-              <Ionicons name="time-outline" size={24} color="#f59e0b" />
-            </View>
-            <View className="shrink">
-              <Card.Title className="text-base">Avg. Time</Card.Title>
-              <Card.Description>
-                5 minutes per entry
-              </Card.Description>
-            </View>
-          </View>
-        </Card.Body>
-      </Card>
+        return (
+          <Card key={strength.axisId}>
+            <Card.Body className="gap-3">
+              <View className="flex-row justify-between">
+                <Text className="font-medium">{poleAName}</Text>
+                <Text className="font-medium">{poleBName}</Text>
+              </View>
+              <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
+                <View
+                  className="h-full rounded-full bg-accent"
+                  style={{
+                    width: `${50 + (strength.strength * 50)}%`,
+                  }}
+                />
+              </View>
+              <Text className="text-center text-sm text-text-secondary">
+                {isPoleADominant ? poleAName : poleBName} ({dominancePercent}%)
+              </Text>
+            </Card.Body>
+          </Card>
+        );
+      })}
 
-      <Card className="gap-4">
-        <Card.Body className="gap-3">
-          <Card.Title>Mood Trends</Card.Title>
-          <View className="flex-row flex-wrap gap-2">
-            <Chip variant="soft" color="success">
-              Happy
-            </Chip>
-            <Chip variant="soft" color="accent">
-              Calm
-            </Chip>
-            <Chip variant="soft" color="warning">
-              Stressed
-            </Chip>
-            <Chip variant="soft" color="danger">
-              Tired
-            </Chip>
-            <Chip variant="soft">
-              Neutral
-            </Chip>
-          </View>
-        </Card.Body>
-      </Card>
-
-      <Card>
-        <Card.Body className="gap-2">
-          <Card.Title>Weekly Summary</Card.Title>
-          <Card.Description>
-            Your journaling has been consistent this week. You&apos;ve written about work, personal growth, and gratitude most frequently.
-          </Card.Description>
-        </Card.Body>
-      </Card>
+      {!snapshot && (
+        <Card>
+          <Card.Body className="items-center gap-4 py-12">
+            <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
+              <Ionicons name="analytics-outline" size={28} />
+            </View>
+            <Text className="text-center text-text-secondary">
+              Complete onboarding to see your personality insights.
+            </Text>
+          </Card.Body>
+        </Card>
+      )}
     </ScrollView>
   );
 }

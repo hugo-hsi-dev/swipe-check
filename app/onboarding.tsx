@@ -1,8 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
-
-import { Button } from 'heroui-native';
+import { ScrollView, Text, View } from 'react-native';
+import { Button, Card } from 'heroui-native';
 
 import { useOnboardingSession } from '@/hooks/use-onboarding-session';
 
@@ -13,76 +13,88 @@ export default function OnboardingScreen() {
   const steps = [
     {
       title: 'Welcome to Swipe Check',
-      description: 'Discover your personality type through quick daily questions.',
+      description:
+        'Discover your personality type through quick daily check-ins. Swipe through questions and track your type over time.',
+      icon: 'hand-left-outline',
     },
     {
-      title: 'Swipe to Answer',
-      description: 'Swipe right for agree, left for disagree. It\'s that simple!',
+      title: 'Quick Daily Sessions',
+      description:
+        'Each day, you will get a curated set of questions. Answer with a simple swipe or tap. It takes less than a minute.',
+      icon: 'time-outline',
     },
     {
-      title: 'Track Your Type',
-      description: 'See how your personality evolves over time with daily insights.',
+      title: 'Track Your Insights',
+      description:
+        'Watch your personality profile evolve. See trends, patterns, and insights about how you think and interact.',
+      icon: 'trending-up-outline',
     },
   ];
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleComplete = async () => {
+  async function handleComplete() {
     await completeOnboarding();
     router.replace('/today');
-  };
+  }
+
+  function handleNext() {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      void handleComplete();
+    }
+  }
 
   const currentStepData = steps[currentStep];
-  const isLastStep = currentStep === steps.length - 1;
 
   return (
-    <View className="flex-1 bg-background px-6 py-12">
-      {/* Progress indicator */}
-      <View className="flex-row justify-center gap-2 mb-12">
-        {steps.map((_, index) => (
-          <View
-            key={index}
-            className={`h-2 rounded-full ${
-              index === currentStep ? 'w-8 bg-accent' : 'w-2 bg-surface-secondary'
-            }`}
-          />
-        ))}
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerStyle={{
+        flexGrow: 1,
+        justifyContent: 'center',
+        padding: 24,
+        gap: 32,
+      }}>
+      <View className="items-center gap-6">
+        <View className="size-24 items-center justify-center rounded-full bg-accent-soft">
+          <Ionicons name={currentStepData.icon as keyof typeof Ionicons.glyphMap} size={40} />
+        </View>
+
+        <View className="items-center gap-3">
+          <Text className="text-center text-2xl font-semibold">{currentStepData.title}</Text>
+          <Text className="text-center text-base text-text-secondary leading-relaxed">
+            {currentStepData.description}
+          </Text>
+        </View>
       </View>
 
-      {/* Content */}
-      <View className="flex-1 justify-center gap-6">
-        <Text className="text-3xl font-bold text-center text-primary">
-          {currentStepData.title}
-        </Text>
-        <Text className="text-lg text-center text-secondary">
-          {currentStepData.description}
-        </Text>
-      </View>
+      <Card>
+        <Card.Body className="gap-6">
+          <View className="flex-row justify-center gap-2">
+            {steps.map((_, index) => (
+              <View
+                key={index}
+                className={`h-2 w-2 rounded-full ${
+                  index === currentStep ? 'bg-accent' : 'bg-surface-tertiary'
+                }`}
+              />
+            ))}
+          </View>
 
-      {/* Navigation buttons */}
-      <View className="gap-4 mt-8">
-        {isLastStep ? (
-          <Button
-            onPress={handleComplete}
-            isDisabled={isLoading}
-            className="w-full">
-            <Button.Label>Get Started</Button.Label>
+          <Button onPress={handleNext} isDisabled={isLoading}>
+            <Ionicons name={currentStep === steps.length - 1 ? 'checkmark' : 'arrow-forward'} size={18} />
+            <Button.Label>
+              {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
+            </Button.Label>
           </Button>
-        ) : (
-          <>
-            <Button onPress={handleNext} className="w-full">
-              <Button.Label>Next</Button.Label>
+
+          {currentStep > 0 && (
+            <Button variant="tertiary" onPress={() => setCurrentStep(currentStep - 1)}>
+              <Button.Label>Back</Button.Label>
             </Button>
-            <Pressable onPress={handleComplete} className="py-3">
-              <Text className="text-center text-secondary">Skip</Text>
-            </Pressable>
-          </>
-        )}
-      </View>
-    </View>
+          )}
+        </Card.Body>
+      </Card>
+    </ScrollView>
   );
 }

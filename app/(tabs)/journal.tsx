@@ -140,7 +140,10 @@ export default function JournalScreen() {
                   <ListGroup.ItemTitle>
                     {completedAt ? formatDate(completedAt) : 'Unknown date'}
                   </ListGroup.ItemTitle>
-                  <Chip size="sm" variant="soft" color={session.type === 'onboarding' ? 'accent' : 'success'}>
+                  <Chip
+                    size="sm"
+                    variant="soft"
+                    color={session.type === 'onboarding' ? 'accent' : 'success'}>
                     <Chip.Label>{getEntryTypeLabel(session.type)}</Chip.Label>
                   </Chip>
                 </View>
