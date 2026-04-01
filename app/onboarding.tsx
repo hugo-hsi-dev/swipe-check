@@ -33,7 +33,7 @@ export default function OnboardingScreen() {
 
   async function handleComplete() {
     await completeOnboarding();
-    router.replace('/(tabs)');
+    router.replace('/today');
   }
 
   function handleNext() {

@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { getSQLiteDatabase } from '@/lib/local-data/sqlite-runtime';
-import {
-  startOrResumeOnboardingSession,
-  completeSession,
-  hasCompletedOnboardingSession,
-} from '@/lib/local-data/session-lifecycle';
+import { completeSession, startOrResumeOnboardingSession } from '@/lib/local-data/session-lifecycle';
 import type { PersistedSession } from '@/lib/local-data/session-lifecycle';
 
 export function useOnboardingSession(): {

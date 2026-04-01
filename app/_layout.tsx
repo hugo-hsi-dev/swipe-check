@@ -1,15 +1,15 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Redirect, Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import 'react-native-reanimated';
-import { Text } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useEffect } from 'react';
 
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useOnboardingStatus } from '@/hooks/use-onboarding-status';
+import { useInitialRoute } from '@/hooks/use-initial-route';
+
 import '@/global.css';
 
 export const unstable_settings = {
@@ -19,31 +19,24 @@ export const unstable_settings = {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { bootstrapError, isBootstrapping } = useAppBootstrap();
-  const { hasCompletedOnboarding, isLoading: isOnboardingLoading } = useOnboardingStatus();
-  const router = useRouter();
-  const segments = useSegments();
+  const { isDeterminingRoute, routeError, targetRoute } = useInitialRoute();
+  const pathname = usePathname();
 
-  useEffect(() => {
-    if (isBootstrapping || isOnboardingLoading) {
-      return;
-    }
-
-    const inOnboarding = segments[0] === 'onboarding';
-    const inAuthGroup = segments[0] === '(tabs)';
-
-    if (!hasCompletedOnboarding && !inOnboarding) {
-      router.replace('/onboarding');
-    } else if (hasCompletedOnboarding && !inAuthGroup && !inOnboarding) {
-      router.replace('/(tabs)');
-    }
-  }, [hasCompletedOnboarding, segments, isBootstrapping, isOnboardingLoading, router]);
-
-  if (isBootstrapping || isOnboardingLoading) {
-    return null;
+  if (isBootstrapping || isDeterminingRoute) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator />
+        <Text className="mt-3 text-foreground">Loading app...</Text>
+      </View>
+    );
   }
 
-  if (bootstrapError) {
-    return <Text>Failed to initialize local data.</Text>;
+  if (bootstrapError || routeError) {
+    return <Text>Failed to initialize app.</Text>;
+  }
+
+  if (targetRoute === 'onboarding' && pathname === '/') {
+    return <Redirect href="/onboarding" />;
   }
 
   return (
@@ -53,9 +46,16 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="entry" options={{ headerShown: false }} />
             <Stack.Screen name="session" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Details' }} />
+            <Stack.Screen
+              name="journal/[id]"
+              options={{
+                presentation: 'card',
+                headerShown: false,
+              }}
+            />
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>

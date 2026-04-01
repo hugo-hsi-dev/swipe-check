@@ -1,19 +1,20 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
 type IconSymbolName =
   | 'house.fill'
+  | 'calendar'
+  | 'checkmark.circle.fill'
+  | 'chart.bar.fill'
+  | 'clock.fill'
+  | 'gearshape.fill'
+  | 'book.fill'
   | 'paperplane.fill'
   | 'chevron.left.forwardslash.chevron.right'
-  | 'chevron.right'
-  | 'calendar'
-  | 'book.fill'
-  | 'chart.bar.fill'
-  | 'gearshape.fill';
+  | 'chevron.right';
 
 type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['name']>;
 
@@ -24,13 +25,15 @@ type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['
  */
 const MAPPING = {
   'house.fill': 'home',
+  'calendar': 'calendar-today',
+  'checkmark.circle.fill': 'check-circle',
+  'chart.bar.fill': 'bar-chart',
+  'clock.fill': 'history',
+  'gearshape.fill': 'settings',
+  'book.fill': 'book',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
-  'calendar': 'calendar-today',
-  'book.fill': 'book',
-  'chart.bar.fill': 'bar-chart',
-  'gearshape.fill': 'settings',
 } as IconMapping;
 
 /**
@@ -48,7 +51,6 @@ export function IconSymbol({
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;
-  weight?: SymbolWeight;
 }) {
   return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
 }
