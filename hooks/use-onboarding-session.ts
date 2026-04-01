@@ -160,22 +160,25 @@ export function useOnboardingSession(): OnboardingController {
       throw new Error('No active session');
     }
 
-    if (!canComplete) {
-      throw new OnboardingCompletionError(
-        `Onboarding requires ${totalCount} answers, but only ${answeredCount} provided`,
-        totalCount,
-        answeredCount
-      );
-    }
-
     setIsSubmitting(true);
     setError(null);
 
     try {
       const db = await getSQLiteDatabase();
+      const latestAnswers = await readSessionAnswers(db, session.id);
+
+      setAnswers(latestAnswers);
+
+      if (latestAnswers.length !== totalCount) {
+        throw new OnboardingCompletionError(
+          `Onboarding requires ${totalCount} answers, but only ${latestAnswers.length} provided`,
+          totalCount,
+          latestAnswers.length
+        );
+      }
 
       // Build answered questions for scoring
-      const answeredQuestions = answers
+      const answeredQuestions = latestAnswers
         .map((answer) => {
           const question = ONBOARDING_QUESTIONS.find((q) => q.id === answer.questionId);
           if (!question) return null;
@@ -223,7 +226,7 @@ export function useOnboardingSession(): OnboardingController {
     } finally {
       setIsSubmitting(false);
     }
-  }, [session, answers, canComplete, answeredCount, totalCount]);
+  }, [session, totalCount]);
 
   const refresh = useCallback(async () => {
     await loadSession();

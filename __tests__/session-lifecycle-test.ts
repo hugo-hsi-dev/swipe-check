@@ -12,6 +12,7 @@ import {
   readLatestTypeSnapshot,
   readSessionAnswers,
   readSessionTypeSnapshot,
+  resetOnboardingData,
   startOrResumeOnboardingSession,
   toLocalDayKey,
   upsertSessionAnswer,
@@ -50,6 +51,31 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
   }
 
   async runAsync(sql: string, ...params: (string | number | null)[]): Promise<unknown> {
+    if (sql.includes('DELETE FROM session_answers') && sql.includes('WHERE session_id = ?')) {
+      const [sessionId] = params as [string];
+      for (const [key, answer] of this.answers.entries()) {
+        if (answer.sessionId === sessionId) {
+          this.answers.delete(key);
+        }
+      }
+      return;
+    }
+
+    if (sql.includes('DELETE FROM type_snapshots') && sql.includes("source_type = 'onboarding'")) {
+      for (const [key, snapshot] of this.snapshots.entries()) {
+        if (snapshot.source.type === 'onboarding') {
+          this.snapshots.delete(key);
+        }
+      }
+      return;
+    }
+
+    if (sql.includes('DELETE FROM sessions') && sql.includes("session_type = 'onboarding'")) {
+      const [sessionId] = params as [string];
+      this.sessions.delete(sessionId);
+      return;
+    }
+
     if (sql.includes("INSERT INTO sessions") && sql.includes("'onboarding'")) {
       const [id, startedAt, createdAt, updatedAt] = params as [string, string, string, string];
       this.sessions.set(id, {
@@ -330,6 +356,15 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
   }
 
   async getAllAsync<T>(sql: string, ...params: (string | number | null)[]): Promise<T[]> {
+    if (sql.includes('FROM sessions') && sql.includes("session_type = 'onboarding'")) {
+      return [...this.sessions.values()]
+        .filter((session) => session.type === 'onboarding')
+        .sort((a, b) => a.startedAt.localeCompare(b.startedAt) || a.id.localeCompare(b.id))
+        .map((session) => ({
+          id: session.id,
+        })) as T[];
+    }
+
     if (sql.includes('FROM session_answers')) {
       const [sessionId] = params as [string];
 
@@ -541,6 +576,51 @@ describe('session lifecycle persistence helpers', () => {
     await completeSession(adapter, session.id, new Date('2026-01-01T08:10:00.000Z'));
 
     expect(await hasCompletedOnboardingSession(adapter)).toBe(true);
+  });
+
+  it('clears onboarding data without affecting daily history', async () => {
+    const adapter = new FakeSessionAdapter();
+
+    const onboarding = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
+    await upsertSessionAnswer(adapter, onboarding.id, 'q-001', 'agree', new Date('2026-01-01T08:01:00.000Z'));
+    await completeSession(adapter, onboarding.id, new Date('2026-01-01T08:02:00.000Z'));
+
+    const onboardingSnapshot: TypeSnapshot = {
+      id: 'snap-onboarding-reset',
+      currentType: 'INFJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:03:00.000Z'),
+      source: { type: 'onboarding', sessionId: onboarding.id },
+      questionCount: 1,
+    };
+    await upsertTypeSnapshot(adapter, onboardingSnapshot);
+
+    const daily = await getOrCreateDailySessionForLocalDay(
+      adapter,
+      '2026-01-02',
+      new Date('2026-01-02T08:00:00.000Z')
+    );
+    await upsertSessionAnswer(adapter, daily.id, 'q-002', 'disagree', new Date('2026-01-02T08:01:00.000Z'));
+    await completeSession(adapter, daily.id, new Date('2026-01-02T08:02:00.000Z'));
+
+    const dailySnapshot: TypeSnapshot = {
+      id: 'snap-daily-reset',
+      currentType: 'ENTP',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-02T08:03:00.000Z'),
+      source: { type: 'daily', sessionId: daily.id },
+      questionCount: 1,
+    };
+    await upsertTypeSnapshot(adapter, dailySnapshot);
+
+    await resetOnboardingData(adapter);
+
+    expect(await hasCompletedOnboardingSession(adapter)).toBe(false);
+    expect(await readSessionTypeSnapshot(adapter, onboarding.id)).toBeNull();
+    expect(await readCompletedSessionHistory(adapter)).toHaveLength(1);
+    expect(await readLatestTypeSnapshot(adapter)).toEqual(dailySnapshot);
   });
 
   it('reads active daily session before falling back to the latest completed one', async () => {

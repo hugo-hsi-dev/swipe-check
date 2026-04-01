@@ -335,6 +335,39 @@ export async function hasCompletedOnboardingSession(adapter: LocalDatabaseAdapte
   return row != null;
 }
 
+export async function resetOnboardingData(adapter: LocalDatabaseAdapter): Promise<void> {
+  const onboardingSessions = await adapter.getAllAsync<{ id: string }>(
+    `SELECT id
+     FROM sessions
+     WHERE session_type = 'onboarding'
+     ORDER BY started_at ASC, id ASC;`
+  );
+
+  if (onboardingSessions.length === 0) {
+    return;
+  }
+
+  await adapter.execAsync('BEGIN IMMEDIATE;');
+
+  try {
+    await adapter.runAsync(`DELETE FROM type_snapshots WHERE source_type = 'onboarding';`);
+
+    for (const session of onboardingSessions) {
+      await adapter.runAsync('DELETE FROM session_answers WHERE session_id = ?;', session.id);
+      await adapter.runAsync(
+        `DELETE FROM sessions
+         WHERE id = ? AND session_type = 'onboarding';`,
+        session.id
+      );
+    }
+
+    await adapter.execAsync('COMMIT;');
+  } catch (error) {
+    await adapter.execAsync('ROLLBACK;');
+    throw error;
+  }
+}
+
 export async function readActiveOrLatestDailySession(
   adapter: LocalDatabaseAdapter
 ): Promise<PersistedSession | null> {
