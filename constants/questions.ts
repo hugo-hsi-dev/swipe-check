@@ -345,6 +345,17 @@ export const QUESTIONS: Question[] = [
 ] as const;
 
 /**
+ * Fixed set of 12 onboarding questions in stable order.
+ * These are always presented in sequence during onboarding.
+ */
+export const ONBOARDING_QUESTIONS: Question[] = QUESTIONS.filter(
+  (q): q is Question => q.isActive && q.pool === 'onboarding'
+).sort((a, b) => {
+  // Sort by question ID to ensure stable order (q-001, q-002, etc.)
+  return a.id.localeCompare(b.id);
+});
+
+/**
  * Helper function to get all active questions.
  */
 export function getActiveQuestions(): Question[] {

@@ -258,6 +258,72 @@ export async function completeSession(
   );
 }
 
+export class OnboardingCompletionError extends Error {
+  constructor(
+    message: string,
+    public readonly requiredCount: number,
+    public readonly currentCount: number
+  ) {
+    super(message);
+    this.name = 'OnboardingCompletionError';
+  }
+}
+
+/**
+ * Complete an onboarding session with snapshot creation.
+ * Validates that exactly 12 answers exist before completing.
+ * Creates and stores a TypeSnapshot tied to the completed session.
+ *
+ * @throws OnboardingCompletionError if less than 12 answers exist
+ */
+export async function completeOnboardingSession(
+  adapter: LocalDatabaseAdapter,
+  sessionId: string,
+  snapshot: TypeSnapshot,
+  completedAt = new Date()
+): Promise<void> {
+  // Validate session exists and is in_progress onboarding
+  const sessionRow = await adapter.getFirstAsync<SessionRow>(
+    `SELECT id, session_type, status
+     FROM sessions
+     WHERE id = ? AND session_type = 'onboarding' AND status = 'in_progress'
+     LIMIT 1;`,
+    sessionId
+  );
+
+  if (!sessionRow) {
+    throw new OnboardingCompletionError(
+      'Onboarding session not found or already completed',
+      12,
+      0
+    );
+  }
+
+  // Count existing answers
+  const answerCountRow = await adapter.getFirstAsync<{ count: number }>(
+    `SELECT COUNT(*) as count
+     FROM session_answers
+     WHERE session_id = ?;`,
+    sessionId
+  );
+
+  const answerCount = answerCountRow?.count ?? 0;
+
+  if (answerCount < 12) {
+    throw new OnboardingCompletionError(
+      `Onboarding requires 12 answers, but only ${answerCount} provided`,
+      12,
+      answerCount
+    );
+  }
+
+  // Store the snapshot
+  await upsertTypeSnapshot(adapter, snapshot);
+
+  // Mark session as completed
+  await completeSession(adapter, sessionId, completedAt);
+}
+
 export async function hasCompletedOnboardingSession(adapter: LocalDatabaseAdapter): Promise<boolean> {
   const row = await adapter.getFirstAsync<{ id: string }>(
     `SELECT id
@@ -267,6 +333,39 @@ export async function hasCompletedOnboardingSession(adapter: LocalDatabaseAdapte
   );
 
   return row != null;
+}
+
+export async function resetOnboardingData(adapter: LocalDatabaseAdapter): Promise<void> {
+  const onboardingSessions = await adapter.getAllAsync<{ id: string }>(
+    `SELECT id
+     FROM sessions
+     WHERE session_type = 'onboarding'
+     ORDER BY started_at ASC, id ASC;`
+  );
+
+  if (onboardingSessions.length === 0) {
+    return;
+  }
+
+  await adapter.execAsync('BEGIN IMMEDIATE;');
+
+  try {
+    await adapter.runAsync(`DELETE FROM type_snapshots WHERE source_type = 'onboarding';`);
+
+    for (const session of onboardingSessions) {
+      await adapter.runAsync('DELETE FROM session_answers WHERE session_id = ?;', session.id);
+      await adapter.runAsync(
+        `DELETE FROM sessions
+         WHERE id = ? AND session_type = 'onboarding';`,
+        session.id
+      );
+    }
+
+    await adapter.execAsync('COMMIT;');
+  } catch (error) {
+    await adapter.execAsync('ROLLBACK;');
+    throw error;
+  }
 }
 
 export async function readActiveOrLatestDailySession(
