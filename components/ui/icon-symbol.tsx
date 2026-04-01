@@ -7,14 +7,14 @@ import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 type IconSymbolName =
   | 'house.fill'
   | 'calendar'
+  | 'checkmark.circle.fill'
+  | 'chart.bar.fill'
   | 'clock.fill'
+  | 'gearshape.fill'
+  | 'book.fill'
   | 'paperplane.fill'
   | 'chevron.left.forwardslash.chevron.right'
-  | 'chevron.right'
-  | 'checkmark.circle.fill'
-  | 'book.fill'
-  | 'chart.bar.fill'
-  | 'gearshape.fill';
+  | 'chevron.right';
 
 type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['name']>;
 
@@ -26,14 +26,14 @@ type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['
 const MAPPING = {
   'house.fill': 'home',
   'calendar': 'calendar-today',
+  'checkmark.circle.fill': 'check-circle',
+  'chart.bar.fill': 'bar-chart',
   'clock.fill': 'history',
+  'gearshape.fill': 'settings',
+  'book.fill': 'book',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
-  'checkmark.circle.fill': 'check-circle',
-  'book.fill': 'book',
-  'chart.bar.fill': 'bar-chart',
-  'gearshape.fill': 'settings',
 } as IconMapping;
 
 /**
