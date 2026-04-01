@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Redirect, Stack, usePathname } from 'expo-router';
+import { Redirect, Stack, useGlobalSearchParams, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import 'react-native-reanimated';
@@ -20,7 +20,9 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { bootstrapError, isBootstrapping } = useAppBootstrap();
   const pathname = usePathname();
+  const { preview } = useGlobalSearchParams<{ preview?: string }>();
   const { evaluatedPathname, isDeterminingRoute, routeError, targetRoute } = useInitialRoute(pathname);
+  const isOnboardingPreview = preview === '1';
 
   if (isBootstrapping || isDeterminingRoute) {
     return (
@@ -41,7 +43,7 @@ export default function RootLayout() {
     return <Redirect href="/onboarding" />;
   }
 
-  if (isRouteDecisionCurrent && targetRoute === 'tabs' && pathname === '/onboarding') {
+  if (isRouteDecisionCurrent && targetRoute === 'tabs' && pathname === '/onboarding' && !isOnboardingPreview) {
     return <Redirect href="/today" />;
   }
 
