@@ -1,15 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
-import { Button, Card } from 'heroui-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, Card, Chip, useThemeColor as useHeroThemeColor } from 'heroui-native';
 
 import type { QuestionResponse } from '@/constants/question-contract';
+import { AXES } from '@/constants/questions';
 import { useOnboardingSession } from '@/hooks/use-onboarding-session';
 
 type OnboardingPhase = 'intro' | 'questions' | 'complete';
 
-const INTRO_STEPS = [
+const INTRO_STEPS: {
+  title: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}[] = [
   {
     title: 'Welcome to Swipe Check',
     description:
@@ -36,6 +41,21 @@ const INTRO_STEPS = [
   },
 ] as const;
 
+const INTRO_METRICS = [
+  {
+    value: '12',
+    label: 'Baseline prompts',
+  },
+  {
+    value: '4',
+    label: 'Personality axes',
+  },
+  {
+    value: '3/day',
+    label: 'Daily check-ins',
+  },
+] as const;
+
 export default function OnboardingScreen() {
   const {
     answeredCount,
@@ -48,6 +68,11 @@ export default function OnboardingScreen() {
     totalCount,
     canComplete,
   } = useOnboardingSession();
+  const [accentForeground, foreground, successForeground] = useHeroThemeColor([
+    'accent-foreground',
+    'foreground',
+    'success-foreground',
+  ]);
   const [introStep, setIntroStep] = useState(0);
   const [phase, setPhase] = useState<OnboardingPhase>('intro');
   const [lastAnswer, setLastAnswer] = useState<QuestionResponse | null>(null);
@@ -108,19 +133,52 @@ export default function OnboardingScreen() {
 
   const currentQuestion = currentQuestionIndex >= 0 ? questions[currentQuestionIndex] : null;
   const currentIntroStep = INTRO_STEPS[introStep];
+  const currentAxis = currentQuestion
+    ? AXES.find((axis) => axis.id === currentQuestion.question.axisId) ?? null
+    : null;
+  const progressPercentage = getProgressPercentage();
+  const introProgressPercentage = Math.round(((introStep + 1) / INTRO_STEPS.length) * 100);
 
   // Loading state
   if (isLoading) {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.centeredContainer}
-      >
-        <View className="items-center gap-4">
-          <View className="size-16 items-center justify-center rounded-full bg-accent-soft">
-            <Ionicons name="hourglass-outline" size={32} className="text-accent" />
+      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.loadingContainer}>
+        <View className="gap-6">
+          <View className="items-start gap-4">
+            <View className="size-16 items-center justify-center rounded-3xl bg-accent-soft">
+              <Ionicons name="hourglass-outline" size={32} color={accentForeground} />
+            </View>
+            <View className="gap-2">
+              <Text className="text-sm font-semibold uppercase tracking-[0.24em] text-text-secondary">
+                Swipe Check
+              </Text>
+              <Text className="text-3xl font-bold leading-tight text-foreground">
+                Preparing your baseline.
+              </Text>
+              <Text className="max-w-[320px] text-base leading-7 text-text-secondary">
+                We are restoring your onboarding session so you can continue exactly where you left
+                off.
+              </Text>
+            </View>
           </View>
-          <Text className="text-center text-lg text-text-secondary">Loading your session...</Text>
+
+          <Card variant="secondary">
+            <Card.Body className="gap-4 p-5">
+              <View className="flex-row items-center gap-3">
+                <View className="size-12 items-center justify-center rounded-2xl bg-surface-secondary">
+                  <Ionicons name="sparkles-outline" size={22} color={foreground} />
+                </View>
+                <View className="flex-1 gap-1">
+                  <Text className="text-base font-semibold text-foreground">
+                    Personal baseline, not a personality test.
+                  </Text>
+                  <Text className="text-sm leading-6 text-text-secondary">
+                    Short, honest answers help shape tomorrow&apos;s check-in.
+                  </Text>
+                </View>
+              </View>
+            </Card.Body>
+          </Card>
         </View>
       </ScrollView>
     );
@@ -129,37 +187,59 @@ export default function OnboardingScreen() {
   // Completion state
   if (phase === 'complete') {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.centeredContainer}
-      >
-        <View className="gap-6">
-          <View className="items-center gap-4">
-            <View className="size-24 items-center justify-center rounded-full bg-success/10">
-              <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-            </View>
+      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.flowContainer}>
+        <View className="relative gap-8">
+          <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
+            <View className="absolute -left-16 top-8 size-56 rounded-full bg-success/10" />
+            <View className="absolute right-[-64px] top-32 size-44 rounded-full bg-accent/10" />
+            <View className="absolute bottom-0 left-1/4 size-72 rounded-full bg-surface-secondary/50" />
+          </View>
 
-            <View className="items-center gap-2">
-              <Text className="text-center text-2xl font-semibold">You&apos;re All Set!</Text>
-              <Text className="text-center text-base text-text-secondary leading-relaxed">
-                Your baseline is complete. Come back tomorrow for your first 3-question daily check-in.
-              </Text>
+          <View className="gap-4">
+            <Chip color="success" variant="soft" size="sm">
+              <Chip.Label>Baseline complete</Chip.Label>
+            </Chip>
+
+            <View className="items-start gap-4">
+              <View className="size-16 items-center justify-center rounded-3xl bg-success/10">
+                <Ionicons name="checkmark-circle" size={34} color={successForeground} />
+              </View>
+
+              <View className="gap-3">
+                <Text className="text-4xl font-bold leading-tight text-foreground">
+                  You&apos;re all set.
+                </Text>
+                <Text className="max-w-[320px] text-base leading-7 text-text-secondary">
+                  Your baseline is complete. Come back tomorrow for your first 3-question daily
+                  check-in.
+                </Text>
+              </View>
             </View>
           </View>
 
-          <Card>
-            <Card.Body className="gap-4">
-              <View className="gap-2">
-                <Text className="text-center text-sm text-text-secondary">Questions answered</Text>
-                <Text className="text-center text-3xl font-bold">{answeredCount}/{totalCount}</Text>
+          <Card variant="secondary">
+            <Card.Body className="gap-4 p-5">
+              <View className="flex-row gap-3">
+                <View className="flex-1 gap-1 rounded-3xl bg-surface p-4">
+                  <Text className="text-sm text-text-secondary">Questions answered</Text>
+                  <Text className="text-3xl font-bold text-foreground">
+                    {answeredCount}/{totalCount}
+                  </Text>
+                </View>
+
+                <View className="flex-1 gap-1 rounded-3xl bg-surface p-4">
+                  <Text className="text-sm text-text-secondary">Next step</Text>
+                  <Text className="text-lg font-semibold text-foreground">Daily check-ins</Text>
+                </View>
               </View>
 
               <Button
                 onPress={() => void handleComplete()}
                 isDisabled={isSubmitting}
                 size="lg"
+                className="w-full"
               >
-                <Ionicons name="arrow-forward" size={18} />
+                <Ionicons name="arrow-forward" size={18} color={accentForeground} />
                 <Button.Label>Get Started</Button.Label>
               </Button>
             </Card.Body>
@@ -172,79 +252,138 @@ export default function OnboardingScreen() {
   // Questions phase
   if (phase === 'questions') {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.questionContainer}
-      >
-        <View className="gap-6">
-          {/* Progress bar */}
-          <View className="gap-3">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-sm font-medium text-text-secondary">Question {answeredCount + 1} of {totalCount}</Text>
-              <Text className="text-sm font-medium text-accent">{getProgressPercentage()}%</Text>
+      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.flowContainer}>
+        <View className="relative gap-8">
+          <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
+            <View className="absolute -left-20 top-10 size-56 rounded-full bg-accent/12" />
+            <View className="absolute right-[-56px] top-56 size-44 rounded-full bg-success/10" />
+            <View className="absolute bottom-0 left-1/4 size-72 rounded-full bg-surface-secondary/60" />
+          </View>
+
+          <View className="gap-4">
+            <View className="flex-row items-end justify-between gap-4">
+              <View className="flex-1 gap-3">
+                <Chip color="accent" variant="soft" size="sm">
+                  <Chip.Label>
+                    Question {answeredCount + 1} of {totalCount}
+                  </Chip.Label>
+                </Chip>
+
+                <View className="gap-2">
+                  <Text className="text-3xl font-bold leading-tight text-foreground">
+                    Answer what feels true right now.
+                  </Text>
+                  <Text className="text-base leading-7 text-text-secondary">
+                    There are no right answers. Your pattern is what matters.
+                  </Text>
+                </View>
+              </View>
+
+              <View className="items-end gap-1">
+                <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-text-secondary">
+                  Progress
+                </Text>
+                <Text className="text-2xl font-bold text-foreground">{progressPercentage}%</Text>
+              </View>
             </View>
-            <View className="h-2 w-full overflow-hidden rounded-full bg-surface-secondary">
+
+            <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
               <View
                 className="h-full rounded-full bg-accent transition-all duration-300"
-                style={{ width: `${getProgressPercentage()}%` }}
+                style={{ width: `${progressPercentage}%` }}
               />
             </View>
           </View>
 
-          {/* Question card */}
-          <Card className="bg-surface">
-            <Card.Body className="gap-6 py-8">
-              <View className="items-center gap-4">
-                <View className="size-16 items-center justify-center rounded-full bg-accent-soft">
+          <Card variant="secondary" className="overflow-hidden">
+            <View className="h-1 w-full bg-accent" style={{ opacity: 0.12 }} />
+            <Card.Body className="gap-6 p-6">
+              <View className="flex-row items-start gap-4">
+                <View className="size-14 items-center justify-center rounded-3xl bg-accent-soft">
                   <Text className="text-2xl font-bold text-accent">{answeredCount + 1}</Text>
                 </View>
-                
-                {currentQuestion ? (
-                  <Text className="text-center text-xl font-semibold leading-relaxed">
-                    {currentQuestion.question.prompt}
-                  </Text>
-                ) : (
-                  <Text className="text-center text-xl font-semibold">Preparing next question...</Text>
-                )}
+
+                <View className="flex-1 gap-3">
+                  <View className="flex-row flex-wrap gap-2">
+                    {currentAxis && (
+                      <Chip variant="soft" color="accent" size="sm">
+                        <Chip.Label>{currentAxis.name}</Chip.Label>
+                      </Chip>
+                    )}
+                    <Chip variant="secondary" size="sm">
+                      <Chip.Label>Baseline prompt</Chip.Label>
+                    </Chip>
+                  </View>
+
+                  {currentQuestion ? (
+                    <Text className="text-2xl font-semibold leading-snug text-foreground">
+                      {currentQuestion.question.prompt}
+                    </Text>
+                  ) : (
+                    <Text className="text-2xl font-semibold leading-snug text-foreground">
+                      Preparing the next question...
+                    </Text>
+                  )}
+                </View>
               </View>
+
+              <Text className="text-sm leading-6 text-text-secondary">
+                Tap the response that best matches your current default, not your ideal self.
+              </Text>
             </Card.Body>
           </Card>
 
-          {/* Answer buttons */}
           <View className="gap-3">
             <Button
               onPress={() => void handleAnswer('agree')}
               isDisabled={isSubmitting || !currentQuestion}
               size="lg"
-              className="bg-success"
+              className="w-full"
             >
-              <Ionicons name="checkmark-circle" size={24} />
+              <Ionicons name="checkmark-circle" size={20} color={accentForeground} />
               <Button.Label className="text-lg">Agree</Button.Label>
             </Button>
 
             <Button
-              variant="tertiary"
+              variant="outline"
               onPress={() => void handleAnswer('disagree')}
               isDisabled={isSubmitting || !currentQuestion}
               size="lg"
+              className="w-full"
             >
-              <Ionicons name="close-circle" size={24} />
+              <Ionicons name="close-circle" size={20} color={foreground} />
               <Button.Label className="text-lg">Disagree</Button.Label>
             </Button>
           </View>
 
-          {/* Subtle hint */}
-          <Text className="text-center text-sm text-text-secondary">
-            Choose the response that feels most accurate to you right now.
-          </Text>
-
-          {/* Answer feedback */}
-          {isSubmitting && (
-            <View className="items-center gap-2">
-              <Text className="text-sm text-accent">
-                {lastAnswer === 'agree' ? 'Saving Agree...' : 'Saving Disagree...'}
+          <Card variant="transparent">
+            <Card.Body className="gap-2 p-0">
+              <Text className="text-sm font-medium text-foreground">Why this matters</Text>
+              <Text className="text-sm leading-6 text-text-secondary">
+                Your baseline shapes tomorrow&apos;s 3-question check-in and the personality snapshot
+                shown in Today and Insights.
               </Text>
-            </View>
+            </Card.Body>
+          </Card>
+
+          {isSubmitting && (
+            <Card variant="secondary">
+              <Card.Body className="flex-row items-center gap-3 p-4">
+                <View className="size-10 items-center justify-center rounded-2xl bg-accent-soft">
+                  <Ionicons
+                    name={lastAnswer === 'agree' ? 'checkmark' : 'close'}
+                    size={18}
+                    color={accentForeground}
+                  />
+                </View>
+                <View className="flex-1 gap-1">
+                  <Text className="text-sm font-medium text-foreground">
+                    Saving {lastAnswer === 'agree' ? 'Agree' : 'Disagree'}...
+                  </Text>
+                  <Text className="text-sm text-text-secondary">Locking in your response.</Text>
+                </View>
+              </Card.Body>
+            </Card>
           )}
         </View>
       </ScrollView>
@@ -253,107 +392,149 @@ export default function OnboardingScreen() {
 
   // Intro phase (default)
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={styles.centeredContainer}
-    >
-      <View className="gap-6">
-        {/* Step indicator */}
-        <View className="flex-row justify-center gap-2">
-          {INTRO_STEPS.map((_, index) => (
-            <View
-              key={index}
-              className={`h-2 rounded-full transition-all duration-200 ${
-                index === introStep 
-                  ? 'w-6 bg-accent' 
-                  : index < introStep 
-                    ? 'w-2 bg-accent/60' 
-                    : 'w-2 bg-surface-tertiary'
-              }`}
-            />
-          ))}
+    <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.flowContainer}>
+      <View className="relative gap-8">
+        <View pointerEvents="none" className="absolute inset-0 overflow-hidden">
+          <View className="absolute -left-20 top-12 size-64 rounded-full bg-accent/12" />
+          <View className="absolute right-[-72px] top-40 size-48 rounded-full bg-success/10" />
+          <View className="absolute bottom-0 left-1/3 size-80 rounded-full bg-surface-secondary/60" />
         </View>
 
-        {/* Content */}
-        <Card className="bg-surface">
-          <Card.Body className="gap-8 py-8">
-            <View className="items-center gap-6">
-              <View className="size-24 items-center justify-center rounded-full bg-accent-soft">
-                <Ionicons 
-                  name={currentIntroStep.icon as keyof typeof Ionicons.glyphMap} 
-                  size={48} 
-                  className="text-accent" 
-                />
-              </View>
+        <View className="gap-4">
+          <View className="flex-row flex-wrap gap-2">
+            <Chip color="accent" variant="soft" size="sm">
+              <Chip.Label>Onboarding</Chip.Label>
+            </Chip>
+            <Chip variant="secondary" size="sm">
+              <Chip.Label>12 questions</Chip.Label>
+            </Chip>
+            <Chip color="success" variant="soft" size="sm">
+              <Chip.Label>About 2 min</Chip.Label>
+            </Chip>
+          </View>
 
-              <View className="items-center gap-3">
-                <Text className="text-center text-2xl font-bold">{currentIntroStep.title}</Text>
-                <Text className="text-center text-base text-text-secondary leading-relaxed">
-                  {currentIntroStep.description}
-                </Text>
-              </View>
-            </View>
-
-            {/* Step counter */}
-            <Text className="text-center text-sm text-text-secondary">
-              Step {introStep + 1} of {INTRO_STEPS.length}
+          <View className="gap-3">
+            <Text className="text-4xl font-bold leading-tight text-foreground">
+              Build a baseline that actually feels like you.
             </Text>
-          </Card.Body>
-        </Card>
+            <Text className="max-w-[340px] text-base leading-7 text-text-secondary">
+              Swipe Check starts with a fast 12-question baseline, then turns into a short daily
+              check-in.
+            </Text>
+          </View>
 
-        {/* Navigation buttons */}
+          <View className="flex-row flex-wrap gap-3">
+            {INTRO_METRICS.map((metric) => (
+              <Card key={metric.label} variant="secondary" className="min-w-[110px] flex-1">
+                <Card.Body className="gap-1 p-4">
+                  <Text className="text-2xl font-bold text-foreground">{metric.value}</Text>
+                  <Text className="text-sm leading-5 text-text-secondary">{metric.label}</Text>
+                </Card.Body>
+              </Card>
+            ))}
+          </View>
+        </View>
+
+        <View className="gap-5">
+          <View className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm font-medium text-text-secondary">
+                Step {introStep + 1} of {INTRO_STEPS.length}
+              </Text>
+              <Text className="text-sm font-medium text-accent">{introProgressPercentage}%</Text>
+            </View>
+            <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
+              <View
+                className="h-full rounded-full bg-accent transition-all duration-200"
+                style={{ width: `${introProgressPercentage}%` }}
+              />
+            </View>
+          </View>
+
+          <Card variant="secondary" className="overflow-hidden">
+            <View className="h-1 w-full bg-accent" style={{ opacity: 0.12 }} />
+            <Card.Body className="gap-6 p-6">
+              <View className="flex-row items-start gap-4">
+                <View className="size-16 items-center justify-center rounded-3xl bg-accent-soft">
+                  <Ionicons
+                    name={currentIntroStep.icon}
+                    size={28}
+                    color={accentForeground}
+                  />
+                </View>
+
+                <View className="flex-1 gap-3">
+                  <View className="flex-row flex-wrap items-center gap-2">
+                    <Chip variant="soft" color="accent" size="sm">
+                      <Chip.Label>Step highlight</Chip.Label>
+                    </Chip>
+                    <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-text-secondary">
+                      Swipe Check
+                    </Text>
+                  </View>
+
+                  <Text className="text-2xl font-semibold leading-snug text-foreground">
+                    {currentIntroStep.title}
+                  </Text>
+                  <Text className="text-base leading-7 text-text-secondary">
+                    {currentIntroStep.description}
+                  </Text>
+                </View>
+              </View>
+
+              <Card variant="transparent">
+                <Card.Body className="gap-2 p-0">
+                  <Text className="text-sm font-medium text-foreground">What to expect</Text>
+                  <Text className="text-sm leading-6 text-text-secondary">
+                    Keep it honest and quick. The goal is a baseline that feels accurate, not
+                    polished.
+                  </Text>
+                </Card.Body>
+              </Card>
+            </Card.Body>
+          </Card>
+        </View>
+
         <View className="gap-3">
-          <Button 
-            onPress={handleNextIntroStep} 
-            isDisabled={isLoading}
-            size="lg"
-          >
+          <Button onPress={handleNextIntroStep} isDisabled={isLoading} size="lg" className="w-full">
             <Button.Label className="text-lg">
               {introStep === INTRO_STEPS.length - 1 ? 'Start Questions' : 'Next'}
             </Button.Label>
-            <Ionicons name="arrow-forward" size={20} />
+            <Ionicons name="arrow-forward" size={20} color={accentForeground} />
           </Button>
 
-          {introStep > 0 && (
-            <Button 
-              variant="tertiary"
-              onPress={handleBackIntroStep}
-              isDisabled={isLoading}
-            >
-              <Ionicons name="arrow-back" size={18} />
+          {introStep > 0 ? (
+            <Button variant="secondary" onPress={handleBackIntroStep} isDisabled={isLoading} size="lg" className="w-full">
+              <Ionicons name="arrow-back" size={18} color={foreground} />
               <Button.Label>Back</Button.Label>
+            </Button>
+          ) : (
+            <Button variant="ghost" onPress={() => setPhase('questions')} isDisabled={isLoading}>
+              <Button.Label className="text-text-secondary">Skip to questions</Button.Label>
+            </Button>
+          )}
+
+          {answeredCount > 0 && (
+            <Button variant="tertiary" onPress={() => setPhase('questions')} isDisabled={isLoading}>
+              <Button.Label className="text-text-secondary">Resume where you left off</Button.Label>
             </Button>
           )}
         </View>
-
-        {/* Skip option for returning users */}
-        {answeredCount > 0 && (
-          <Button 
-            variant="ghost"
-            onPress={() => setPhase('questions')}
-            isDisabled={isLoading}
-          >
-            <Button.Label className="text-text-secondary">Resume where you left off</Button.Label>
-          </Button>
-        )}
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  centeredContainer: {
+  loadingContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
-    gap: 24,
   },
-  questionContainer: {
+  flowContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
     padding: 24,
-    gap: 24,
-    paddingTop: 48,
-    paddingBottom: 48,
+    paddingTop: 32,
+    paddingBottom: 32,
   },
 });
