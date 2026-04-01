@@ -1,40 +1,77 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
-import { Button, Card } from 'heroui-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, Card, Chip, useThemeColor } from 'heroui-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  FadeOut,
+} from 'react-native-reanimated';
 
 import type { QuestionResponse } from '@/constants/question-contract';
+import { AXES } from '@/constants/questions';
 import { useOnboardingSession } from '@/hooks/use-onboarding-session';
 
 type OnboardingPhase = 'intro' | 'questions' | 'complete';
 
+
+
 const INTRO_STEPS = [
   {
+    icon: 'sparkles-outline' as const,
     title: 'Welcome to Swipe Check',
-    description:
-      'Your daily personality journal. Track how you think, feel, and act over time through simple daily check-ins.',
-    icon: 'journal-outline',
+    subtitle: 'Your personal pattern journal',
+    description: 'Track how you think, feel, and act over time. Not a personality test—just a daily practice of noticing.',
   },
   {
-    title: 'Baseline Setup',
-    description:
-      'First, we will ask 12 quick questions to understand your personality baseline. This takes about 2 minutes.',
-    icon: 'clipboard-outline',
+    icon: 'time-outline' as const,
+    title: '12 questions. 2 minutes.',
+    subtitle: 'Quick baseline setup',
+    description: 'First, we will ask 12 questions to understand your starting point. No right answers. Just be honest.',
   },
   {
-    title: 'Simple Answers',
-    description:
-      'Just choose Agree or Disagree for each statement. There are no right or wrong answers—just be honest.',
-    icon: 'thumbs-up-outline',
+    icon: 'flash-outline' as const,
+    title: 'Trust your gut',
+    subtitle: 'Go with your first instinct',
+    description: 'Agree or Disagree. Do not overthink it. Your immediate response is usually the most accurate.',
   },
   {
-    title: 'Daily Check-ins',
-    description:
-      'After setup, you will answer just 3 questions daily. Watch your personality patterns emerge over time.',
-    icon: 'calendar-outline',
+    icon: 'calendar-outline' as const,
+    title: 'Then, 3 questions a day',
+    subtitle: 'Build the habit',
+    description: 'After setup, short daily check-ins help you spot patterns and see how you change over time.',
   },
 ] as const;
+
+function DecorativeOrb({ color, size, top, left, right, bottom, opacity = 0.15 }: { 
+  color: string; 
+  size: number; 
+  top?: number; 
+  left?: number; 
+  right?: number; 
+  bottom?: number; 
+  opacity?: number;
+}) {
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        top,
+        left,
+        right,
+        bottom,
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: color,
+        opacity,
+      }}
+    />
+  );
+}
 
 export default function OnboardingScreen() {
   const {
@@ -48,18 +85,24 @@ export default function OnboardingScreen() {
     totalCount,
     canComplete,
   } = useOnboardingSession();
+
+  const [accent, accentForeground, foreground, success] = useThemeColor([
+    'accent',
+    'accent-foreground',
+    'foreground',
+    'success',
+  ]);
+
   const [introStep, setIntroStep] = useState(0);
   const [phase, setPhase] = useState<OnboardingPhase>('intro');
   const [lastAnswer, setLastAnswer] = useState<QuestionResponse | null>(null);
 
-  // Resume from persisted state: if answers exist, skip to questions
   useEffect(() => {
     if (!isLoading && answeredCount > 0 && phase === 'intro') {
       setPhase('questions');
     }
   }, [answeredCount, isLoading, phase]);
 
-  // Check if all questions are answered
   useEffect(() => {
     if (!isLoading && canComplete && phase === 'questions') {
       setPhase('complete');
@@ -73,13 +116,9 @@ export default function OnboardingScreen() {
 
   async function handleAnswer(response: QuestionResponse) {
     const currentQuestion = questions[currentQuestionIndex];
-
-    if (!currentQuestion || isSubmitting) {
-      return;
-    }
+    if (!currentQuestion || isSubmitting) return;
 
     setLastAnswer(response);
-
     try {
       await submitAnswer(currentQuestion.question.id, response);
     } catch {
@@ -96,9 +135,7 @@ export default function OnboardingScreen() {
   }
 
   function handleBackIntroStep() {
-    if (introStep > 0) {
-      setIntroStep(introStep - 1);
-    }
+    if (introStep > 0) setIntroStep(introStep - 1);
   }
 
   function getProgressPercentage(): number {
@@ -108,235 +145,205 @@ export default function OnboardingScreen() {
 
   const currentQuestion = currentQuestionIndex >= 0 ? questions[currentQuestionIndex] : null;
   const currentIntroStep = INTRO_STEPS[introStep];
+  const currentAxis = currentQuestion
+    ? AXES.find((axis) => axis.id === currentQuestion.question.axisId) ?? null
+    : null;
+  const progressPercentage = getProgressPercentage();
 
-  // Loading state
   if (isLoading) {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.centeredContainer}
-      >
-        <View className="items-center gap-4">
-          <View className="size-16 items-center justify-center rounded-full bg-accent-soft">
-            <Ionicons name="hourglass-outline" size={32} className="text-accent" />
+      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.centeredContainer} bounces={false} overScrollMode="never">
+        <View className="items-center gap-6">
+          <View className="size-16 items-center justify-center rounded-3xl" style={{ backgroundColor: `${accent}15` }}>
+            <Ionicons name="hourglass-outline" size={32} color={accent} />
           </View>
-          <Text className="text-center text-lg text-text-secondary">Loading your session...</Text>
+          <View className="gap-2 items-center">
+            <Text className="text-2xl font-bold text-foreground">Preparing...</Text>
+            <Text className="text-center text-base text-muted">One moment</Text>
+          </View>
         </View>
       </ScrollView>
     );
   }
 
-  // Completion state
   if (phase === 'complete') {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.centeredContainer}
-      >
-        <View className="gap-6">
-          <View className="items-center gap-4">
-            <View className="size-24 items-center justify-center rounded-full bg-success/10">
-              <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-            </View>
+      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.centeredContainer} bounces={false} overScrollMode="never">
+        <DecorativeOrb color={success} size={300} top={-100} left={-100} opacity={0.1} />
+        <DecorativeOrb color={accent} size={200} top={150} right={-80} opacity={0.08} />
 
-            <View className="items-center gap-2">
-              <Text className="text-center text-2xl font-semibold">You&apos;re All Set!</Text>
-              <Text className="text-center text-base text-text-secondary leading-relaxed">
-                Your baseline is complete. Come back tomorrow for your first 3-question daily check-in.
-              </Text>
-            </View>
+        <Animated.View entering={FadeInUp.duration(400)} className="items-center gap-8 w-full max-w-[340px]">
+          <View className="size-24 items-center justify-center rounded-full" style={{ backgroundColor: `${success}15` }}>
+            <Ionicons name="checkmark-circle" size={48} color={success} />
           </View>
 
-          <Card>
-            <Card.Body className="gap-4">
-              <View className="gap-2">
-                <Text className="text-center text-sm text-text-secondary">Questions answered</Text>
-                <Text className="text-center text-3xl font-bold">{answeredCount}/{totalCount}</Text>
-              </View>
+          <View className="gap-3 items-center">
+            <Text className="text-3xl font-bold text-foreground text-center">All set</Text>
+            <Text className="text-center text-base leading-6 text-muted">
+              Your baseline is saved. Come back tomorrow for your first daily check-in.
+            </Text>
+          </View>
 
-              <Button
-                onPress={() => void handleComplete()}
-                isDisabled={isSubmitting}
-                size="lg"
-              >
-                <Ionicons name="arrow-forward" size={18} />
-                <Button.Label>Get Started</Button.Label>
-              </Button>
-            </Card.Body>
-          </Card>
-        </View>
+          <Button onPress={() => void handleComplete()} isDisabled={isSubmitting} size="lg" className="w-full">
+            <Button.Label className="text-lg font-semibold">Start tracking</Button.Label>
+            {!isSubmitting && <Ionicons name="arrow-forward" size={18} color={accentForeground} />}
+          </Button>
+        </Animated.View>
       </ScrollView>
     );
   }
 
-  // Questions phase
   if (phase === 'questions') {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.questionContainer}
-      >
-        <View className="gap-6">
+      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.questionContainer} bounces={false} overScrollMode="never">
+        <DecorativeOrb color={accent} size={250} top={-80} left={-80} opacity={0.1} />
+
+        <Animated.View entering={FadeInUp.duration(350)} className="gap-6 w-full">
+          {/* Progress header */}
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="help-circle-outline" size={20} color={accent} />
+              <Text className="text-sm font-medium text-muted">
+                {answeredCount + 1} / {totalCount}
+              </Text>
+            </View>
+            {currentAxis && (
+              <Chip variant="soft" color="accent" size="sm">
+                <Chip.Label>{currentAxis.name}</Chip.Label>
+              </Chip>
+            )}
+          </View>
+
           {/* Progress bar */}
-          <View className="gap-3">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-sm font-medium text-text-secondary">Question {answeredCount + 1} of {totalCount}</Text>
-              <Text className="text-sm font-medium text-accent">{getProgressPercentage()}%</Text>
-            </View>
-            <View className="h-2 w-full overflow-hidden rounded-full bg-surface-secondary">
-              <View
-                className="h-full rounded-full bg-accent transition-all duration-300"
-                style={{ width: `${getProgressPercentage()}%` }}
-              />
-            </View>
+          <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
+            <View
+              className="h-full rounded-full"
+              style={{ width: `${progressPercentage}%`, backgroundColor: accent }}
+            />
           </View>
 
           {/* Question card */}
-          <Card className="bg-surface">
-            <Card.Body className="gap-6 py-8">
-              <View className="items-center gap-4">
-                <View className="size-16 items-center justify-center rounded-full bg-accent-soft">
-                  <Text className="text-2xl font-bold text-accent">{answeredCount + 1}</Text>
-                </View>
-                
-                {currentQuestion ? (
-                  <Text className="text-center text-xl font-semibold leading-relaxed">
-                    {currentQuestion.question.prompt}
-                  </Text>
-                ) : (
-                  <Text className="text-center text-xl font-semibold">Preparing next question...</Text>
-                )}
-              </View>
+          <Card variant="secondary" className="overflow-hidden">
+            <View className="h-1 w-full" style={{ backgroundColor: accent, opacity: 0.2 }} />
+            <Card.Body className="p-6">
+              <Text className="text-xl font-semibold leading-relaxed text-foreground">
+                {currentQuestion?.question.prompt ?? 'Loading...'}
+              </Text>
             </Card.Body>
           </Card>
 
           {/* Answer buttons */}
-          <View className="gap-3">
+          <Animated.View entering={FadeInDown.delay(100).duration(300)} className="gap-3">
             <Button
               onPress={() => void handleAnswer('agree')}
               isDisabled={isSubmitting || !currentQuestion}
               size="lg"
-              className="bg-success"
+              className="w-full"
             >
-              <Ionicons name="checkmark-circle" size={24} />
-              <Button.Label className="text-lg">Agree</Button.Label>
+              <Ionicons name="checkmark" size={22} color={accentForeground} />
+              <Button.Label className="text-lg font-semibold">Agree</Button.Label>
             </Button>
 
             <Button
-              variant="tertiary"
+              variant="outline"
               onPress={() => void handleAnswer('disagree')}
               isDisabled={isSubmitting || !currentQuestion}
               size="lg"
+              className="w-full"
             >
-              <Ionicons name="close-circle" size={24} />
-              <Button.Label className="text-lg">Disagree</Button.Label>
+              <Ionicons name="close" size={22} color={foreground} />
+              <Button.Label className="text-lg font-semibold">Disagree</Button.Label>
             </Button>
-          </View>
+          </Animated.View>
 
-          {/* Subtle hint */}
-          <Text className="text-center text-sm text-text-secondary">
-            Choose the response that feels most accurate to you right now.
-          </Text>
-
-          {/* Answer feedback */}
           {isSubmitting && (
-            <View className="items-center gap-2">
-              <Text className="text-sm text-accent">
-                {lastAnswer === 'agree' ? 'Saving Agree...' : 'Saving Disagree...'}
-              </Text>
-            </View>
+            <Animated.View entering={FadeIn.duration(150)}>
+              <Card variant="tertiary">
+                <Card.Body className="flex-row items-center gap-3 p-4">
+                  <Ionicons name={lastAnswer === 'agree' ? 'checkmark' : 'close'} size={20} color={accent} />
+                  <Text className="text-sm text-muted">Saving...</Text>
+                </Card.Body>
+              </Card>
+            </Animated.View>
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
     );
   }
 
-  // Intro phase (default)
+  // Intro phase
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={styles.centeredContainer}
-    >
-      <View className="gap-6">
-        {/* Step indicator */}
-        <View className="flex-row justify-center gap-2">
-          {INTRO_STEPS.map((_, index) => (
+    <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.centeredContainer} bounces={false} overScrollMode="never">
+      <DecorativeOrb color={accent} size={300} top={-100} left={-100} opacity={0.1} />
+      <DecorativeOrb color="#8B5CF6" size={180} top={200} right={-60} opacity={0.06} />
+
+      <Animated.View
+        key={introStep}
+        entering={FadeInUp.duration(350)}
+        exiting={FadeOut.duration(150)}
+        className="items-center gap-8 w-full max-w-[340px]"
+      >
+        {/* Icon */}
+        <View className="size-20 items-center justify-center rounded-3xl" style={{ backgroundColor: `${accent}12` }}>
+          <Ionicons name={currentIntroStep.icon} size={36} color={accent} />
+        </View>
+
+        {/* Step indicator dots */}
+        <View className="flex-row items-center gap-2">
+          {INTRO_STEPS.map((_, i) => (
             <View
-              key={index}
-              className={`h-2 rounded-full transition-all duration-200 ${
-                index === introStep 
-                  ? 'w-6 bg-accent' 
-                  : index < introStep 
-                    ? 'w-2 bg-accent/60' 
-                    : 'w-2 bg-surface-tertiary'
-              }`}
+              key={i}
+              className="h-2 rounded-full transition-all duration-300"
+              style={{
+                width: i === introStep ? 24 : 8,
+                backgroundColor: i <= introStep ? accent : 'rgba(0,0,0,0.08)',
+              }}
             />
           ))}
         </View>
 
-        {/* Content */}
-        <Card className="bg-surface">
-          <Card.Body className="gap-8 py-8">
-            <View className="items-center gap-6">
-              <View className="size-24 items-center justify-center rounded-full bg-accent-soft">
-                <Ionicons 
-                  name={currentIntroStep.icon as keyof typeof Ionicons.glyphMap} 
-                  size={48} 
-                  className="text-accent" 
-                />
-              </View>
+        {/* Text content */}
+        <View className="gap-3 items-center">
+          <Text className="text-3xl font-bold text-foreground text-center leading-tight">
+            {currentIntroStep.title}
+          </Text>
 
-              <View className="items-center gap-3">
-                <Text className="text-center text-2xl font-bold">{currentIntroStep.title}</Text>
-                <Text className="text-center text-base text-text-secondary leading-relaxed">
-                  {currentIntroStep.description}
-                </Text>
-              </View>
-            </View>
+          <Text className="text-base text-accent font-medium">
+            {currentIntroStep.subtitle}
+          </Text>
 
-            {/* Step counter */}
-            <Text className="text-center text-sm text-text-secondary">
-              Step {introStep + 1} of {INTRO_STEPS.length}
-            </Text>
-          </Card.Body>
-        </Card>
+          <Text className="text-center text-base leading-6 text-muted">
+            {currentIntroStep.description}
+          </Text>
+        </View>
 
-        {/* Navigation buttons */}
-        <View className="gap-3">
-          <Button 
-            onPress={handleNextIntroStep} 
-            isDisabled={isLoading}
-            size="lg"
-          >
-            <Button.Label className="text-lg">
-              {introStep === INTRO_STEPS.length - 1 ? 'Start Questions' : 'Next'}
+        {/* Action buttons */}
+        <View className="gap-3 w-full">
+          <Button onPress={handleNextIntroStep} size="lg" className="w-full">
+            <Button.Label className="text-lg font-semibold">
+              {introStep === INTRO_STEPS.length - 1 ? 'Start' : 'Next'}
             </Button.Label>
-            <Ionicons name="arrow-forward" size={20} />
+            <Ionicons name="arrow-forward" size={18} color={accentForeground} />
           </Button>
 
-          {introStep > 0 && (
-            <Button 
-              variant="tertiary"
-              onPress={handleBackIntroStep}
-              isDisabled={isLoading}
-            >
-              <Ionicons name="arrow-back" size={18} />
+          {introStep > 0 ? (
+            <Button variant="ghost" onPress={handleBackIntroStep} className="w-full">
+              <Ionicons name="arrow-back" size={18} color={foreground} />
               <Button.Label>Back</Button.Label>
+            </Button>
+          ) : (
+            <Button variant="ghost" onPress={() => setPhase('questions')}>
+              <Button.Label className="text-muted">Skip intro</Button.Label>
+            </Button>
+          )}
+
+          {answeredCount > 0 && (
+            <Button variant="ghost" onPress={() => setPhase('questions')}>
+              <Button.Label style={{ color: accent }}>Resume</Button.Label>
             </Button>
           )}
         </View>
-
-        {/* Skip option for returning users */}
-        {answeredCount > 0 && (
-          <Button 
-            variant="ghost"
-            onPress={() => setPhase('questions')}
-            isDisabled={isLoading}
-          >
-            <Button.Label className="text-text-secondary">Resume where you left off</Button.Label>
-          </Button>
-        )}
-      </View>
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -345,15 +352,15 @@ const styles = StyleSheet.create({
   centeredContainer: {
     flexGrow: 1,
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 24,
-    gap: 24,
+    paddingTop: 48,
+    paddingBottom: 32,
   },
   questionContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
     padding: 24,
-    gap: 24,
     paddingTop: 48,
-    paddingBottom: 48,
+    paddingBottom: 32,
   },
 });
