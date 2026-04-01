@@ -10,6 +10,8 @@ export type InitialRouteState = {
   routeError: Error | null;
   /** Where the user should be routed: 'onboarding' | 'tabs' | null if not determined yet */
   targetRoute: 'onboarding' | 'tabs' | null;
+  /** The pathname this route decision was last evaluated against */
+  evaluatedPathname: string | null;
 };
 
 /**
@@ -17,15 +19,17 @@ export type InitialRouteState = {
  * - New users (no completed onboarding) → 'onboarding'
  * - Returning users (completed onboarding) → 'tabs'
  */
-export function useInitialRoute(): InitialRouteState {
+export function useInitialRoute(pathname: string): InitialRouteState {
   const [state, setState] = useState<InitialRouteState>({
     isDeterminingRoute: true,
     routeError: null,
     targetRoute: null,
+    evaluatedPathname: null,
   });
 
   useEffect(() => {
     let isMounted = true;
+    const activePathname = pathname;
 
     async function determineRoute() {
       try {
@@ -37,6 +41,7 @@ export function useInitialRoute(): InitialRouteState {
             isDeterminingRoute: false,
             routeError: null,
             targetRoute: hasCompletedOnboarding ? 'tabs' : 'onboarding',
+            evaluatedPathname: activePathname,
           });
         }
       } catch (error) {
@@ -45,6 +50,7 @@ export function useInitialRoute(): InitialRouteState {
             isDeterminingRoute: false,
             routeError: error instanceof Error ? error : new Error(String(error)),
             targetRoute: null,
+            evaluatedPathname: activePathname,
           });
         }
       }
@@ -55,7 +61,7 @@ export function useInitialRoute(): InitialRouteState {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [pathname]);
 
   return state;
 }
