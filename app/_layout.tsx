@@ -19,8 +19,8 @@ export const unstable_settings = {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { bootstrapError, isBootstrapping } = useAppBootstrap();
-  const { isDeterminingRoute, routeError, targetRoute } = useInitialRoute();
   const pathname = usePathname();
+  const { evaluatedPathname, isDeterminingRoute, routeError, targetRoute } = useInitialRoute(pathname);
 
   if (isBootstrapping || isDeterminingRoute) {
     return (
@@ -35,11 +35,13 @@ export default function RootLayout() {
     return <Text>Failed to initialize app.</Text>;
   }
 
-  if (targetRoute === 'onboarding' && pathname !== '/onboarding') {
+  const isRouteDecisionCurrent = evaluatedPathname === pathname;
+
+  if (isRouteDecisionCurrent && targetRoute === 'onboarding' && pathname !== '/onboarding') {
     return <Redirect href="/onboarding" />;
   }
 
-  if (targetRoute === 'tabs' && pathname === '/onboarding') {
+  if (isRouteDecisionCurrent && targetRoute === 'tabs' && pathname === '/onboarding') {
     return <Redirect href="/today" />;
   }
 
