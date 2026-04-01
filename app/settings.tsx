@@ -22,6 +22,13 @@ export default function SettingsScreen() {
   const [darkModeEnabled, setDarkModeEnabled] = useState(colorScheme === 'dark');
   const [email, setEmail] = useState('');
 
+  function handleOpenOnboardingPreview() {
+    router.push({
+      pathname: '/onboarding',
+      params: { preview: '1' },
+    });
+  }
+
   return (
     <ScrollView className="flex-1 bg-background" contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
       <Card>
@@ -88,6 +95,18 @@ export default function SettingsScreen() {
             />
             <Description>Update your email address.</Description>
           </TextField>
+        </Card.Body>
+      </Card>
+
+      <Card>
+        <Card.Body className="gap-4">
+          <Card.Title>Onboarding Preview</Card.Title>
+          <Description>Open the full onboarding flow without clearing any saved data.</Description>
+
+          <Button variant="secondary" onPress={handleOpenOnboardingPreview}>
+            <Ionicons name="play-outline" size={18} />
+            <Button.Label>Replay onboarding</Button.Label>
+          </Button>
         </Card.Body>
       </Card>
 
