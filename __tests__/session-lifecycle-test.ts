@@ -1,8 +1,10 @@
 import type { QuestionResponse } from '@/constants/question-contract';
 import {
+  completeOnboardingSession,
   completeSession,
   getOrCreateDailySessionForLocalDay,
   hasCompletedOnboardingSession,
+  OnboardingCompletionError,
   readActiveOrLatestDailySession,
   readAllTypeSnapshots,
   readCompletedSessionDetail,
@@ -157,6 +159,13 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
   }
 
   async getFirstAsync<T>(sql: string, ...params: (string | number | null)[]): Promise<T | null> {
+    // Handle COUNT queries for answers
+    if (sql.includes('SELECT COUNT(*) as count') && sql.includes('FROM session_answers')) {
+      const [sessionId] = params as [string];
+      const count = [...this.answers.values()].filter((a) => a.sessionId === sessionId).length;
+      return { count } as T;
+    }
+
     if (sql.includes("session_type = 'onboarding'") && sql.includes("status = 'in_progress'")) {
       const onboardingSession = [...this.sessions.values()]
         .filter((session) => session.type === 'onboarding' && session.status === 'in_progress')
@@ -229,11 +238,27 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
       } as T;
     }
 
-    if (sql.includes("WHERE session_type = 'onboarding' AND status = 'completed'")) {
+    if (sql.includes("WHERE session_type = 'onboarding' AND status = 'completed'") && !sql.includes('SELECT id, session_type, status')) {
       const completedOnboardingSession = [...this.sessions.values()].find(
         (session) => session.type === 'onboarding' && session.status === 'completed'
       );
       return completedOnboardingSession ? ({ id: completedOnboardingSession.id } as T) : null;
+    }
+
+    // Handle session validation for completeOnboardingSession
+    if (sql.includes("WHERE id = ? AND session_type = 'onboarding' AND status = 'in_progress'")) {
+      const [sessionId] = params as [string];
+      const session = this.sessions.get(sessionId);
+
+      if (!session || session.type !== 'onboarding' || session.status !== 'in_progress') {
+        return null;
+      }
+
+      return {
+        id: session.id,
+        session_type: session.type,
+        status: session.status,
+      } as T;
     }
 
     if (sql.includes('WHERE id = ? AND status = \'completed\'')) {
@@ -595,5 +620,255 @@ describe('session lifecycle persistence helpers', () => {
 
     const latest = await readLatestTypeSnapshot(adapter);
     expect(latest).toEqual(secondSnapshot);
+  });
+});
+
+describe('onboarding assessment controller', () => {
+  it('refuses to complete onboarding with fewer than 12 answers', async () => {
+    const adapter = new FakeSessionAdapter();
+    const session = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
+
+    // Add only 11 answers
+    for (let i = 1; i <= 11; i++) {
+      await upsertSessionAnswer(
+        adapter,
+        session.id,
+        `q-${String(i).padStart(3, '0')}`,
+        'agree',
+        new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
+      );
+    }
+
+    const snapshot: TypeSnapshot = {
+      id: 'snap-onboarding-001',
+      currentType: 'ESTJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:15:00.000Z'),
+      source: { type: 'onboarding', sessionId: session.id },
+      questionCount: 11,
+    };
+
+    await expect(
+      completeOnboardingSession(adapter, session.id, snapshot)
+    ).rejects.toThrow(OnboardingCompletionError);
+
+    await expect(
+      completeOnboardingSession(adapter, session.id, snapshot)
+    ).rejects.toThrow('Onboarding requires 12 answers, but only 11 provided');
+
+    // Verify session is still in progress
+    const answers = await readSessionAnswers(adapter, session.id);
+    expect(answers).toHaveLength(11);
+  });
+
+  it('completes onboarding successfully with exactly 12 answers and stores snapshot', async () => {
+    const adapter = new FakeSessionAdapter();
+    const session = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
+
+    // Add exactly 12 answers
+    for (let i = 1; i <= 12; i++) {
+      await upsertSessionAnswer(
+        adapter,
+        session.id,
+        `q-${String(i).padStart(3, '0')}`,
+        i % 2 === 0 ? 'agree' : 'disagree',
+        new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
+      );
+    }
+
+    const snapshot: TypeSnapshot = {
+      id: 'snap-onboarding-002',
+      currentType: 'INTJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:15:00.000Z'),
+      source: { type: 'onboarding', sessionId: session.id },
+      questionCount: 12,
+    };
+
+    await completeOnboardingSession(adapter, session.id, snapshot, new Date('2026-01-01T08:20:00.000Z'));
+
+    // Verify session is completed
+    expect(await hasCompletedOnboardingSession(adapter)).toBe(true);
+
+    // Verify snapshot was stored
+    const storedSnapshot = await readSessionTypeSnapshot(adapter, session.id);
+    expect(storedSnapshot).toEqual(snapshot);
+  });
+
+  it('resumes onboarding session with existing answers after app restart', async () => {
+    const adapter = new FakeSessionAdapter();
+    const now = new Date('2026-01-01T08:00:00.000Z');
+
+    // First "app launch" - start session and answer 5 questions
+    const firstSession = await startOrResumeOnboardingSession(adapter, now);
+    for (let i = 1; i <= 5; i++) {
+      await upsertSessionAnswer(
+        adapter,
+        firstSession.id,
+        `q-${String(i).padStart(3, '0')}`,
+        'agree',
+        new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
+      );
+    }
+
+    // Simulate app restart - resume the same session
+    const resumedSession = await startOrResumeOnboardingSession(
+      adapter,
+      new Date('2026-01-01T09:00:00.000Z')
+    );
+
+    // Should be the same session
+    expect(resumedSession.id).toBe(firstSession.id);
+    expect(resumedSession.status).toBe('in_progress');
+
+    // Verify existing answers are preserved
+    const answers = await readSessionAnswers(adapter, resumedSession.id);
+    expect(answers).toHaveLength(5);
+    expect(answers.map((a) => a.questionId)).toContain('q-001');
+    expect(answers.map((a) => a.questionId)).toContain('q-005');
+
+    // Continue answering from where we left off
+    for (let i = 6; i <= 12; i++) {
+      await upsertSessionAnswer(
+        adapter,
+        resumedSession.id,
+        `q-${String(i).padStart(3, '0')}`,
+        'disagree',
+        new Date(`2026-01-01T09:${String(i).padStart(2, '0')}:00.000Z`)
+      );
+    }
+
+    // Complete onboarding
+    const snapshot: TypeSnapshot = {
+      id: 'snap-onboarding-003',
+      currentType: 'ENFP',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T09:30:00.000Z'),
+      source: { type: 'onboarding', sessionId: resumedSession.id },
+      questionCount: 12,
+    };
+
+    await completeOnboardingSession(adapter, resumedSession.id, snapshot);
+    expect(await hasCompletedOnboardingSession(adapter)).toBe(true);
+  });
+
+  it('prevents completing an already completed onboarding session', async () => {
+    const adapter = new FakeSessionAdapter();
+    const session = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
+
+    // Add 12 answers and complete once
+    for (let i = 1; i <= 12; i++) {
+      await upsertSessionAnswer(
+        adapter,
+        session.id,
+        `q-${String(i).padStart(3, '0')}`,
+        'agree',
+        new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
+      );
+    }
+
+    const firstSnapshot: TypeSnapshot = {
+      id: 'snap-onboarding-004',
+      currentType: 'ISTJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:15:00.000Z'),
+      source: { type: 'onboarding', sessionId: session.id },
+      questionCount: 12,
+    };
+
+    await completeOnboardingSession(adapter, session.id, firstSnapshot);
+
+    // Try to complete again - should fail because session is no longer in_progress
+    const secondSnapshot: TypeSnapshot = {
+      ...firstSnapshot,
+      id: 'snap-onboarding-005',
+      currentType: 'ENFP',
+    };
+
+    await expect(
+      completeOnboardingSession(adapter, session.id, secondSnapshot)
+    ).rejects.toThrow(OnboardingCompletionError);
+  });
+
+  it('tracks onboarding progress correctly through partial completion', async () => {
+    const adapter = new FakeSessionAdapter();
+    const session = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
+
+    // Answer 3 questions
+    for (let i = 1; i <= 3; i++) {
+      await upsertSessionAnswer(
+        adapter,
+        session.id,
+        `q-${String(i).padStart(3, '0')}`,
+        'agree',
+        new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
+      );
+    }
+
+    let answers = await readSessionAnswers(adapter, session.id);
+    expect(answers).toHaveLength(3);
+
+    // Answer 7 more questions
+    for (let i = 4; i <= 10; i++) {
+      await upsertSessionAnswer(
+        adapter,
+        session.id,
+        `q-${String(i).padStart(3, '0')}`,
+        'disagree',
+        new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
+      );
+    }
+
+    answers = await readSessionAnswers(adapter, session.id);
+    expect(answers).toHaveLength(10);
+
+    // Cannot complete yet
+    const incompleteSnapshot: TypeSnapshot = {
+      id: 'snap-onboarding-incomplete',
+      currentType: 'ESTJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:30:00.000Z'),
+      source: { type: 'onboarding', sessionId: session.id },
+      questionCount: 10,
+    };
+
+    await expect(
+      completeOnboardingSession(adapter, session.id, incompleteSnapshot)
+    ).rejects.toThrow('Onboarding requires 12 answers, but only 10 provided');
+
+    // Answer remaining 2 questions
+    await upsertSessionAnswer(
+      adapter,
+      session.id,
+      'q-011',
+      'agree',
+      new Date('2026-01-01T08:11:00.000Z')
+    );
+    await upsertSessionAnswer(
+      adapter,
+      session.id,
+      'q-012',
+      'disagree',
+      new Date('2026-01-01T08:12:00.000Z')
+    );
+
+    // Now completion should succeed
+    const completeSnapshot: TypeSnapshot = {
+      id: 'snap-onboarding-complete',
+      currentType: 'INTP',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:35:00.000Z'),
+      source: { type: 'onboarding', sessionId: session.id },
+      questionCount: 12,
+    };
+
+    await completeOnboardingSession(adapter, session.id, completeSnapshot);
+    expect(await hasCompletedOnboardingSession(adapter)).toBe(true);
   });
 });
