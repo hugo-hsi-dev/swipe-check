@@ -30,23 +30,68 @@ class ExpoSQLiteAdapter implements LocalDatabaseAdapter {
   }
 }
 
-async function openAdapter(dbName: string): Promise<ExpoSQLiteAdapter> {
+type InitializedSQLite = {
+  db: SQLiteDatabase;
+  result: BootstrapResult;
+};
+
+type OpenedSQLite = {
+  db: SQLiteDatabase;
+  adapter: ExpoSQLiteAdapter;
+};
+
+let bootstrapPromise: Promise<InitializedSQLite> | null = null;
+
+async function openAdapter(dbName: string): Promise<OpenedSQLite> {
   const db = await openDatabaseAsync(dbName);
   await db.execAsync('PRAGMA foreign_keys = ON;');
-  return new ExpoSQLiteAdapter(db);
+  return {
+    db,
+    adapter: new ExpoSQLiteAdapter(db),
+  };
+}
+
+async function initializeSQLite(dbName: string): Promise<InitializedSQLite> {
+  if (!bootstrapPromise) {
+    bootstrapPromise = (async () => {
+      const { db, adapter } = await openAdapter(dbName);
+      const result = await bootstrapLocalData(adapter);
+      return {
+        db,
+        result,
+      };
+    })().catch((error) => {
+      bootstrapPromise = null;
+      throw error;
+    });
+  }
+
+  return bootstrapPromise;
 }
 
 export async function bootstrapSQLite(dbName = 'swipe-check.db'): Promise<BootstrapResult> {
-  const adapter = await openAdapter(dbName);
-  return bootstrapLocalData(adapter);
+  const { result } = await initializeSQLite(dbName);
+  return result;
+}
+
+export async function getBootstrappedSQLiteDatabase(
+  dbName = 'swipe-check.db'
+): Promise<SQLiteDatabase> {
+  const { db } = await initializeSQLite(dbName);
+  return db;
 }
 
 export async function getStoredQuestionsSQLite(dbName = 'swipe-check.db'): Promise<Question[]> {
-  const adapter = await openAdapter(dbName);
+  const { adapter } = await openAdapter(dbName);
   return readQuestionCatalog(adapter);
 }
 
 export async function clearSQLiteData(dbName = 'swipe-check.db'): Promise<ClearResult> {
-  const adapter = await openAdapter(dbName);
-  return clearLocalData(adapter);
+  const db = await getBootstrappedSQLiteDatabase(dbName);
+  const adapter = new ExpoSQLiteAdapter(db);
+
+  const result = await clearLocalData(adapter);
+  await bootstrapLocalData(adapter);
+
+  return result;
 }

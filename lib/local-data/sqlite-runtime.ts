@@ -1,6 +1,7 @@
-import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
+import { type SQLiteDatabase } from 'expo-sqlite';
 
-import type { LocalDatabaseAdapter } from '@/lib/local-data/bootstrap';
+import { type LocalDatabaseAdapter } from '@/lib/local-data/bootstrap';
+import { getBootstrappedSQLiteDatabase } from '@/lib/local-data/sqlite';
 
 class ExpoSQLiteAdapter implements LocalDatabaseAdapter {
   constructor(private readonly db: SQLiteDatabase) {}
@@ -22,15 +23,8 @@ class ExpoSQLiteAdapter implements LocalDatabaseAdapter {
   }
 }
 
-let cachedDb: SQLiteDatabase | null = null;
-
 export async function getSQLiteDatabase(dbName = 'swipe-check.db'): Promise<LocalDatabaseAdapter> {
-  if (cachedDb) {
-    return new ExpoSQLiteAdapter(cachedDb);
-  }
+  const db = await getBootstrappedSQLiteDatabase(dbName);
 
-  const db = await openDatabaseAsync(dbName);
-  await db.execAsync('PRAGMA foreign_keys = ON;');
-  cachedDb = db;
   return new ExpoSQLiteAdapter(db);
 }
