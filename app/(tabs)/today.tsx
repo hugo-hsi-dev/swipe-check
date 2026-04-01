@@ -42,11 +42,17 @@ export default function TodayScreen() {
               <Card.Title className="text-xl">Today</Card.Title>
               <Card.Description>{new Date().toLocaleDateString()}</Card.Description>
             </View>
-            {currentType && (
-              <Chip color="accent" variant="soft" size="lg">
-                <Chip.Label>{currentType}</Chip.Label>
-              </Chip>
-            )}
+            <View className="items-end gap-2">
+              {currentType && (
+                <Chip color="accent" variant="soft" size="lg">
+                  <Chip.Label>{currentType}</Chip.Label>
+                </Chip>
+              )}
+              <Button variant="secondary" onPress={() => router.push('/settings')}>
+                <Ionicons name="settings-outline" size={18} />
+                <Button.Label>Settings</Button.Label>
+              </Button>
+            </View>
           </View>
         </Card.Header>
       </Card>
