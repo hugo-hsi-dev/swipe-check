@@ -136,6 +136,7 @@ function QuestionCard({
   const scale = useSharedValue(1);
   const borderRadius = useSharedValue(0);
   const borderOpacity = useSharedValue(0);
+  const hasCommittedAnswer = useSharedValue(false);
 
   const leftOpacity = useSharedValue(0);
   const leftScale = useSharedValue(0.5);
@@ -151,6 +152,7 @@ function QuestionCard({
       scale.value = withSpring(1, { damping: 20, stiffness: 300 });
       borderRadius.value = withSpring(0, { damping: 20, stiffness: 300 });
       borderOpacity.value = 0;
+      hasCommittedAnswer.value = false;
       leftOpacity.value = 0;
       leftScale.value = 0.5;
       rightOpacity.value = 0;
@@ -202,31 +204,31 @@ function QuestionCard({
       const isRightSwipe = event.translationX > SWIPE_THRESHOLD;
       const isLeftSwipe = event.translationX < -SWIPE_THRESHOLD;
 
+      if ((isRightSwipe || isLeftSwipe) && hasCommittedAnswer.value) {
+        return;
+      }
+
       if (isRightSwipe) {
-        // Exit to right - wait for animation before calling onSwipeComplete
+        hasCommittedAnswer.value = true;
         if (!hasSwiped) {
           runOnJS(onFirstSwipe)();
         }
+        runOnJS(onSwipeComplete)('right');
         translateX.value = withSpring(SCREEN_WIDTH * 1.2, { velocity: event.velocityX });
         translateY.value = withTiming(event.translationY * 0.5, { duration: 300 });
         rotateZ.value = withTiming(8, { duration: 300 });
-        scale.value = withTiming(0.85, { duration: 300 }, () => {
-          // Called when animation completes
-          runOnJS(onSwipeComplete)('right');
-        });
+        scale.value = withTiming(0.85, { duration: 300 });
         borderRadius.value = withTiming(MAX_BORDER_RADIUS, { duration: 300 });
       } else if (isLeftSwipe) {
-        // Exit to left - wait for animation before calling onSwipeComplete
+        hasCommittedAnswer.value = true;
         if (!hasSwiped) {
           runOnJS(onFirstSwipe)();
         }
+        runOnJS(onSwipeComplete)('left');
         translateX.value = withSpring(-SCREEN_WIDTH * 1.2, { velocity: event.velocityX });
         translateY.value = withTiming(event.translationY * 0.5, { duration: 300 });
         rotateZ.value = withTiming(-8, { duration: 300 });
-        scale.value = withTiming(0.85, { duration: 300 }, () => {
-          // Called when animation completes
-          runOnJS(onSwipeComplete)('left');
-        });
+        scale.value = withTiming(0.85, { duration: 300 });
         borderRadius.value = withTiming(MAX_BORDER_RADIUS, { duration: 300 });
       } else {
         // Spring back to center
@@ -241,6 +243,32 @@ function QuestionCard({
         rightScale.value = withTiming(0.5, { duration: 200 });
       }
     });
+
+  function animateExit(direction: 'left' | 'right') {
+    const velocityX = direction === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH;
+    const rotation = direction === 'right' ? 8 : -8;
+    const exitX = direction === 'right' ? SCREEN_WIDTH * 1.2 : -SCREEN_WIDTH * 1.2;
+
+    translateX.value = withSpring(exitX, { velocity: velocityX });
+    translateY.value = withTiming(0, { duration: 300 });
+    rotateZ.value = withTiming(rotation, { duration: 300 });
+    scale.value = withTiming(0.85, { duration: 300 });
+    borderRadius.value = withTiming(MAX_BORDER_RADIUS, { duration: 300 });
+  }
+
+  function handleAnswerPress(direction: 'left' | 'right') {
+    if (!isActive || hasCommittedAnswer.value) {
+      return;
+    }
+
+    hasCommittedAnswer.value = true;
+    if (!hasSwiped) {
+      onFirstSwipe();
+    }
+
+    onSwipeComplete(direction);
+    animateExit(direction);
+  }
 
   const animatedCardStyle = useAnimatedStyle(() => ({
     transform: [
@@ -282,18 +310,48 @@ function QuestionCard({
             <Text style={[styles.promptText, { color: foregroundColor }]}>{prompt}</Text>
           </View>
 
-          {/* Bottom hint - disappears after first swipe */}
-          {!hasSwiped && (
-            <View style={styles.bottomHint}>
+          <View style={styles.bottomHint}>
+            <View style={styles.answerButtonsRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Disagree"
+                accessibilityHint="Submit a disagree response for this question"
+                disabled={!isActive}
+                onPress={() => handleAnswerPress('left')}
+                style={[
+                  styles.answerButton,
+                  styles.answerButtonSecondary,
+                  !isActive && styles.answerButtonDisabled,
+                ]}>
+                <Ionicons name="close" size={18} color={foregroundColor} />
+                <Text style={[styles.answerButtonText, { color: foregroundColor }]}>Disagree</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Agree"
+                accessibilityHint="Submit an agree response for this question"
+                disabled={!isActive}
+                onPress={() => handleAnswerPress('right')}
+                style={[
+                  styles.answerButton,
+                  { backgroundColor: accent },
+                  !isActive && styles.answerButtonDisabled,
+                ]}>
+                <Ionicons name="checkmark" size={18} color={backgroundColor} />
+                <Text style={[styles.answerButtonText, { color: backgroundColor }]}>Agree</Text>
+              </Pressable>
+            </View>
+
+            {!hasSwiped && (
               <View style={styles.swipeHintContainer}>
                 <View style={styles.hintPill}>
                   <Ionicons name="arrow-back" size={14} color="rgba(0,0,0,0.4)" />
-                  <Text style={styles.hintPillText}>Swipe to answer</Text>
+                  <Text style={styles.hintPillText}>Swipe or tap to answer</Text>
                   <Ionicons name="arrow-forward" size={14} color="rgba(0,0,0,0.4)" />
                 </View>
               </View>
-            </View>
-          )}
+            )}
+          </View>
         </Animated.View>
       </GestureDetector>
     </View>
@@ -647,6 +705,31 @@ const styles = StyleSheet.create({
   bottomHint: {
     paddingHorizontal: 32,
     paddingBottom: 32,
+    gap: 16,
+  },
+  answerButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  answerButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  answerButtonSecondary: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  answerButtonDisabled: {
+    opacity: 0.5,
+  },
+  answerButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   swipeHintContainer: {
     alignItems: 'center',
