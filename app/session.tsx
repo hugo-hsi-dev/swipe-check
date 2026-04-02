@@ -163,7 +163,6 @@ function QuestionCard({
 
   return (
     <View style={styles.cardContainer}>
-      {/* Swipe indicators */}
       <SwipeIndicator
         direction="left"
         opacity={leftOpacity}
@@ -177,7 +176,6 @@ function QuestionCard({
         accent={accent}
       />
 
-      {/* Swipeable card */}
       <GestureDetector gesture={gesture}>
         <Animated.View style={[styles.card, animatedCardStyle]}>
           <Card variant="secondary" className="overflow-hidden w-full">
@@ -194,7 +192,6 @@ function QuestionCard({
         </Animated.View>
       </GestureDetector>
 
-      {/* Button controls for accessibility */}
       <Animated.View entering={FadeInDown.delay(100).duration(300)} className="gap-3 mt-6">
         <Button
           onPress={handleAgreePress}
@@ -216,7 +213,6 @@ function QuestionCard({
         </Button>
       </Animated.View>
 
-      {/* Hint text */}
       <View className="flex-row items-center justify-center gap-2 mt-4 opacity-60">
         <Ionicons name="swap-horizontal-outline" size={16} />
         <Text className="text-sm text-muted">Swipe or tap to answer</Text>
@@ -425,16 +421,14 @@ export default function SessionScreen() {
         <DecorativeOrb color={accent} size={250} top={-80} left={-80} opacity={0.1} />
 
         <Animated.View entering={FadeInUp.duration(350)} className="gap-6 w-full">
-          {/* Header with back button */}
           <View className="flex-row items-center justify-between">
             <Button variant="ghost" onPress={handleGoBack} className="p-2 -ml-2">
               <Ionicons name="arrow-back" size={24} color={foreground} />
             </Button>
             <Text className="text-lg font-semibold text-foreground">Daily Check-in</Text>
-            <View className="w-10" /> {/* Spacer for alignment */}
+            <View className="w-10" />
           </View>
 
-          {/* Progress header */}
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center gap-2">
               <Ionicons name="help-circle-outline" size={20} color={accent} />
@@ -449,7 +443,6 @@ export default function SessionScreen() {
             )}
           </View>
 
-          {/* Progress bar */}
           <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
             <View
               className="h-full rounded-full"
@@ -457,7 +450,6 @@ export default function SessionScreen() {
             />
           </View>
 
-          {/* Question card with swipe */}
           {currentQuestion ? (
             <QuestionCard
               prompt={currentQuestion.question.prompt}
