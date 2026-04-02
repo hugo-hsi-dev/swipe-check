@@ -13,7 +13,6 @@ import { useThemeColor } from 'heroui-native';
 import Animated, {
   FadeIn,
   FadeInDown,
-  FadeOut,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -101,56 +100,42 @@ function ProgressBar({
   );
 }
 
-function SwipeHint({
-  direction,
-  isVisible,
-}: {
-  direction: 'left' | 'right';
-  isVisible: boolean;
-}) {
-  if (!isVisible) return null;
 
-  return (
-    <Animated.View
-      entering={FadeIn.duration(300)}
-      exiting={FadeOut.duration(200)}
-      style={[styles.hintContainer, { [direction]: 0 }]}>
-      <View style={styles.hintContent}>
-        <Ionicons
-          name={direction === 'right' ? 'arrow-forward' : 'arrow-back'}
-          size={20}
-          color="rgba(255, 255, 255, 0.7)"
-        />
-        <Text style={styles.hintText}>
-          {direction === 'right' ? 'Agree' : 'Disagree'}
-        </Text>
-      </View>
-    </Animated.View>
-  );
-}
 
 interface QuestionCardProps {
   prompt: string;
   category: string;
   accent: string;
   backgroundColor: string;
+  foregroundColor: string;
+  answeredCount: number;
+  totalCount: number;
   onSwipeComplete: (direction: 'left' | 'right') => void;
+  onClose: () => void;
   isActive: boolean;
+  hasSwiped: boolean;
+  onFirstSwipe: () => void;
 }
 
 function QuestionCard({
   prompt,
-  category,
   accent,
   backgroundColor,
+  foregroundColor,
+  answeredCount,
+  totalCount,
   onSwipeComplete,
+  onClose,
   isActive,
+  hasSwiped,
+  onFirstSwipe,
 }: QuestionCardProps) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const rotateZ = useSharedValue(0);
   const scale = useSharedValue(1);
   const borderRadius = useSharedValue(0);
+  const borderOpacity = useSharedValue(0);
 
   const leftOpacity = useSharedValue(0);
   const leftScale = useSharedValue(0.5);
@@ -165,6 +150,7 @@ function QuestionCard({
       rotateZ.value = withSpring(0, { damping: 20, stiffness: 300 });
       scale.value = withSpring(1, { damping: 20, stiffness: 300 });
       borderRadius.value = withSpring(0, { damping: 20, stiffness: 300 });
+      borderOpacity.value = 0;
       leftOpacity.value = 0;
       leftScale.value = 0.5;
       rightOpacity.value = 0;
@@ -194,6 +180,9 @@ function QuestionCard({
       // Border radius increases as we swipe
       borderRadius.value = clampedProgress * MAX_BORDER_RADIUS;
 
+      // Border opacity fades in as we swipe
+      borderOpacity.value = clampedProgress;
+
       // Update indicator opacity
       if (event.translationX > 0) {
         rightOpacity.value = Math.min(clampedProgress * 1.5, 1);
@@ -215,6 +204,9 @@ function QuestionCard({
 
       if (isRightSwipe) {
         // Exit to right - wait for animation before calling onSwipeComplete
+        if (!hasSwiped) {
+          runOnJS(onFirstSwipe)();
+        }
         translateX.value = withSpring(SCREEN_WIDTH * 1.2, { velocity: event.velocityX });
         translateY.value = withTiming(event.translationY * 0.5, { duration: 300 });
         rotateZ.value = withTiming(8, { duration: 300 });
@@ -225,6 +217,9 @@ function QuestionCard({
         borderRadius.value = withTiming(MAX_BORDER_RADIUS, { duration: 300 });
       } else if (isLeftSwipe) {
         // Exit to left - wait for animation before calling onSwipeComplete
+        if (!hasSwiped) {
+          runOnJS(onFirstSwipe)();
+        }
         translateX.value = withSpring(-SCREEN_WIDTH * 1.2, { velocity: event.velocityX });
         translateY.value = withTiming(event.translationY * 0.5, { duration: 300 });
         rotateZ.value = withTiming(-8, { duration: 300 });
@@ -255,6 +250,8 @@ function QuestionCard({
       { scale: scale.value },
     ],
     borderRadius: borderRadius.value,
+    borderWidth: 1,
+    borderColor: `rgba(0, 0, 0, ${borderOpacity.value * 0.15})`,
   }));
 
   return (
@@ -270,33 +267,33 @@ function QuestionCard({
             animatedCardStyle,
             { backgroundColor },
           ]}>
-          {/* Top accent bar */}
-          <View style={[styles.accentBar, { backgroundColor: accent }]} />
+          {/* Close button - part of card */}
+          <Pressable onPress={onClose} style={styles.cardCloseButton}>
+            <Ionicons name="close" size={28} color={foregroundColor} />
+          </Pressable>
 
-          {/* Category tag */}
-          <View style={styles.categoryContainer}>
-            <View style={[styles.categoryPill, { backgroundColor: `${accent}15` }]}>
-              <Text style={[styles.categoryText, { color: accent }]}>
-                {category}
-              </Text>
-            </View>
+          {/* Progress bar */}
+          <View style={styles.cardProgressContainer}>
+            <ProgressBar progress={answeredCount} total={totalCount} color={accent} />
           </View>
 
           {/* Question text */}
           <View style={styles.contentContainer}>
-            <Text style={styles.promptText}>{prompt}</Text>
+            <Text style={[styles.promptText, { color: foregroundColor }]}>{prompt}</Text>
           </View>
 
-          {/* Bottom hint */}
-          <View style={styles.bottomHint}>
-            <View style={styles.swipeHintContainer}>
-              <View style={styles.hintPill}>
-                <Ionicons name="arrow-back" size={14} color="rgba(0,0,0,0.4)" />
-                <Text style={styles.hintPillText}>Swipe to answer</Text>
-                <Ionicons name="arrow-forward" size={14} color="rgba(0,0,0,0.4)" />
+          {/* Bottom hint - disappears after first swipe */}
+          {!hasSwiped && (
+            <View style={styles.bottomHint}>
+              <View style={styles.swipeHintContainer}>
+                <View style={styles.hintPill}>
+                  <Ionicons name="arrow-back" size={14} color="rgba(0,0,0,0.4)" />
+                  <Text style={styles.hintPillText}>Swipe to answer</Text>
+                  <Ionicons name="arrow-forward" size={14} color="rgba(0,0,0,0.4)" />
+                </View>
               </View>
             </View>
-          </View>
+          )}
         </Animated.View>
       </GestureDetector>
     </View>
@@ -326,6 +323,7 @@ export default function SessionScreen() {
   const backgroundColor = background;
 
   const [cardKey, setCardKey] = useState(0);
+  const [hasSwiped, setHasSwiped] = useState(false);
 
   const handleSwipeComplete = useCallback(async (direction: 'left' | 'right') => {
     const response: QuestionResponse = direction === 'right' ? 'agree' : 'disagree';
@@ -337,6 +335,10 @@ export default function SessionScreen() {
       // Error handling - card will reset via useEffect
     }
   }, [submitAnswer]);
+
+  const handleFirstSwipe = useCallback(() => {
+    setHasSwiped(true);
+  }, []);
 
   function handleGoBack() {
     router.back();
@@ -448,24 +450,7 @@ export default function SessionScreen() {
     <GestureHandlerRootView style={styles.container}>
       <StatusBar style="auto" />
       <View style={[styles.container, { backgroundColor }]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={handleGoBack} style={styles.backButton}>
-            <Ionicons name="close" size={28} color={foreground} />
-          </Pressable>
-
-          <View style={styles.progressWrapper}>
-            <ProgressBar
-              progress={answeredCount}
-              total={totalCount}
-              color={accent}
-            />
-          </View>
-
-          <View style={styles.placeholder} />
-        </View>
-
-        {/* Card area */}
+        {/* Card area - full screen */}
         <View style={styles.cardArea}>
           {/* Card preview behind - render FIRST so it's behind */}
           {currentQuestionIndex < questions.length - 1 && (
@@ -486,16 +471,16 @@ export default function SessionScreen() {
               category={currentAxis?.name ?? 'Question'}
               accent={accent}
               backgroundColor={background}
+              foregroundColor={foreground}
+              answeredCount={answeredCount}
+              totalCount={totalCount}
               onSwipeComplete={handleSwipeComplete}
+              onClose={handleGoBack}
               isActive={!isSubmitting}
+              hasSwiped={hasSwiped}
+              onFirstSwipe={handleFirstSwipe}
             />
           ) : null}
-        </View>
-
-        {/* Bottom hints */}
-        <View style={styles.bottomArea}>
-          <SwipeHint direction="left" isVisible={!isSubmitting && currentQuestionIndex < totalCount} />
-          <SwipeHint direction="right" isVisible={!isSubmitting && currentQuestionIndex < totalCount} />
         </View>
 
         {/* Loading overlay */}
@@ -582,29 +567,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 22,
-  },
-  placeholder: {
-    width: 44,
-  },
-  progressWrapper: {
-    flex: 1,
-    alignItems: 'center',
-  },
+
   progressContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -652,27 +615,24 @@ const styles = StyleSheet.create({
     shadowRadius: 40,
     elevation: 20,
   },
-  accentBar: {
-    height: 4,
-    width: '100%',
-    opacity: 0.6,
+  cardCloseButton: {
+    position: 'absolute',
+    top: 60,
+    left: 16,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+    zIndex: 10,
   },
-  categoryContainer: {
-    paddingHorizontal: 32,
-    paddingTop: 32,
-    paddingBottom: 16,
-  },
-  categoryPill: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  categoryText: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  cardProgressContainer: {
+    position: 'absolute',
+    top: 72,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 5,
   },
   contentContainer: {
     flex: 1,
@@ -683,7 +643,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '600',
     lineHeight: 40,
-    color: '#1a1a1a',
   },
   bottomHint: {
     paddingHorizontal: 32,
@@ -725,30 +684,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  // Bottom area
-  bottomArea: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    height: 100,
-  },
-  hintContainer: {
-    position: 'absolute',
-    bottom: 40,
-    paddingHorizontal: 16,
-  },
-  hintContent: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  hintText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.7)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+
 
   // Loading overlay
   loadingOverlay: {
