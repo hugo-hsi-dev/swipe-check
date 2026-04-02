@@ -1,23 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Dimensions,
-  ScrollView,
+  Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { Button, Card, Chip, useThemeColor } from 'heroui-native';
+import { useThemeColor } from 'heroui-native';
 import Animated, {
   FadeIn,
   FadeInDown,
-  FadeInUp,
+  FadeOut,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
-  runOnJS,
   type SharedValue,
 } from 'react-native-reanimated';
 import {
@@ -31,18 +32,18 @@ import { AXES } from '@/constants/questions';
 import { useDailySessionFlow } from '@/hooks/use-daily-session-flow';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.2;
+const MAX_BORDER_RADIUS = 48;
 
-function SwipeIndicator({
+function OverlayLabel({
   direction,
   opacity,
   scale,
-  accent,
 }: {
   direction: 'left' | 'right';
   opacity: SharedValue<number>;
   scale: SharedValue<number>;
-  accent: string;
 }) {
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -54,206 +55,251 @@ function SwipeIndicator({
   return (
     <Animated.View
       style={[
-        styles.swipeIndicator,
+        styles.overlayLabel,
         {
-          [isRight ? 'right' : 'left']: 20,
-          backgroundColor: isRight ? accent : 'rgba(239, 68, 68, 0.9)', // red for disagree
+          [isRight ? 'right' : 'left']: 24,
+          backgroundColor: isRight ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+          borderColor: isRight ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)',
         },
         animatedStyle,
       ]}>
       <Ionicons
         name={isRight ? 'checkmark' : 'close'}
-        size={32}
-        color="white"
+        size={56}
+        color={isRight ? '#22c55e' : '#ef4444'}
       />
-      <Text style={styles.swipeIndicatorText}>
-        {isRight ? 'Agree' : 'Disagree'}
+      <Text style={[styles.overlayLabelText, { color: isRight ? '#22c55e' : '#ef4444' }]}>
+        {isRight ? 'AGREE' : 'DISAGREE'}
       </Text>
     </Animated.View>
   );
 }
 
+function ProgressBar({
+  progress,
+  total,
+  color,
+}: {
+  progress: number;
+  total: number;
+  color: string;
+}) {
+  const dots = Array.from({ length: total }, (_, i) => i < progress);
+
+  return (
+    <View style={styles.progressContainer}>
+      {dots.map((isActive, index) => (
+        <View
+          key={index}
+          style={[
+            styles.progressDot,
+            isActive && { backgroundColor: color, transform: [{ scale: 1 }] },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+function SwipeHint({
+  direction,
+  isVisible,
+}: {
+  direction: 'left' | 'right';
+  isVisible: boolean;
+}) {
+  if (!isVisible) return null;
+
+  return (
+    <Animated.View
+      entering={FadeIn.duration(300)}
+      exiting={FadeOut.duration(200)}
+      style={[styles.hintContainer, { [direction]: 0 }]}>
+      <View style={styles.hintContent}>
+        <Ionicons
+          name={direction === 'right' ? 'arrow-forward' : 'arrow-back'}
+          size={20}
+          color="rgba(255, 255, 255, 0.7)"
+        />
+        <Text style={styles.hintText}>
+          {direction === 'right' ? 'Agree' : 'Disagree'}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+interface QuestionCardProps {
+  prompt: string;
+  category: string;
+  accent: string;
+  backgroundColor: string;
+  onSwipeComplete: (direction: 'left' | 'right') => void;
+  isActive: boolean;
+}
+
 function QuestionCard({
   prompt,
+  category,
   accent,
-  translateX,
-  rotateZ,
+  backgroundColor,
   onSwipeComplete,
-  isSubmitting,
-}: {
-  prompt: string;
-  accent: string;
-  translateX: SharedValue<number>;
-  rotateZ: SharedValue<number>;
-  onSwipeComplete: (direction: 'left' | 'right') => void;
-  isSubmitting: boolean;
-}) {
+  isActive,
+}: QuestionCardProps) {
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const rotateZ = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const borderRadius = useSharedValue(0);
+
   const leftOpacity = useSharedValue(0);
   const leftScale = useSharedValue(0.5);
   const rightOpacity = useSharedValue(0);
   const rightScale = useSharedValue(0.5);
 
+  // Reset animation when card becomes active
+  useEffect(() => {
+    if (isActive) {
+      translateX.value = withSpring(0, { damping: 20, stiffness: 300 });
+      translateY.value = withSpring(0, { damping: 20, stiffness: 300 });
+      rotateZ.value = withSpring(0, { damping: 20, stiffness: 300 });
+      scale.value = withSpring(1, { damping: 20, stiffness: 300 });
+      borderRadius.value = withSpring(0, { damping: 20, stiffness: 300 });
+      leftOpacity.value = 0;
+      leftScale.value = 0.5;
+      rightOpacity.value = 0;
+      rightScale.value = 0.5;
+    }
+    // Shared values are stable references from useSharedValue
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive]);
+
   const gesture = Gesture.Pan()
     .onUpdate((event) => {
-      translateX.value = event.translationX;
-      rotateZ.value = event.translationX * 0.05;
+      // Only allow swipe if this is the active card
+      if (!isActive) return;
 
-      // Update indicator opacity based on swipe direction
+      translateX.value = event.translationX;
+      translateY.value = event.translationY * 0.3; // Less vertical movement
+      rotateZ.value = event.translationX * 0.02; // Subtle rotation
+
+      // Calculate progress (0 to 1) based on swipe distance
       const progress = Math.abs(event.translationX) / SWIPE_THRESHOLD;
       const clampedProgress = Math.min(progress, 1);
 
+      // Scale down and round corners as swipe progresses
+      const scaleValue = 1 - clampedProgress * 0.08;
+      scale.value = Math.max(scaleValue, 0.92);
+
+      // Border radius increases as we swipe
+      borderRadius.value = clampedProgress * MAX_BORDER_RADIUS;
+
+      // Update indicator opacity
       if (event.translationX > 0) {
-        // Swiping right (agree)
-        rightOpacity.value = clampedProgress;
+        rightOpacity.value = Math.min(clampedProgress * 1.5, 1);
         rightScale.value = 0.5 + clampedProgress * 0.5;
         leftOpacity.value = 0;
         leftScale.value = 0.5;
       } else {
-        // Swiping left (disagree)
-        leftOpacity.value = clampedProgress;
+        leftOpacity.value = Math.min(clampedProgress * 1.5, 1);
         leftScale.value = 0.5 + clampedProgress * 0.5;
         rightOpacity.value = 0;
         rightScale.value = 0.5;
       }
     })
     .onEnd((event) => {
+      if (!isActive) return;
+
       const isRightSwipe = event.translationX > SWIPE_THRESHOLD;
       const isLeftSwipe = event.translationX < -SWIPE_THRESHOLD;
 
       if (isRightSwipe) {
-        translateX.value = withSpring(SCREEN_WIDTH, { velocity: event.velocityX });
-        rotateZ.value = withTiming(15);
-        runOnJS(onSwipeComplete)('right');
+        // Exit to right - wait for animation before calling onSwipeComplete
+        translateX.value = withSpring(SCREEN_WIDTH * 1.2, { velocity: event.velocityX });
+        translateY.value = withTiming(event.translationY * 0.5, { duration: 300 });
+        rotateZ.value = withTiming(8, { duration: 300 });
+        scale.value = withTiming(0.85, { duration: 300 }, () => {
+          // Called when animation completes
+          runOnJS(onSwipeComplete)('right');
+        });
+        borderRadius.value = withTiming(MAX_BORDER_RADIUS, { duration: 300 });
       } else if (isLeftSwipe) {
-        translateX.value = withSpring(-SCREEN_WIDTH, { velocity: event.velocityX });
-        rotateZ.value = withTiming(-15);
-        runOnJS(onSwipeComplete)('left');
+        // Exit to left - wait for animation before calling onSwipeComplete
+        translateX.value = withSpring(-SCREEN_WIDTH * 1.2, { velocity: event.velocityX });
+        translateY.value = withTiming(event.translationY * 0.5, { duration: 300 });
+        rotateZ.value = withTiming(-8, { duration: 300 });
+        scale.value = withTiming(0.85, { duration: 300 }, () => {
+          // Called when animation completes
+          runOnJS(onSwipeComplete)('left');
+        });
+        borderRadius.value = withTiming(MAX_BORDER_RADIUS, { duration: 300 });
       } else {
-        // Reset to center
-        translateX.value = withSpring(0);
-        rotateZ.value = withSpring(0);
-        leftOpacity.value = withTiming(0);
-        leftScale.value = withTiming(0.5);
-        rightOpacity.value = withTiming(0);
-        rightScale.value = withTiming(0.5);
+        // Spring back to center
+        translateX.value = withSpring(0, { damping: 15, stiffness: 400 });
+        translateY.value = withSpring(0, { damping: 15, stiffness: 400 });
+        rotateZ.value = withSpring(0, { damping: 15, stiffness: 400 });
+        scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+        borderRadius.value = withSpring(0, { damping: 15, stiffness: 400 });
+        leftOpacity.value = withTiming(0, { duration: 200 });
+        leftScale.value = withTiming(0.5, { duration: 200 });
+        rightOpacity.value = withTiming(0, { duration: 200 });
+        rightScale.value = withTiming(0.5, { duration: 200 });
       }
     });
 
   const animatedCardStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
+      { translateY: translateY.value },
       { rotateZ: `${rotateZ.value}deg` },
+      { scale: scale.value },
     ],
+    borderRadius: borderRadius.value,
   }));
 
-  // Button handlers for accessibility
-  function handleAgreePress() {
-    if (isSubmitting) return;
-    translateX.value = withSpring(SCREEN_WIDTH);
-    rotateZ.value = withTiming(15);
-    onSwipeComplete('right');
-  }
-
-  function handleDisagreePress() {
-    if (isSubmitting) return;
-    translateX.value = withSpring(-SCREEN_WIDTH);
-    rotateZ.value = withTiming(-15);
-    onSwipeComplete('left');
-  }
-
   return (
-    <View style={styles.cardContainer}>
-      <SwipeIndicator
-        direction="left"
-        opacity={leftOpacity}
-        scale={leftScale}
-        accent={accent}
-      />
-      <SwipeIndicator
-        direction="right"
-        opacity={rightOpacity}
-        scale={rightScale}
-        accent={accent}
-      />
+    <View style={styles.cardWrapper} pointerEvents={isActive ? 'auto' : 'none'}>
+      <OverlayLabel direction="left" opacity={leftOpacity} scale={leftScale} />
+      <OverlayLabel direction="right" opacity={rightOpacity} scale={rightScale} />
 
       <GestureDetector gesture={gesture}>
-        <Animated.View style={[styles.card, animatedCardStyle]}>
-          <Card variant="secondary" className="overflow-hidden w-full">
-            <View
-              className="h-1 w-full"
-              style={{ backgroundColor: accent, opacity: 0.3 }}
-            />
-            <Card.Body className="p-8 min-h-[200px] justify-center">
-              <Text className="text-2xl font-semibold leading-relaxed text-foreground text-center">
-                {prompt}
+        <Animated.View
+          entering={FadeIn.duration(400)}
+          style={[
+            styles.card,
+            animatedCardStyle,
+            { backgroundColor },
+          ]}>
+          {/* Top accent bar */}
+          <View style={[styles.accentBar, { backgroundColor: accent }]} />
+
+          {/* Category tag */}
+          <View style={styles.categoryContainer}>
+            <View style={[styles.categoryPill, { backgroundColor: `${accent}15` }]}>
+              <Text style={[styles.categoryText, { color: accent }]}>
+                {category}
               </Text>
-            </Card.Body>
-          </Card>
+            </View>
+          </View>
+
+          {/* Question text */}
+          <View style={styles.contentContainer}>
+            <Text style={styles.promptText}>{prompt}</Text>
+          </View>
+
+          {/* Bottom hint */}
+          <View style={styles.bottomHint}>
+            <View style={styles.swipeHintContainer}>
+              <View style={styles.hintPill}>
+                <Ionicons name="arrow-back" size={14} color="rgba(0,0,0,0.4)" />
+                <Text style={styles.hintPillText}>Swipe to answer</Text>
+                <Ionicons name="arrow-forward" size={14} color="rgba(0,0,0,0.4)" />
+              </View>
+            </View>
+          </View>
         </Animated.View>
       </GestureDetector>
-
-      <Animated.View entering={FadeInDown.delay(100).duration(300)} className="gap-3 mt-6">
-        <Button
-          onPress={handleAgreePress}
-          isDisabled={isSubmitting}
-          size="lg"
-          className="w-full">
-          <Ionicons name="checkmark" size={22} color="white" />
-          <Button.Label className="text-lg font-semibold">Agree</Button.Label>
-        </Button>
-
-        <Button
-          variant="outline"
-          onPress={handleDisagreePress}
-          isDisabled={isSubmitting}
-          size="lg"
-          className="w-full">
-          <Ionicons name="close" size={22} />
-          <Button.Label className="text-lg font-semibold">Disagree</Button.Label>
-        </Button>
-      </Animated.View>
-
-      <View className="flex-row items-center justify-center gap-2 mt-4 opacity-60">
-        <Ionicons name="swap-horizontal-outline" size={16} />
-        <Text className="text-sm text-muted">Swipe or tap to answer</Text>
-      </View>
     </View>
-  );
-}
-
-function DecorativeOrb({
-  color,
-  size,
-  top,
-  left,
-  right,
-  bottom,
-  opacity = 0.15,
-}: {
-  color: string;
-  size: number;
-  top?: number;
-  left?: number;
-  right?: number;
-  bottom?: number;
-  opacity?: number;
-}) {
-  return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: 'absolute',
-        top,
-        left,
-        right,
-        bottom,
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: color,
-        opacity,
-      }}
-    />
   );
 }
 
@@ -264,39 +310,33 @@ export default function SessionScreen() {
     currentQuestionIndex,
     answeredCount,
     totalCount,
-    progressPercentage,
     isSubmitting,
     error,
     submitAnswer,
   } = useDailySessionFlow();
 
-  const [accent, accentForeground, foreground, success] = useThemeColor([
+  const [accent, accentForeground, foreground, success, background] = useThemeColor([
     'accent',
     'accent-foreground',
     'foreground',
     'success',
+    'background',
   ]);
 
-  // Animation values for card
-  const translateX = useSharedValue(0);
-  const rotateZ = useSharedValue(0);
+  const backgroundColor = background;
 
-  // Reset animation when question changes
-  useEffect(() => {
-    translateX.value = 0;
-    rotateZ.value = 0;
-  }, [currentQuestionIndex, translateX, rotateZ]);
+  const [cardKey, setCardKey] = useState(0);
 
-  async function handleSwipeComplete(direction: 'left' | 'right') {
+  const handleSwipeComplete = useCallback(async (direction: 'left' | 'right') => {
     const response: QuestionResponse = direction === 'right' ? 'agree' : 'disagree';
     try {
       await submitAnswer(response);
+      // Trigger card key change to force re-render with new question
+      setCardKey(prev => prev + 1);
     } catch {
-      // Reset card on error
-      translateX.value = withSpring(0);
-      rotateZ.value = withSpring(0);
+      // Error handling - card will reset via useEffect
     }
-  }
+  }, [submitAnswer]);
 
   function handleGoBack() {
     router.back();
@@ -310,6 +350,7 @@ export default function SessionScreen() {
     currentQuestionIndex >= 0 && currentQuestionIndex < questions.length
       ? questions[currentQuestionIndex]
       : null;
+
   const currentAxis = currentQuestion
     ? AXES.find((axis) => axis.id === currentQuestion.question.axisId) ?? null
     : null;
@@ -317,168 +358,157 @@ export default function SessionScreen() {
   // Loading state
   if (phase === 'loading') {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.centeredContainer}
-        bounces={false}
-        overScrollMode="never">
-        <View className="items-center gap-6">
-          <View
-            className="size-16 items-center justify-center rounded-3xl"
-            style={{ backgroundColor: `${accent}15` }}>
-            <Ionicons name="hourglass-outline" size={32} color={accent} />
-          </View>
-          <View className="gap-2 items-center">
-            <Text className="text-2xl font-bold text-foreground">Loading...</Text>
-            <Text className="text-center text-base text-muted">
-              Preparing your daily check-in
+      <View style={[styles.container, { backgroundColor }]}>
+        <StatusBar style="auto" />
+        <View style={styles.centeredContent}>
+          <Animated.View
+            entering={FadeIn.duration(400)}
+            style={styles.loadingContainer}>
+            <View style={[styles.loadingOrb, { backgroundColor: `${accent}20` }]}>
+              <Ionicons name="hourglass-outline" size={40} color={accent} />
+            </View>
+            <Text style={[styles.loadingTitle, { color: foreground }]}>
+              Preparing
             </Text>
-          </View>
+            <Text style={[styles.loadingSubtitle, { color: `${foreground}80` }]}>
+              Getting today&apos;s questions ready
+            </Text>
+          </Animated.View>
         </View>
-      </ScrollView>
+      </View>
     );
   }
 
   // Error state
   if (phase === 'error') {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.centeredContainer}
-        bounces={false}
-        overScrollMode="never">
-        <DecorativeOrb color="#EF4444" size={300} top={-100} left={-100} opacity={0.1} />
+      <View style={[styles.container, { backgroundColor }]}>
+        <StatusBar style="auto" />
+        <View style={styles.centeredContent}>
+          <Animated.View entering={FadeInDown.duration(400)} style={styles.resultContainer}>
+            <View style={[styles.resultOrb, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+              <Ionicons name="alert-circle" size={48} color="#EF4444" />
+            </View>
 
-        <Animated.View entering={FadeInUp.duration(400)} className="items-center gap-6 w-full max-w-[340px]">
-          <View
-            className="size-20 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)' }}>
-            <Ionicons name="alert-circle" size={40} color="#EF4444" />
-          </View>
-
-          <View className="gap-3 items-center">
-            <Text className="text-2xl font-bold text-foreground text-center">
+            <Text style={[styles.resultTitle, { color: foreground }]}>
               Something went wrong
             </Text>
-            <Text className="text-center text-base leading-6 text-muted">
+            <Text style={[styles.resultSubtitle, { color: `${foreground}80` }]}>
               {error ?? 'Failed to load your session'}
             </Text>
-          </View>
 
-          <Button onPress={handleGoBack} size="lg" className="w-full">
-            <Ionicons name="arrow-back" size={18} color={accentForeground} />
-            <Button.Label className="text-lg font-semibold">Go Back</Button.Label>
-          </Button>
-        </Animated.View>
-      </ScrollView>
+            <Pressable
+              onPress={handleGoBack}
+              style={[styles.actionButton, { backgroundColor: accent }]}>
+              <Ionicons name="arrow-back" size={20} color={accentForeground} />
+              <Text style={[styles.actionButtonText, { color: accentForeground }]}>
+                Go Back
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+      </View>
     );
   }
 
   // Completed state
   if (phase === 'completed') {
     return (
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.centeredContainer}
-        bounces={false}
-        overScrollMode="never">
-        <DecorativeOrb color={success} size={300} top={-100} left={-100} opacity={0.1} />
-        <DecorativeOrb color={accent} size={200} top={150} right={-80} opacity={0.08} />
+      <View style={[styles.container, { backgroundColor }]}>
+        <StatusBar style="auto" />
+        <View style={styles.centeredContent}>
+          <Animated.View entering={FadeInDown.duration(500)} style={styles.resultContainer}>
+            <View style={[styles.resultOrb, { backgroundColor: `${success}20` }]}>
+              <Ionicons name="checkmark-circle" size={56} color={success} />
+            </View>
 
-        <Animated.View entering={FadeInUp.duration(400)} className="items-center gap-8 w-full max-w-[340px]">
-          <View
-            className="size-24 items-center justify-center rounded-full"
-            style={{ backgroundColor: `${success}15` }}>
-            <Ionicons name="checkmark-circle" size={48} color={success} />
-          </View>
-
-          <View className="gap-3 items-center">
-            <Text className="text-3xl font-bold text-foreground text-center">
+            <Text style={[styles.resultTitle, { color: foreground }]}>
               All done
             </Text>
-            <Text className="text-center text-base leading-6 text-muted">
-              You have completed today&apos;s check-in. Come back tomorrow for more insights.
+            <Text style={[styles.resultSubtitle, { color: `${foreground}80` }]}>
+              You&apos;ve completed today&apos;s check-in. Come back tomorrow for more insights.
             </Text>
-          </View>
 
-          <Button onPress={handleGoToToday} size="lg" className="w-full">
-            <Button.Label className="text-lg font-semibold">Back to Today</Button.Label>
-            <Ionicons name="arrow-forward" size={18} color={accentForeground} />
-          </Button>
-        </Animated.View>
-      </ScrollView>
+            <Pressable
+              onPress={handleGoToToday}
+              style={[styles.actionButton, { backgroundColor: success }]}>
+              <Text style={[styles.actionButtonText, { color: 'white' }]}>
+                Back to Today
+              </Text>
+              <Ionicons name="arrow-forward" size={20} color="white" />
+            </Pressable>
+          </Animated.View>
+        </View>
+      </View>
     );
   }
 
   // Active session state
   return (
     <GestureHandlerRootView style={styles.container}>
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={styles.questionContainer}
-        bounces={false}
-        overScrollMode="never">
-        <DecorativeOrb color={accent} size={250} top={-80} left={-80} opacity={0.1} />
+      <StatusBar style="auto" />
+      <View style={[styles.container, { backgroundColor }]}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable onPress={handleGoBack} style={styles.backButton}>
+            <Ionicons name="close" size={28} color={foreground} />
+          </Pressable>
 
-        <Animated.View entering={FadeInUp.duration(350)} className="gap-6 w-full">
-          <View className="flex-row items-center justify-between">
-            <Button variant="ghost" onPress={handleGoBack} className="p-2 -ml-2">
-              <Ionicons name="arrow-back" size={24} color={foreground} />
-            </Button>
-            <Text className="text-lg font-semibold text-foreground">Daily Check-in</Text>
-            <View className="w-10" />
-          </View>
-
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="help-circle-outline" size={20} color={accent} />
-              <Text className="text-sm font-medium text-muted">
-                {answeredCount + 1} / {totalCount}
-              </Text>
-            </View>
-            {currentAxis && (
-              <Chip variant="soft" color="accent" size="sm">
-                <Chip.Label>{currentAxis.name}</Chip.Label>
-              </Chip>
-            )}
-          </View>
-
-          <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
-            <View
-              className="h-full rounded-full"
-              style={{ width: `${progressPercentage}%`, backgroundColor: accent }}
+          <View style={styles.progressWrapper}>
+            <ProgressBar
+              progress={answeredCount}
+              total={totalCount}
+              color={accent}
             />
           </View>
 
+          <View style={styles.placeholder} />
+        </View>
+
+        {/* Card area */}
+        <View style={styles.cardArea}>
+          {/* Card preview behind - render FIRST so it's behind */}
+          {currentQuestionIndex < questions.length - 1 && (
+            <View
+              style={[
+                styles.cardPreview,
+                { backgroundColor },
+              ]}
+              pointerEvents="none"
+            />
+          )}
+
+          {/* Main swipeable card - render on top */}
           {currentQuestion ? (
             <QuestionCard
+              key={cardKey}
               prompt={currentQuestion.question.prompt}
+              category={currentAxis?.name ?? 'Question'}
               accent={accent}
-              translateX={translateX}
-              rotateZ={rotateZ}
+              backgroundColor={background}
               onSwipeComplete={handleSwipeComplete}
-              isSubmitting={isSubmitting}
+              isActive={!isSubmitting}
             />
-          ) : (
-            <Card variant="secondary">
-              <Card.Body className="p-8 items-center">
-                <Text className="text-muted">No more questions</Text>
-              </Card.Body>
-            </Card>
-          )}
+          ) : null}
+        </View>
 
-          {isSubmitting && (
-            <Animated.View entering={FadeIn.duration(150)}>
-              <Card variant="tertiary">
-                <Card.Body className="flex-row items-center gap-3 p-4 justify-center">
-                  <Ionicons name="time-outline" size={20} color={accent} />
-                  <Text className="text-sm text-muted">Saving your answer...</Text>
-                </Card.Body>
-              </Card>
-            </Animated.View>
-          )}
-        </Animated.View>
-      </ScrollView>
+        {/* Bottom hints */}
+        <View style={styles.bottomArea}>
+          <SwipeHint direction="left" isVisible={!isSubmitting && currentQuestionIndex < totalCount} />
+          <SwipeHint direction="right" isVisible={!isSubmitting && currentQuestionIndex < totalCount} />
+        </View>
+
+        {/* Loading overlay */}
+        {isSubmitting && currentQuestionIndex >= totalCount - 1 && (
+          <Animated.View
+            entering={FadeIn.duration(200)}
+            style={styles.loadingOverlay}>
+            <View style={[styles.loadingSpinner, { backgroundColor: `${accent}20` }]}>
+              <Ionicons name="sync" size={32} color={accent} />
+            </View>
+          </Animated.View>
+        )}
+      </View>
     </GestureHandlerRootView>
   );
 }
@@ -487,44 +517,251 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  centeredContainer: {
-    flexGrow: 1,
+  centeredContent: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    paddingTop: 48,
-    paddingBottom: 32,
   },
-  questionContainer: {
-    flexGrow: 1,
-    padding: 24,
-    paddingTop: 48,
-    paddingBottom: 32,
-  },
-  cardContainer: {
-    position: 'relative',
+
+  // Loading state
+  loadingContainer: {
     alignItems: 'center',
+    gap: 20,
+  },
+  loadingOrb: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
-    minHeight: 300,
+    alignItems: 'center',
   },
-  card: {
-    width: '100%',
-    maxWidth: SCREEN_WIDTH - 48,
+  loadingTitle: {
+    fontSize: 24,
+    fontWeight: '700',
   },
-  swipeIndicator: {
-    position: 'absolute',
-    top: '30%',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 24,
+  loadingSubtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+
+  // Result states
+  resultContainer: {
+    alignItems: 'center',
+    gap: 24,
+    maxWidth: 320,
+  },
+  resultOrb: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resultTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  resultSubtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 28,
+    marginTop: 8,
+  },
+  actionButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+  },
+  placeholder: {
+    width: 44,
+  },
+  progressWrapper: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    transform: [{ scale: 0.8 }],
+  },
+
+  // Card area
+  cardArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 16,
+  },
+  cardWrapper: {
+    width: '100%',
+    height: SCREEN_HEIGHT * 0.65,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 10,
   },
-  swipeIndicatorText: {
-    color: 'white',
-    fontSize: 16,
+  cardPreview: {
+    position: 'absolute',
+    width: '90%',
+    height: SCREEN_HEIGHT * 0.62,
+    borderRadius: 24,
+    transform: [{ scale: 0.95 }, { translateY: 16 }],
+    zIndex: 1,
+  },
+
+  // Card
+  card: {
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.15,
+    shadowRadius: 40,
+    elevation: 20,
+  },
+  accentBar: {
+    height: 4,
+    width: '100%',
+    opacity: 0.6,
+  },
+  categoryContainer: {
+    paddingHorizontal: 32,
+    paddingTop: 32,
+    paddingBottom: 16,
+  },
+  categoryPill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  categoryText: {
+    fontSize: 13,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  promptText: {
+    fontSize: 28,
+    fontWeight: '600',
+    lineHeight: 40,
+    color: '#1a1a1a',
+  },
+  bottomHint: {
+    paddingHorizontal: 32,
+    paddingBottom: 32,
+  },
+  swipeHintContainer: {
+    alignItems: 'center',
+  },
+  hintPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 20,
+  },
+  hintPillText: {
+    fontSize: 14,
+    color: 'rgba(0, 0, 0, 0.5)',
+    fontWeight: '500',
+  },
+
+  // Overlay labels
+  overlayLabel: {
+    position: 'absolute',
+    top: '35%',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 2,
+    alignItems: 'center',
+    gap: 4,
+    zIndex: 10,
+  },
+  overlayLabelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+
+  // Bottom area
+  bottomArea: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    height: 100,
+  },
+  hintContainer: {
+    position: 'absolute',
+    bottom: 40,
+    paddingHorizontal: 16,
+  },
+  hintContent: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  hintText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  // Loading overlay
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingSpinner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
