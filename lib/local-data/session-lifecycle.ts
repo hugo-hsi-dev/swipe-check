@@ -565,6 +565,40 @@ export async function readCompletedSessionDetail(
   };
 }
 
+export async function clearDailySessionForLocalDay(
+  adapter: LocalDatabaseAdapter,
+  localDayKey: string
+): Promise<string | null> {
+  const session = await getDailySessionForLocalDay(adapter, localDayKey);
+
+  if (!session) {
+    return null;
+  }
+
+  await adapter.execAsync('BEGIN IMMEDIATE;');
+
+  try {
+    await adapter.runAsync('DELETE FROM session_answers WHERE session_id = ?;', session.id);
+    await adapter.runAsync(
+      'DELETE FROM type_snapshots WHERE session_id = ? OR source_session_id = ?;',
+      session.id,
+      session.id
+    );
+    await adapter.runAsync(
+      'DELETE FROM app_meta WHERE key = ?;',
+      `daily_session_questions_${session.id}`
+    );
+    await adapter.runAsync('DELETE FROM sessions WHERE id = ?;', session.id);
+
+    await adapter.execAsync('COMMIT;');
+
+    return session.id;
+  } catch (error) {
+    await adapter.execAsync('ROLLBACK;');
+    throw error;
+  }
+}
+
 export function toLocalDayKey(date: Date): string {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');

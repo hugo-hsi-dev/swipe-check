@@ -111,6 +111,18 @@ export default function SettingsScreen() {
       </Card>
 
       <Card>
+        <Card.Body className="gap-4">
+          <Card.Title>Daily Check-in Debug</Card.Title>
+          <Description>Inspect today&apos;s session and reset only the current daily check-in.</Description>
+
+          <Button variant="secondary" onPress={() => router.push('/session-debug')}>
+            <Ionicons name="bug-outline" size={18} />
+            <Button.Label>Open debug screen</Button.Label>
+          </Button>
+        </Card.Body>
+      </Card>
+
+      <Card>
         <Card.Body className="gap-3">
           <Card.Title>About</Card.Title>
           <View className="gap-2">
