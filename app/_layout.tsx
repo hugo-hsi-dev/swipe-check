@@ -1,13 +1,14 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Redirect, Stack, useGlobalSearchParams, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Uniwind } from 'uniwind';
 
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInitialRoute } from '@/hooks/use-initial-route';
 
 import '@/global.css';
@@ -17,8 +18,12 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const { bootstrapError, isBootstrapping } = useAppBootstrap();
+
+  // Force light mode for the entire app
+  useEffect(() => {
+    Uniwind.setTheme('light');
+  }, []);
   const pathname = usePathname();
   const { preview } = useGlobalSearchParams<{ preview?: string }>();
   const { evaluatedPathname, isDeterminingRoute, routeError, targetRoute } = useInitialRoute(pathname);
@@ -50,7 +55,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <HeroUINativeProvider config={{ devInfo: { stylingPrinciples: false } }}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider value={DefaultTheme}>
           <Stack>
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -66,7 +71,7 @@ export default function RootLayout() {
               }}
             />
           </Stack>
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
         </ThemeProvider>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
