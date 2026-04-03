@@ -25,7 +25,7 @@ function formatTime(dateString: string): string {
 }
 
 function getEntryTypeLabel(type: string): string {
-  return type === 'onboarding' ? 'Onboarding' : 'Daily Check-in';
+  return type === 'onboarding' ? 'Baseline (Onboarding)' : 'Daily Check-in';
 }
 
 function getAnswerIcon(answer: PersistedSessionAnswer['answer']): { name: string; color: string } {
@@ -41,7 +41,7 @@ export default function JournalEntryDetailScreen() {
   if (isLoading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Entry Detail' }} />
+        <Stack.Screen options={{ title: 'Loading...' }} />
         <ScrollView
           className="flex-1 bg-background"
           contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
@@ -66,18 +66,38 @@ export default function JournalEntryDetailScreen() {
     );
   }
 
-  if (error || !detail) {
+  if (error) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Entry Detail' }} />
+        <Stack.Screen options={{ title: 'Error' }} />
         <ScrollView
           className="flex-1 bg-background"
           contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
           <Card>
             <Card.Body className="gap-2">
-              <Card.Title className="text-danger">Error loading entry</Card.Title>
+              <Card.Title className="text-danger">Unable to Load Entry</Card.Title>
               <Card.Description>
-                {error?.message ?? 'Entry not found. It may have been deleted.'}
+                {error.message ?? 'An unexpected error occurred while loading this entry.'}
+              </Card.Description>
+            </Card.Body>
+          </Card>
+        </ScrollView>
+      </>
+    );
+  }
+
+  if (!detail) {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Not Found' }} />
+        <ScrollView
+          className="flex-1 bg-background"
+          contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+          <Card>
+            <Card.Body className="gap-2">
+              <Card.Title className="text-danger">Entry Not Found</Card.Title>
+              <Card.Description>
+                This entry may have been deleted or does not exist.
               </Card.Description>
             </Card.Body>
           </Card>
@@ -93,7 +113,7 @@ export default function JournalEntryDetailScreen() {
     <>
       <Stack.Screen
         options={{
-          title: completedAt ? formatDate(completedAt) : 'Entry Detail',
+          title: completedAt ? formatDate(completedAt) : 'In Progress',
         }}
       />
 <ScrollView
@@ -113,9 +133,14 @@ export default function JournalEntryDetailScreen() {
                 </Avatar.Fallback>
               </Avatar>
               <View className="flex-1 gap-1">
-                <Card.Title>
-                  {getEntryTypeLabel(session.type)}
-                </Card.Title>
+                <View className="flex-row items-center gap-2">
+                  <Card.Title>
+                    {getEntryTypeLabel(session.type)}
+                  </Card.Title>
+                  <Chip size="sm" variant="secondary">
+                    <Chip.Label>Read-Only</Chip.Label>
+                  </Chip>
+                </View>
                 {completedAt && (
                   <Card.Description>
                     Completed at {formatTime(completedAt)}
