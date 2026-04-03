@@ -38,9 +38,14 @@ export default function JournalScreen() {
     error: currentDayError,
   } = useCurrentDayCompletedSession();
 
-  const filteredEntries = entries.filter((entry) => {
-    if (!isDayComplete || !currentDayEntry) return entry.session.type === 'daily';
-    return entry.session.id !== currentDayEntry.session.id && entry.session.type === 'daily';
+  const dailyEntries = entries.filter((entry) => entry.session.type === 'daily');
+  const onboardingEntries = entries.filter((entry) => entry.session.type === 'onboarding');
+
+  const hasDailyHistory = dailyEntries.length > 0;
+
+  const filteredPastDailyEntries = dailyEntries.filter((entry) => {
+    if (!isDayComplete || !currentDayEntry) return true;
+    return entry.session.id !== currentDayEntry.session.id;
   });
 
   const handleEntryPress = (sessionId: string) => {
@@ -90,9 +95,9 @@ export default function JournalScreen() {
     );
   }
 
-  const hasEntries = entries.length > 0;
+  const isFullyEmpty = entries.length === 0;
 
-  if (!hasEntries) {
+  if (isFullyEmpty) {
     return (
       <ScrollView
         className="flex-1 bg-background"
@@ -104,9 +109,13 @@ export default function JournalScreen() {
                 <Ionicons name="journal-outline" size={28} color="currentColor" />
               </View>
               <View className="items-center gap-2">
-                <Card.Title className="text-center">Your Journal is Empty</Card.Title>
+                <Card.Title className="text-center">
+                  {isFullyEmpty ? 'Your Journal is Empty' : 'Start Your Daily Entries'}
+                </Card.Title>
                 <Card.Description className="text-center">
-                  Complete daily check-ins to build your history.
+                  {isFullyEmpty
+                    ? 'Complete daily check-ins to build your history.'
+                    : 'Your baseline is saved. Start your first daily check-in to begin your journal.'}
                 </Card.Description>
               </View>
             </View>
@@ -179,7 +188,7 @@ export default function JournalScreen() {
             </Card.Body>
           </Card>
 
-          {filteredEntries.length === 0 && (
+          {filteredPastDailyEntries.length === 0 && (
             <View className="items-center gap-2 py-4">
               <Card.Description className="text-center">
                 No previous daily check-ins yet
@@ -189,15 +198,15 @@ export default function JournalScreen() {
         </View>
       )}
 
-      {filteredEntries.length > 0 && (
+      {onboardingEntries.length > 0 && (
         <View className="gap-3">
           <View className="flex-row items-center gap-2">
             <View className="h-px flex-1 bg-surface-tertiary" />
-            <Text className="text-sm text-foreground-secondary">Past Daily Check-ins</Text>
+            <Text className="text-sm text-foreground-secondary">Baseline</Text>
             <View className="h-px flex-1 bg-surface-tertiary" />
           </View>
           <ListGroup>
-            {filteredEntries.map((entry) => {
+            {onboardingEntries.map((entry) => {
               const session = entry.session;
               const snapshot = entry.snapshot;
               const completedAt = session.completedAt;
@@ -210,11 +219,11 @@ export default function JournalScreen() {
                   <ListGroup.ItemPrefix>
                     <Avatar
                       alt={getEntryTypeLabel(session.type)}
-                      color={session.type === 'onboarding' ? 'accent' : 'success'}
+                      color="accent"
                       size="md"
                       variant="soft">
                       <Avatar.Fallback>
-                        {snapshot?.currentType ?? (session.type === 'onboarding' ? 'ON' : 'DY')}
+                        {snapshot?.currentType ?? 'ON'}
                       </Avatar.Fallback>
                     </Avatar>
                   </ListGroup.ItemPrefix>
@@ -226,7 +235,63 @@ export default function JournalScreen() {
                       <Chip
                         size="sm"
                         variant="soft"
-                        color={session.type === 'onboarding' ? 'accent' : 'success'}>
+                        color="accent">
+                        <Chip.Label>{getEntryTypeLabel(session.type)}</Chip.Label>
+                      </Chip>
+                    </View>
+                    <ListGroup.ItemDescription>
+                      {completedAt ? formatTime(completedAt) : ''}
+                      {snapshot && ` · ${snapshot.currentType}`}
+                    </ListGroup.ItemDescription>
+                  </ListGroup.ItemContent>
+                  <ListGroup.ItemSuffix>
+                    <Ionicons name="chevron-forward" size={18} color="currentColor" />
+                  </ListGroup.ItemSuffix>
+                </ListGroup.Item>
+              );
+            })}
+          </ListGroup>
+        </View>
+      )}
+
+      {filteredPastDailyEntries.length > 0 && (
+        <View className="gap-3">
+          <View className="flex-row items-center gap-2">
+            <View className="h-px flex-1 bg-surface-tertiary" />
+            <Text className="text-sm text-foreground-secondary">Past Daily Check-ins</Text>
+            <View className="h-px flex-1 bg-surface-tertiary" />
+          </View>
+          <ListGroup>
+            {filteredPastDailyEntries.map((entry) => {
+              const session = entry.session;
+              const snapshot = entry.snapshot;
+              const completedAt = session.completedAt;
+
+              return (
+                <ListGroup.Item
+                  key={session.id}
+                  onPress={() => handleEntryPress(session.id)}
+                  className="active:opacity-70">
+                  <ListGroup.ItemPrefix>
+                    <Avatar
+                      alt={getEntryTypeLabel(session.type)}
+                      color="success"
+                      size="md"
+                      variant="soft">
+                      <Avatar.Fallback>
+                        {snapshot?.currentType ?? 'DY'}
+                      </Avatar.Fallback>
+                    </Avatar>
+                  </ListGroup.ItemPrefix>
+                  <ListGroup.ItemContent>
+                    <View className="flex-row items-center gap-2">
+                      <ListGroup.ItemTitle>
+                        {completedAt ? formatDate(completedAt) : 'Unknown date'}
+                      </ListGroup.ItemTitle>
+                      <Chip
+                        size="sm"
+                        variant="soft"
+                        color="success">
                         <Chip.Label>{getEntryTypeLabel(session.type)}</Chip.Label>
                       </Chip>
                     </View>
