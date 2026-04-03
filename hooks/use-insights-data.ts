@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 
 import { readAllTypeSnapshots, readLatestTypeSnapshot } from '@/lib/local-data/session-lifecycle';
-import { getSQLiteDatabase } from '@/lib/local-data/database';
+import { getSQLiteDatabase } from '@/lib/local-data/sqlite-runtime';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 
 export type InsightsDataState =
   | { status: 'loading' }
   | { status: 'empty' }
+  | { status: 'error'; error: Error }
   | { status: 'sparse'; latestType: string; latestSnapshot: TypeSnapshot; history: TypeSnapshot[] }
   | { status: 'populated'; latestType: string; latestSnapshot: TypeSnapshot; history: TypeSnapshot[] };
 
@@ -47,10 +48,11 @@ export function useInsightsData(): InsightsDataState {
           latestSnapshot,
           history: allSnapshots,
         });
-      } catch (error) {
-        console.error('Failed to load insights data:', error);
+      } catch (caught) {
+        console.error('Failed to load insights data:', caught);
+        const err = caught instanceof Error ? caught : new Error(String(caught));
         if (isMounted) {
-          setState({ status: 'empty' });
+          setState({ status: 'error', error: err });
         }
       }
     }

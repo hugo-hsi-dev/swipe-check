@@ -2,19 +2,84 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, Text, View } from 'react-native';
 import { Card } from 'heroui-native';
 
-import { useCurrentTypeSnapshot } from '@/hooks/use-current-type-snapshot';
+import { useInsightsData } from '@/hooks/use-insights-data';
 import { AXES } from '@/constants/questions';
 
 export default function InsightsScreen() {
-  const { currentType, snapshot, isLoading } = useCurrentTypeSnapshot();
+  const state = useInsightsData();
 
-  if (isLoading) {
+  if (state.status === 'loading') {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <Text>Loading...</Text>
       </View>
     );
   }
+
+  if (state.status === 'error') {
+    return (
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{
+          padding: 16,
+          paddingTop: 24,
+          paddingBottom: 24,
+          gap: 16,
+        }}
+      >
+        <Card>
+          <Card.Header>
+            <Card.Title className="text-xl">Insights</Card.Title>
+          </Card.Header>
+        </Card>
+
+        <Card className="bg-danger-soft">
+          <Card.Body className="items-center gap-4 py-12">
+            <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
+              <Ionicons name="alert-circle-outline" size={28} />
+            </View>
+            <Text className="text-center text-text-secondary">
+              Failed to load insights. Please try again later.
+            </Text>
+          </Card.Body>
+        </Card>
+      </ScrollView>
+    );
+  }
+
+  if (state.status === 'empty') {
+    return (
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{
+          padding: 16,
+          paddingTop: 24,
+          paddingBottom: 24,
+          gap: 16,
+        }}
+      >
+        <Card>
+          <Card.Header>
+            <Card.Title className="text-xl">Insights</Card.Title>
+          </Card.Header>
+        </Card>
+
+        <Card>
+          <Card.Body className="items-center gap-4 py-12">
+            <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
+              <Ionicons name="analytics-outline" size={28} />
+            </View>
+            <Text className="text-center text-text-secondary">
+              Complete onboarding to see your personality insights.
+            </Text>
+          </Card.Body>
+        </Card>
+      </ScrollView>
+    );
+  }
+
+  const currentType = state.latestType;
+  const snapshot = state.latestSnapshot;
 
   return (
     <ScrollView
@@ -69,19 +134,6 @@ export default function InsightsScreen() {
           </Card>
         );
       })}
-
-      {!snapshot && (
-        <Card>
-          <Card.Body className="items-center gap-4 py-12">
-            <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
-              <Ionicons name="analytics-outline" size={28} />
-            </View>
-            <Text className="text-center text-text-secondary">
-              Complete onboarding to see your personality insights.
-            </Text>
-          </Card.Body>
-        </Card>
-      )}
     </ScrollView>
   );
 }
