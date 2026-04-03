@@ -4,7 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 export default function EntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  useEffect(() => {
+useEffect(() => {
     if (id) {
       router.replace(`/journal/${id}`);
     } else {
