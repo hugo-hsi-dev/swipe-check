@@ -90,7 +90,9 @@ export default function JournalScreen() {
     );
   }
 
-  if (entries.length === 0) {
+  const hasEntries = entries.length > 0;
+
+  if (!hasEntries) {
     return (
       <ScrollView
         className="flex-1 bg-background"
@@ -104,7 +106,7 @@ export default function JournalScreen() {
               <View className="items-center gap-2">
                 <Card.Title className="text-center">Your Journal is Empty</Card.Title>
                 <Card.Description className="text-center">
-                  Complete your first daily check-in to see it here.
+                  Complete onboarding or a daily check-in to see it here.
                 </Card.Description>
               </View>
             </View>
