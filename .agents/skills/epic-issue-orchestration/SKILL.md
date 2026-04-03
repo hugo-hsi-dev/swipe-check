@@ -1,10 +1,12 @@
 ---
 name: epic-issue-orchestration
-description: Split product epics into GitHub issue hierarchies with one tracking epic, real subissues, and blocking dependencies. Use when converting a product or architecture epic into issue-ready work items for autonomous agents.
+description: Mandatory for requests that transform an epic, product spec, PRD, roadmap, or domain brief into GitHub issues, subissues, or dependency graphs. Use when creating issue hierarchies from product epics.
 license: Complete terms in LICENSE.txt
 ---
 
 This skill turns an epic document into a structured GitHub issue tree that an autonomous agent can execute without reinterpreting the domain or renegotiating scope mid-flight.
+
+This skill is the required entrypoint for epic-to-issues work. If the user is asking for issue breakdowns, tracking epics, subissues, or dependency ordering from a spec/epic document, use this skill instead of generic issue creation.
 
 ## When To Use
 - The user gives you a product epic, spec, or domain brief and wants GitHub issues created from it.
