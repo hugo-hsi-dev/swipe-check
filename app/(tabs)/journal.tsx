@@ -35,6 +35,7 @@ export default function JournalScreen() {
     entry: currentDayEntry,
     isCurrentDay: isDayComplete,
     isLoading: isCurrentDayLoading,
+    error: currentDayError,
   } = useCurrentDayCompletedSession();
 
   const filteredEntries = entries.filter((entry) => {
@@ -126,6 +127,19 @@ export default function JournalScreen() {
         </Card.Body>
       </Card>
 
+      {currentDayError && (
+        <View className="gap-3">
+          <Card className="border-danger-soft">
+            <Card.Body className="gap-2">
+              <Card.Title className="text-danger">
+                Today’s check-in unavailable
+              </Card.Title>
+              <Card.Description>{currentDayError.message}</Card.Description>
+            </Card.Body>
+          </Card>
+        </View>
+      )}
+
       {isDayComplete && currentDayEntry && (
         <View className="gap-3">
           <Card className="border-accent-soft">
@@ -150,7 +164,7 @@ export default function JournalScreen() {
                   </Avatar>
                   <View className="flex-1">
                     <Text className="font-semibold text-foreground-primary">
-                      {currentDayEntry.snapshot?.currentType ?? 'Unknown'}
+                      {currentDayEntry.snapshot?.currentType ?? getEntryTypeLabel(currentDayEntry.session.type)}
                     </Text>
                     <Text className="text-sm text-foreground-secondary">
                       {currentDayEntry.session.completedAt
