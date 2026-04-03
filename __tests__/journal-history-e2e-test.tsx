@@ -26,64 +26,33 @@ import {
 } from '@/hooks/use-journal-data';
 import { AXES } from '@/constants/questions';
 
-// Mock color scheme
 jest.mock('@/hooks/use-color-scheme', () => ({
   useColorScheme: jest.fn(() => 'light'),
 }));
 
-// Mock database state that can be configured per test
+jest.mock('@/lib/local-data/session-lifecycle', () => {
+  const originalModule = jest.requireActual('@/lib/local-data/session-lifecycle');
+  return {
+    ...originalModule,
+    toLocalDayKey: jest.fn(() => '2024-04-03'),
+  };
+});
+
 const mockDbState: {
   historyEntries: Array<{
     session: PersistedSession;
     snapshot: TypeSnapshot | null;
   }>;
-  todaysEntry: {
-    session: PersistedSession;
-    snapshot: TypeSnapshot | null;
-  } | null;
 } = {
   historyEntries: [],
-  todaysEntry: null,
 };
 
 const mockDb = {
   execAsync: jest.fn(() => Promise.resolve()),
   runAsync: jest.fn(() => Promise.resolve({ changes: 1 })),
-  getFirstAsync: jest.fn((sql: string, ...params: unknown[]) => {
-    // Check for today's completed session
-    if (sql.includes("ORDER BY s.completed_at DESC LIMIT 1") && sql.includes("local_day_key = ?")) {
-      if (mockDbState.todaysEntry) {
-        const session = mockDbState.todaysEntry.session;
-        const snapshot = mockDbState.todaysEntry.snapshot;
-        return Promise.resolve({
-          id: session.id,
-          session_type: session.type,
-          status: session.status,
-          local_day_key: session.localDayKey,
-          started_at: session.startedAt,
-          completed_at: session.completedAt,
-          created_at: session.createdAt,
-          updated_at: session.updatedAt,
-          snapshot_id: snapshot?.id ?? null,
-          snapshot_session_id: snapshot?.id ?? null,
-          current_type: snapshot?.currentType ?? null,
-          axis_scores_json: snapshot?.axisScores ? JSON.stringify(snapshot.axisScores) : null,
-          axis_strengths_json: snapshot?.axisStrengths ? JSON.stringify(snapshot.axisStrengths) : null,
-          source_type: snapshot?.source.type ?? null,
-          source_session_id: snapshot?.source.sessionId ?? null,
-          question_count: snapshot?.questionCount ?? null,
-          snapshot_created_at: snapshot?.createdAt.toISOString() ?? null,
-        });
-      }
-      return Promise.resolve(null);
-    }
-
-    return Promise.resolve(null);
-  }),
+  getFirstAsync: jest.fn(() => Promise.resolve(null)),
   getAllAsync: jest.fn((sql: string, ...params: unknown[]) => {
-    // Check for completed session history
-    if (sql.includes('FROM sessions s') && sql.includes('WHERE s.status = ') && sql.includes('ORDER BY s.completed_at DESC')) {
-      // The limit is passed as a bound parameter (-1 means no limit)
+    if (sql.includes('FROM sessions s') && sql.includes('WHERE s.status = ')) {
       const limitParam = params[0];
       const limit = typeof limitParam === 'number' && limitParam > 0 ? limitParam : undefined;
 
@@ -111,9 +80,26 @@ const mockDb = {
         };
       });
 
-      // Apply limit if specified
-      if (limit !== undefined && limit > 0) {
-        entries = entries.slice(0, limit);
+      if (sql.includes('AND s.local_day_key = ?')) {
+        const dayKey = params[params.length - 1] as string;
+        entries = entries.filter((entry) => entry.local_day_key === dayKey);
+        const timestampSort = (a: typeof entries[number], b: typeof entries[number]) => {
+          const timeA = a.completed_at ? new Date(a.completed_at).getTime() : 0;
+          const timeB = b.completed_at ? new Date(b.completed_at).getTime() : 0;
+          return timeB - timeA;
+        };
+        entries.sort(timestampSort);
+        entries = entries.slice(0, 1);
+      } else {
+        const timestampSort = (a: typeof entries[number], b: typeof entries[number]) => {
+          const timeA = a.completed_at ? new Date(a.completed_at).getTime() : 0;
+          const timeB = b.completed_at ? new Date(b.completed_at).getTime() : 0;
+          return timeB - timeA;
+        };
+        entries.sort(timestampSort);
+        if (limit !== undefined && limit > 0) {
+          entries = entries.slice(0, limit);
+        }
       }
 
       return Promise.resolve(entries);
@@ -199,9 +185,7 @@ function createMockSnapshot({
 describe('Journal History Edge Cases', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset mock database state
     mockDbState.historyEntries = [];
-    mockDbState.todaysEntry = null;
   });
 
   describe('Empty State - No History', () => {
@@ -379,26 +363,23 @@ describe('Journal History Edge Cases', () => {
         questionCount: 4,
       });
 
-      // Note: Database returns in reverse chronological order
       mockDbState.historyEntries = [
+        { session: session1, snapshot: snapshot1 },
         { session: session3, snapshot: snapshot3 },
         { session: session2, snapshot: snapshot2 },
-        { session: session1, snapshot: snapshot1 },
       ];
 
-      // Act
       const { result } = renderHook(() => useJournalHistory());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert: Should show all entries in order
       expect(result.current.entries).toHaveLength(3);
       expect(result.current.isMultiEntry).toBe(true);
-      expect(result.current.entries[0].session.completedAt).toBe(session3.completedAt);
-      expect(result.current.entries[1].session.completedAt).toBe(session2.completedAt);
-      expect(result.current.entries[2].session.completedAt).toBe(session1.completedAt);
+      expect(result.current.entries[0].session.id).toBe('session-003');
+      expect(result.current.entries[1].session.id).toBe('session-002');
+      expect(result.current.entries[2].session.id).toBe('session-001');
     });
 
     it('should handle sparse history (e.g., onboarding only)', async () => {
@@ -480,7 +461,6 @@ describe('Journal History Edge Cases', () => {
 
   describe('Today Session Separation', () => {
     it('should identify today as separate from past entries', async () => {
-      // Arrange: Today's session and multiple past sessions
       const today = new Date('2024-04-03T10:00:00');
       const dayKey = '2024-04-03';
 
@@ -511,48 +491,39 @@ describe('Journal History Edge Cases', () => {
       });
 
       mockDbState.historyEntries = [
-        { session: todaySession, snapshot: todaySnapshot },
         { session: pastSession, snapshot: pastSnapshot },
+        { session: todaySession, snapshot: todaySnapshot },
       ];
-      mockDbState.todaysEntry = { session: todaySession, snapshot: todaySnapshot };
 
-      // Act: Check today hook
       const { result: todayResult } = renderHook(() => useCurrentDayCompletedSession());
 
       await waitFor(() => {
         expect(todayResult.current.isLoading).toBe(false);
       });
 
-      // Assert: Today should be identified
       expect(todayResult.current.isCurrentDay).toBe(true);
       expect(todayResult.current.entry?.session.id).toBe('session-today');
       expect(todayResult.current.entry?.snapshot?.currentType).toBe('ENFP');
 
-      // Act: Check history hook
       const { result: historyResult } = renderHook(() => useJournalHistory());
 
       await waitFor(() => {
         expect(historyResult.current.isLoading).toBe(false);
       });
 
-      // Assert: History should include today's session
       expect(historyResult.current.entries).toHaveLength(2);
       expect(historyResult.current.entries[0].session.id).toBe('session-today');
     });
 
     it('should handle no today session correctly', async () => {
-      // Arrange: No today session
-      mockDbState.todaysEntry = null;
       mockDbState.historyEntries = [];
 
-      // Act
       const { result } = renderHook(() => useCurrentDayCompletedSession());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert: Should report no today session
       expect(result.current.isCurrentDay).toBe(false);
       expect(result.current.entry).toBeNull();
     });
