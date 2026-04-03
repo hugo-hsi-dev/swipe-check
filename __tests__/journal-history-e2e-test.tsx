@@ -146,37 +146,39 @@ function createMockSnapshot({
   sessionId,
   currentType,
   questionCount,
+  sourceType,
 }: {
   id: string;
   sessionId: string;
   currentType: string;
   questionCount: number;
+  sourceType: 'onboarding' | 'daily' | 'manual';
 }): TypeSnapshot {
   return {
     id,
     currentType,
-    axisScores: AXES.map((axis) => ({
+    axisScores: AXES.map((axis, index) => ({
       axisId: axis.id,
       poleA: {
         poleId: axis.poleA.id,
-        count: Math.floor(Math.random() * 3) + 1,
+        count: index + 1,
       },
       poleB: {
         poleId: axis.poleB.id,
-        count: Math.floor(Math.random() * 3) + 1,
+        count: index + 2,
       },
       totalResponses: 6,
     })),
-    axisStrengths: AXES.map((axis) => ({
+    axisStrengths: AXES.map((axis, index) => ({
       axisId: axis.id,
-      strength: (Math.random() * 2 - 1).toFixed(2) as any,
-      dominantPoleId: Math.random() > 0.5 ? axis.poleA.id : axis.poleB.id,
-      rawDifference: Math.random() * 6 - 3,
+      strength: 0.5,
+      dominantPoleId: axis.poleB.id,
+      rawDifference: 1,
     })),
     questionCount,
-    createdAt: new Date(),
+    createdAt: new Date('2024-04-03T10:00:00Z'),
     source: {
-      type: 'onboarding',
+      type: sourceType,
       sessionId,
     },
   };
@@ -233,11 +235,12 @@ describe('Journal History Edge Cases', () => {
         localDayKey: '2024-04-01',
         completedAt: new Date('2024-04-01T10:00:00'),
       });
-      const snapshot = createMockSnapshot({
+const snapshot = createMockSnapshot({
         id: 'snap-001',
         sessionId: session.id,
-        currentType: 'INTJ',
+        currentType: 'ISTJ',
         questionCount: 12,
+        sourceType: 'onboarding',
       });
 
       mockDbState.historyEntries = [{ session, snapshot }];
@@ -254,7 +257,7 @@ describe('Journal History Edge Cases', () => {
       expect(result.current.isSingleEntry).toBe(true);
       expect(result.current.isMultiEntry).toBe(false);
       expect(result.current.entries[0].session.id).toBe('session-001');
-      expect(result.current.entries[0].snapshot?.currentType).toBe('INTJ');
+      expect(result.current.entries[0].snapshot?.currentType).toBe('ISTJ');
     });
 
     it('should handle single daily entry correctly', async () => {
@@ -265,11 +268,12 @@ describe('Journal History Edge Cases', () => {
         localDayKey: '2024-04-01',
         completedAt: new Date('2024-04-01T10:00:00'),
       });
-      const snapshot = createMockSnapshot({
+const snapshot = createMockSnapshot({
         id: 'snap-001',
         sessionId: session.id,
         currentType: 'ENFP',
         questionCount: 4,
+        sourceType: 'daily',
       });
 
       mockDbState.historyEntries = [{ session, snapshot }];
@@ -299,6 +303,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: session.id,
         currentType: 'INTJ',
         questionCount: 12,
+        sourceType: 'onboarding',
       });
 
       mockDbState.historyEntries = [{ session, snapshot }];
@@ -335,6 +340,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: session1.id,
         currentType: 'INTJ',
         questionCount: 12,
+        sourceType: 'onboarding',
       });
 
       const session2 = createMockSession({
@@ -348,6 +354,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: session2.id,
         currentType: 'ENTJ',
         questionCount: 4,
+        sourceType: 'daily',
       });
 
       const session3 = createMockSession({
@@ -361,6 +368,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: session3.id,
         currentType: 'ENTP',
         questionCount: 4,
+        sourceType: 'daily',
       });
 
       mockDbState.historyEntries = [
@@ -390,11 +398,12 @@ describe('Journal History Edge Cases', () => {
         localDayKey: '2024-04-01',
         completedAt: new Date('2024-04-01T10:00:00'),
       });
-      const snapshot = createMockSnapshot({
+const snapshot = createMockSnapshot({
         id: 'snap-001',
         sessionId: session.id,
         currentType: 'ISTJ',
         questionCount: 12,
+        sourceType: 'onboarding',
       });
 
       mockDbState.historyEntries = [{ session, snapshot }];
@@ -425,6 +434,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: session1.id,
         currentType: 'INTJ',
         questionCount: 12,
+        sourceType: 'onboarding',
       });
 
       const session2 = createMockSession({
@@ -438,6 +448,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: session2.id,
         currentType: 'ENTJ',
         questionCount: 4,
+        sourceType: 'daily',
       });
 
       mockDbState.historyEntries = [
@@ -475,6 +486,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: todaySession.id,
         currentType: 'ENFP',
         questionCount: 4,
+        sourceType: 'daily',
       });
 
       const pastSession = createMockSession({
@@ -488,6 +500,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: pastSession.id,
         currentType: 'INFP',
         questionCount: 4,
+        sourceType: 'daily',
       });
 
       mockDbState.historyEntries = [
@@ -527,6 +540,68 @@ describe('Journal History Edge Cases', () => {
       expect(result.current.isCurrentDay).toBe(false);
       expect(result.current.entry).toBeNull();
     });
+
+    it('should support filtering today from history entries', async () => {
+      const today = new Date('2024-04-03T10:00:00');
+      const dayKey = '2024-04-03';
+
+      const todaySession = createMockSession({
+        id: 'session-today',
+        type: 'daily',
+        localDayKey: dayKey,
+        completedAt: today,
+      });
+      const todaySnapshot = createMockSnapshot({
+        id: 'snap-today',
+        sessionId: todaySession.id,
+        currentType: 'ENFP',
+        questionCount: 4,
+        sourceType: 'daily',
+      });
+
+      const pastSession = createMockSession({
+        id: 'session-past',
+        type: 'daily',
+        localDayKey: '2024-04-02',
+        completedAt: new Date('2024-04-02T10:00:00'),
+      });
+      const pastSnapshot = createMockSnapshot({
+        id: 'snap-past',
+        sessionId: pastSession.id,
+        currentType: 'INFP',
+        questionCount: 4,
+        sourceType: 'daily',
+      });
+
+      mockDbState.historyEntries = [
+        { session: pastSession, snapshot: pastSnapshot },
+        { session: todaySession, snapshot: todaySnapshot },
+      ];
+
+      const { result: todayResult } = renderHook(() => useCurrentDayCompletedSession());
+      const { result: historyResult } = renderHook(() => useJournalHistory());
+
+      await waitFor(() => {
+        expect(todayResult.current.isLoading).toBe(false);
+        expect(historyResult.current.isLoading).toBe(false);
+      });
+
+      const todayEntry = todayResult.current.entry;
+      const historyEntries = historyResult.current.entries;
+
+      expect(todayEntry).not.toBeNull();
+      expect(todayEntry?.session.id).toBe('session-today');
+
+      expect(historyEntries).toHaveLength(2);
+
+      const filteredEntries = historyEntries.filter((entry) => {
+        if (!todayEntry) return true;
+        return entry.session.id !== todayEntry.session.id;
+      });
+
+      expect(filteredEntries).toHaveLength(1);
+      expect(filteredEntries[0].session.id).toBe('session-past');
+    });
   });
 
   describe('Sparse History Stability', () => {
@@ -543,6 +618,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: onboardingSession.id,
         currentType: 'ISTJ',
         questionCount: 12,
+        sourceType: 'onboarding',
       });
 
       mockDbState.historyEntries = [{ session: onboardingSession, snapshot: onboardingSnapshot }];
@@ -573,6 +649,7 @@ describe('Journal History Edge Cases', () => {
         sessionId: dailySession1.id,
         currentType: 'ENFP',
         questionCount: 4,
+        sourceType: 'daily',
       });
 
       mockDbState.historyEntries = [{ session: dailySession1, snapshot: dailySnapshot1 }];
@@ -604,6 +681,7 @@ describe('Journal History Edge Cases', () => {
           sessionId: session.id,
           currentType: 'ENFP',
           questionCount: 4,
+          sourceType: 'daily',
         });
         return { session, snapshot };
       });
