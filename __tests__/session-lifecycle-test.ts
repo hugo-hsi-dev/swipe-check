@@ -9,6 +9,7 @@ import {
   readAllTypeSnapshots,
   readCompletedSessionDetail,
   readCompletedSessionHistory,
+  readLatestCompletedSessionForDay,
   readLatestTypeSnapshot,
   readSessionAnswers,
   readSessionTypeSnapshot,
@@ -356,6 +357,55 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
   }
 
   async getAllAsync<T>(sql: string, ...params: (string | number | null)[]): Promise<T[]> {
+    if (
+      sql.includes('FROM sessions s') &&
+      sql.includes('LEFT JOIN type_snapshots ts') &&
+      sql.includes("WHERE s.status = 'completed' AND s.local_day_key = ?") &&
+      sql.includes('ORDER BY s.completed_at DESC') &&
+      sql.includes('LIMIT 1')
+    ) {
+      const [localDayKey] = params as [string];
+      const rows = [...this.sessions.values()]
+        .filter((session) => session.status === 'completed' && session.localDayKey === localDayKey)
+        .sort(
+          (a, b) =>
+            (b.completedAt ?? '').localeCompare(a.completedAt ?? '') ||
+            b.startedAt.localeCompare(a.startedAt) ||
+            b.id.localeCompare(a.id)
+        )
+        .slice(0, 1)
+        .map((session) => {
+          const snapshot = [...this.snapshots.values()]
+            .filter((entry) => entry.source.sessionId === session.id)
+            .sort(
+              (a, b) =>
+                b.createdAt.toISOString().localeCompare(a.createdAt.toISOString()) || b.id.localeCompare(a.id)
+            )[0];
+
+          return {
+            id: session.id,
+            session_type: session.type,
+            status: session.status,
+            local_day_key: session.localDayKey,
+            started_at: session.startedAt,
+            completed_at: session.completedAt,
+            created_at: session.createdAt,
+            updated_at: session.updatedAt,
+            snapshot_id: snapshot?.id ?? null,
+            snapshot_session_id: snapshot?.source.sessionId ?? null,
+            current_type: snapshot?.currentType ?? null,
+            axis_scores_json: snapshot ? JSON.stringify(snapshot.axisScores) : null,
+            axis_strengths_json: snapshot ? JSON.stringify(snapshot.axisStrengths) : null,
+            source_type: snapshot?.source.type ?? null,
+            source_session_id: snapshot?.source.sessionId ?? null,
+            question_count: snapshot?.questionCount ?? null,
+            snapshot_created_at: snapshot?.createdAt.toISOString() ?? null,
+          };
+        });
+
+      return rows as T[];
+    }
+
     if (sql.includes('FROM sessions') && sql.includes("session_type = 'onboarding'")) {
       return [...this.sessions.values()]
         .filter((session) => session.type === 'onboarding')
@@ -952,5 +1002,69 @@ describe('onboarding assessment controller', () => {
 
     await completeOnboardingSession(adapter, session.id, completeSnapshot);
     expect(await hasCompletedOnboardingSession(adapter)).toBe(true);
+  });
+
+  it('returns latest completed session for a given day, even if a later non-daily session completed same day', async () => {
+    const adapter = new FakeSessionAdapter();
+    const todayKey = '2026-01-15';
+
+    const day1Session = await getOrCreateDailySessionForLocalDay(adapter, todayKey, new Date('2026-01-15T08:00:00.000Z'));
+
+    await upsertSessionAnswer(adapter, day1Session.id, 'q-013', 'agree', new Date('2026-01-15T08:02:00.000Z'));
+    await upsertSessionAnswer(adapter, day1Session.id, 'q-014', 'disagree', new Date('2026-01-15T08:03:00.000Z'));
+
+    const day1Snapshot: TypeSnapshot = {
+      id: 'snap-daily-015',
+      currentType: 'INTJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-15T08:05:00.000Z'),
+      source: { type: 'daily', sessionId: day1Session.id },
+      questionCount: 2,
+    };
+
+    await completeSession(adapter, day1Session.id, new Date('2026-01-15T08:06:00.000Z'));
+    await upsertTypeSnapshot(adapter, day1Snapshot);
+
+    const onboarding = await startOrResumeOnboardingSession(adapter, new Date('2026-01-15T12:00:00.000Z'));
+
+    for (let i = 1; i <= 12; i++) {
+      await upsertSessionAnswer(
+        adapter,
+        onboarding.id,
+        `q-${String(i).padStart(3, '0')}`,
+        'agree',
+        new Date(`2026-01-15T12:${String(i).padStart(2, '0')}:00.000Z`)
+      );
+    }
+
+    const onboardingSnapshot: TypeSnapshot = {
+      id: 'snap-onboarding-001',
+      currentType: 'ESTP',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-15T12:15:00.000Z'),
+      source: { type: 'onboarding', sessionId: onboarding.id },
+      questionCount: 12,
+    };
+
+    await completeOnboardingSession(adapter, onboarding.id, onboardingSnapshot);
+
+    const day1Completed = await readLatestCompletedSessionForDay(adapter, todayKey);
+
+    expect(day1Completed).not.toBeNull();
+    expect(day1Completed?.session.id).toBe(day1Session.id);
+    expect(day1Completed?.session.type).toBe('daily');
+    expect(day1Completed?.session.status).toBe('completed');
+    expect(day1Completed?.session.localDayKey).toBe(todayKey);
+  });
+
+  it('returns null when no completed sessions exist for the given day', async () => {
+    const adapter = new FakeSessionAdapter();
+    const futureDayKey = '2026-12-31';
+
+    const result = await readLatestCompletedSessionForDay(adapter, futureDayKey);
+
+    expect(result).toBeNull();
   });
 });

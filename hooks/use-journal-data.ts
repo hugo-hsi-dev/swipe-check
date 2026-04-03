@@ -4,6 +4,7 @@ import { getSQLiteDatabase } from '@/lib/local-data/sqlite-runtime';
 import {
   readCompletedSessionHistory,
   readCompletedSessionDetail,
+  readLatestCompletedSessionForDay,
   toLocalDayKey,
   type PersistedHistoryEntry,
   type PersistedSessionDetail,
@@ -121,19 +122,44 @@ export function useCurrentDayCompletedSession(): {
   isLoading: boolean;
   error: Error | null;
 } {
-  const { entries, isLoading, error } = useJournalHistory(1);
-  const todayKey = getTodayLocalDayKey();
+  const [entry, setEntry] = useState<PersistedHistoryEntry | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const currentDayEntry =
-    entries.length > 0 &&
-    entries[0].session.status === 'completed' &&
-    entries[0].session.localDayKey === todayKey
-      ? entries[0]
-      : null;
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadTodayEntry() {
+      try {
+        const db = await getSQLiteDatabase();
+        const todayKey = getTodayLocalDayKey();
+        const result = await readLatestCompletedSessionForDay(db, todayKey);
+
+        if (isMounted) {
+          setEntry(result);
+          setError(null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err : new Error(String(err)));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadTodayEntry();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return {
-    entry: currentDayEntry,
-    isCurrentDay: currentDayEntry !== null,
+    entry,
+    isCurrentDay: entry !== null,
     isLoading,
     error,
   };
