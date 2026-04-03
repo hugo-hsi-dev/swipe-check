@@ -113,9 +113,14 @@ export default function JournalEntryDetailScreen() {
                 </Avatar.Fallback>
               </Avatar>
               <View className="flex-1 gap-1">
-                <Card.Title>
-                  {getEntryTypeLabel(session.type)}
-                </Card.Title>
+                <View className="flex-row items-center gap-2">
+                  <Card.Title>
+                    {getEntryTypeLabel(session.type)}
+                  </Card.Title>
+                  <Chip size="sm" variant="secondary">
+                    <Chip.Label>Read-Only</Chip.Label>
+                  </Chip>
+                </View>
                 {completedAt && (
                   <Card.Description>
                     Completed at {formatTime(completedAt)}

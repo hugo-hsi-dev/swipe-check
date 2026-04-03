@@ -39,8 +39,8 @@ export default function JournalScreen() {
   } = useCurrentDayCompletedSession();
 
   const filteredEntries = entries.filter((entry) => {
-    if (!isDayComplete || !currentDayEntry) return true;
-    return entry.session.id !== currentDayEntry.session.id;
+    if (!isDayComplete || !currentDayEntry) return entry.session.type === 'daily';
+    return entry.session.id !== currentDayEntry.session.id && entry.session.type === 'daily';
   });
 
   const handleEntryPress = (sessionId: string) => {
@@ -106,7 +106,7 @@ export default function JournalScreen() {
               <View className="items-center gap-2">
                 <Card.Title className="text-center">Your Journal is Empty</Card.Title>
                 <Card.Description className="text-center">
-                  Complete onboarding or a daily check-in to see it here.
+                  Complete daily check-ins to build your history.
                 </Card.Description>
               </View>
             </View>
@@ -160,8 +160,7 @@ export default function JournalScreen() {
                     color="accent"
                     alt="Today">
                     <Avatar.Fallback>
-                      {currentDayEntry.snapshot?.currentType ??
-                        (currentDayEntry.session.type === 'onboarding' ? 'ON' : 'DY')}
+                      {currentDayEntry.snapshot?.currentType ?? 'DY'}
                     </Avatar.Fallback>
                   </Avatar>
                   <View className="flex-1">
@@ -179,6 +178,14 @@ export default function JournalScreen() {
               </Button>
             </Card.Body>
           </Card>
+
+          {filteredEntries.length === 0 && (
+            <View className="items-center gap-2 py-4">
+              <Card.Description className="text-center">
+                No previous daily check-ins yet
+              </Card.Description>
+            </View>
+          )}
         </View>
       )}
 
@@ -186,7 +193,7 @@ export default function JournalScreen() {
         <View className="gap-3">
           <View className="flex-row items-center gap-2">
             <View className="h-px flex-1 bg-surface-tertiary" />
-            <Text className="text-sm text-foreground-secondary">Past Check-ins</Text>
+            <Text className="text-sm text-foreground-secondary">Past Daily Check-ins</Text>
             <View className="h-px flex-1 bg-surface-tertiary" />
           </View>
           <ListGroup>

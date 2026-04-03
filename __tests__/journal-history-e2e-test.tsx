@@ -223,6 +223,103 @@ describe('Journal History Edge Cases', () => {
     });
   });
 
+  describe('Onboarding Filtering from Journal', () => {
+    it('should return all completed sessions from hook, including onboarding', async () => {
+      // Arrange: Only onboarding completed
+      const session = createMockSession({
+        id: 'session-onboarding',
+        type: 'onboarding',
+        localDayKey: '2024-04-01',
+        completedAt: new Date('2024-04-01T10:00:00'),
+      });
+      const snapshot = createMockSnapshot({
+        id: 'snap-onboarding',
+        sessionId: session.id,
+        currentType: 'INTJ',
+        questionCount: 12,
+        sourceType: 'onboarding',
+      });
+
+      mockDbState.historyEntries = [{ session, snapshot }];
+
+      // Act
+      const { result } = renderHook(() => useJournalHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Assert: Hook still returns all completed sessions (UI layer filters)
+      expect(result.current.entries).toHaveLength(1);
+      expect(result.current.entries[0].session.type).toBe('onboarding');
+    });
+
+    it('should return all completed sessions from hook when both onboarding and daily exist', async () => {
+      // Arrange: Onboarding + daily sessions
+      const onboarding = createMockSession({
+        id: 'session-onboarding',
+        type: 'onboarding',
+        localDayKey: '2024-04-01',
+        completedAt: new Date('2024-04-01T10:00:00'),
+      });
+      const onboardingSnapshot = createMockSnapshot({
+        id: 'snap-onboarding',
+        sessionId: onboarding.id,
+        currentType: 'INTJ',
+        questionCount: 12,
+        sourceType: 'onboarding',
+      });
+
+      const daily1 = createMockSession({
+        id: 'session-daily-1',
+        type: 'daily',
+        localDayKey: '2024-04-02',
+        completedAt: new Date('2024-04-02T10:00:00'),
+      });
+      const daily1Snapshot = createMockSnapshot({
+        id: 'snap-daily-1',
+        sessionId: daily1.id,
+        currentType: 'ENTJ',
+        questionCount: 4,
+        sourceType: 'daily',
+      });
+
+      const daily2 = createMockSession({
+        id: 'session-daily-2',
+        type: 'daily',
+        localDayKey: '2024-04-03',
+        completedAt: new Date('2024-04-03T10:00:00'),
+      });
+      const daily2Snapshot = createMockSnapshot({
+        id: 'snap-daily-2',
+        sessionId: daily2.id,
+        currentType: 'ENTP',
+        questionCount: 4,
+        sourceType: 'daily',
+      });
+
+      mockDbState.historyEntries = [
+        { session: onboarding, snapshot: onboardingSnapshot },
+        { session: daily2, snapshot: daily2Snapshot },
+        { session: daily1, snapshot: daily1Snapshot },
+      ];
+
+      // Act
+      const { result } = renderHook(() => useJournalHistory());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Assert: Hook returns all completed sessions (UI layer filters out onboarding)
+      expect(result.current.entries).toHaveLength(3);
+      expect(result.current.entries[0].session.id).toBe('session-daily-2');
+      expect(result.current.entries[1].session.id).toBe('session-daily-1');
+      expect(result.current.entries[2].session.id).toBe('session-onboarding');
+      expect(result.current.isMultiEntry).toBe(true);
+    });
+  });
+
   describe('Single Entry State - One Completed Day', () => {
     it('should display single onboarding entry after completion', async () => {
       // Arrange: One completed onboarding session
@@ -467,7 +564,7 @@ const snapshot = createMockSnapshot({
     });
   });
 
-  describe('Today Session Separation', () => {
+describe('Today Session Separation', () => {
     it('should identify today as separate from past entries', async () => {
       const today = new Date('2024-04-03T10:00:00');
       const dayKey = '2024-04-03';
@@ -538,7 +635,7 @@ const snapshot = createMockSnapshot({
       expect(result.current.entry).toBeNull();
     });
 
-    it('should support filtering today from history entries', async () => {
+    it('should not de-dupe today from history since the screen handles it', async () => {
       const today = new Date('2024-04-03T10:00:00');
       const dayKey = '2024-04-03';
 
@@ -575,29 +672,13 @@ const snapshot = createMockSnapshot({
         { session: todaySession, snapshot: todaySnapshot },
       ];
 
-      const { result: todayResult } = renderHook(() => useCurrentDayCompletedSession());
       const { result: historyResult } = renderHook(() => useJournalHistory());
 
       await waitFor(() => {
-        expect(todayResult.current.isLoading).toBe(false);
         expect(historyResult.current.isLoading).toBe(false);
       });
 
-      const todayEntry = todayResult.current.entry;
-      const historyEntries = historyResult.current.entries;
-
-      expect(todayEntry).not.toBeNull();
-      expect(todayEntry?.session.id).toBe('session-today');
-
-      expect(historyEntries).toHaveLength(2);
-
-      const filteredEntries = historyEntries.filter((entry) => {
-        if (!todayEntry) return true;
-        return entry.session.id !== todayEntry.session.id;
-      });
-
-      expect(filteredEntries).toHaveLength(1);
-      expect(filteredEntries[0].session.id).toBe('session-past');
+      expect(historyResult.current.entries).toHaveLength(2);
     });
   });
 
