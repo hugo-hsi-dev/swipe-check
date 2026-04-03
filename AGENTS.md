@@ -5,6 +5,22 @@
 This file is for coding agents working in `/home/hugo/Projects/swipe-check`.
 It summarizes the repository's build, lint, test, and style expectations based on the current codebase.
 
+## Mandatory Epic-to-Issues Routing
+
+If the user asks to convert an epic, product spec, PRD, roadmap, or domain brief into GitHub issues, subissues, or a dependency graph, you must invoke `epic-orchestrator` first.
+
+This includes requests phrased like:
+- "make issues for this epic"
+- "break this down into issues"
+- "turn this spec into GitHub issues"
+- "create an issue hierarchy"
+- "split this epic into subissues"
+- "plan the work from this brief"
+
+Do not create the issues manually with generic GitHub commands until `epic-orchestrator` has run.
+
+If the request is ambiguous but mentions an epic/spec/issues/dependencies, default to `epic-orchestrator`.
+
 ## Project Summary
 
 - Framework: Expo + React Native + Expo Router
