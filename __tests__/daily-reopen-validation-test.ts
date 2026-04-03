@@ -279,10 +279,10 @@ describe('Daily Reopen Behavior Validation', () => {
     });
 
     it('generates unique local day keys for different dates', () => {
-      expect(toLocalDayKey(new Date('2026-01-15T00:00:00.000Z'))).toBe('2026-01-15');
-      expect(toLocalDayKey(new Date('2026-01-15T23:59:59.999Z'))).toBe('2026-01-15');
-      expect(toLocalDayKey(new Date('2026-01-16T00:00:00.000Z'))).toBe('2026-01-16');
-      expect(toLocalDayKey(new Date('2026-12-31T12:00:00.000Z'))).toBe('2026-12-31');
+      expect(toLocalDayKey(new Date(2026, 0, 15, 0, 0, 0, 0))).toBe('2026-01-15');
+      expect(toLocalDayKey(new Date(2026, 0, 15, 23, 59, 59, 999))).toBe('2026-01-15');
+      expect(toLocalDayKey(new Date(2026, 0, 16, 0, 0, 0, 0))).toBe('2026-01-16');
+      expect(toLocalDayKey(new Date(2026, 11, 31, 12, 0, 0, 0))).toBe('2026-12-31');
     });
   });
 
