@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "skill": {
+      "epic-issue-orchestration": "deny"
+    }
+  },
+  "agent": {
+    "epic-orchestrator": {
+      "permission": {
+        "skill": {
+          "epic-issue-orchestration": "allow"
+        }
+      }
+    }
+  }
+}
