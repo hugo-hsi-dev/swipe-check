@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { Avatar, Button, Card, Chip, ListGroup, Skeleton } from 'heroui-native';
 
 import {
@@ -27,16 +27,6 @@ function formatTime(dateString: string): string {
 
 function getEntryTypeLabel(type: string): string {
   return type === 'onboarding' ? 'Onboarding' : 'Daily Check-in';
-}
-
-function isToday(dateString: string): boolean {
-  const date = new Date(dateString);
-  const today = new Date();
-  return (
-    date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear()
-  );
 }
 
 export default function JournalScreen() {
@@ -145,28 +135,28 @@ export default function JournalScreen() {
                 <Card.Title className="text-base">Today</Card.Title>
               </View>
               <Button
-                variant="soft"
-                color="accent"
+                variant="secondary"
                 onPress={() => handleEntryPress(currentDayEntry.session.id)}>
                 <View className="flex-row items-center gap-3">
                   <Avatar
                     size="sm"
                     variant="soft"
-                    color="accent">
+                    color="accent"
+                    alt="Today">
                     <Avatar.Fallback>
                       {currentDayEntry.snapshot?.currentType ??
                         (currentDayEntry.session.type === 'onboarding' ? 'ON' : 'DY')}
                     </Avatar.Fallback>
                   </Avatar>
                   <View className="flex-1">
-                    <View className="font-semibold text-foreground-primary">
+                    <Text className="font-semibold text-foreground-primary">
                       {currentDayEntry.snapshot?.currentType ?? 'Unknown'}
-                    </View>
-                    <View className="text-sm text-foreground-secondary">
+                    </Text>
+                    <Text className="text-sm text-foreground-secondary">
                       {currentDayEntry.session.completedAt
                         ? formatTime(currentDayEntry.session.completedAt)
                         : ''}
-                    </View>
+                    </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color="currentColor" />
                 </View>
@@ -180,7 +170,7 @@ export default function JournalScreen() {
         <View className="gap-3">
           <View className="flex-row items-center gap-2">
             <View className="h-px flex-1 bg-surface-tertiary" />
-            <View className="text-sm text-foreground-secondary">Past Check-ins</View>
+            <Text className="text-sm text-foreground-secondary">Past Check-ins</Text>
             <View className="h-px flex-1 bg-surface-tertiary" />
           </View>
           <ListGroup>
