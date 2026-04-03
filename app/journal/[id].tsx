@@ -66,7 +66,27 @@ export default function JournalEntryDetailScreen() {
     );
   }
 
-  if (error || !detail) {
+  if (error) {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Error' }} />
+        <ScrollView
+          className="flex-1 bg-background"
+          contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+          <Card>
+            <Card.Body className="gap-2">
+              <Card.Title className="text-danger">Unable to Load Entry</Card.Title>
+              <Card.Description>
+                {error.message ?? 'An unexpected error occurred while loading this entry.'}
+              </Card.Description>
+            </Card.Body>
+          </Card>
+        </ScrollView>
+      </>
+    );
+  }
+
+  if (!detail) {
     return (
       <>
         <Stack.Screen options={{ title: 'Not Found' }} />
@@ -77,7 +97,7 @@ export default function JournalEntryDetailScreen() {
             <Card.Body className="gap-2">
               <Card.Title className="text-danger">Entry Not Found</Card.Title>
               <Card.Description>
-                {error?.message ?? 'This entry may have been deleted or does not exist.'}
+                This entry may have been deleted or does not exist.
               </Card.Description>
             </Card.Body>
           </Card>
