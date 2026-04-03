@@ -83,31 +83,40 @@ const mockDb = {
   getAllAsync: jest.fn((sql: string, ...params: unknown[]) => {
     // Check for completed session history
     if (sql.includes('FROM sessions s') && sql.includes('WHERE s.status = ') && sql.includes('ORDER BY s.completed_at DESC')) {
-      return Promise.resolve(
-        mockDbState.historyEntries.map((entry) => {
-          const session = entry.session;
-          const snapshot = entry.snapshot;
-          return {
-            id: session.id,
-            session_type: session.type,
-            status: session.status,
-            local_day_key: session.localDayKey,
-            started_at: session.startedAt,
-            completed_at: session.completedAt,
-            created_at: session.createdAt,
-            updated_at: session.updatedAt,
-            snapshot_id: snapshot?.id ?? null,
-            snapshot_session_id: snapshot?.id ?? null,
-            current_type: snapshot?.currentType ?? null,
-            axis_scores_json: snapshot?.axisScores ? JSON.stringify(snapshot.axisScores) : null,
-            axis_strengths_json: snapshot?.axisStrengths ? JSON.stringify(snapshot.axisStrengths) : null,
-            source_type: snapshot?.source.type ?? null,
-            source_session_id: snapshot?.source.sessionId ?? null,
-            question_count: snapshot?.questionCount ?? null,
-            snapshot_created_at: snapshot?.createdAt.toISOString() ?? null,
-          };
-        })
-      );
+      // The limit is passed as a bound parameter (-1 means no limit)
+      const limitParam = params[0];
+      const limit = typeof limitParam === 'number' && limitParam > 0 ? limitParam : undefined;
+
+      let entries = mockDbState.historyEntries.map((entry) => {
+        const session = entry.session;
+        const snapshot = entry.snapshot;
+        return {
+          id: session.id,
+          session_type: session.type,
+          status: session.status,
+          local_day_key: session.localDayKey,
+          started_at: session.startedAt,
+          completed_at: session.completedAt,
+          created_at: session.createdAt,
+          updated_at: session.updatedAt,
+          snapshot_id: snapshot?.id ?? null,
+          snapshot_session_id: snapshot?.id ?? null,
+          current_type: snapshot?.currentType ?? null,
+          axis_scores_json: snapshot?.axisScores ? JSON.stringify(snapshot.axisScores) : null,
+          axis_strengths_json: snapshot?.axisStrengths ? JSON.stringify(snapshot.axisStrengths) : null,
+          source_type: snapshot?.source.type ?? null,
+          source_session_id: snapshot?.source.sessionId ?? null,
+          question_count: snapshot?.questionCount ?? null,
+          snapshot_created_at: snapshot?.createdAt.toISOString() ?? null,
+        };
+      });
+
+      // Apply limit if specified
+      if (limit !== undefined && limit > 0) {
+        entries = entries.slice(0, limit);
+      }
+
+      return Promise.resolve(entries);
     }
 
     return Promise.resolve([]);
@@ -638,7 +647,7 @@ describe('Journal History Edge Cases', () => {
       });
 
       // Assert: Should return limited entries
-      expect(result.current.entries.length).toBeLessThanOrEqual(10);
+      expect(result.current.entries.length).toBeLessThanOrEqual(5);
       expect(result.current.error).toBeNull();
     });
   });
