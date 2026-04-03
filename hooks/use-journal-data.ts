@@ -4,12 +4,16 @@ import { getSQLiteDatabase } from '@/lib/local-data/sqlite-runtime';
 import {
   readCompletedSessionHistory,
   readCompletedSessionDetail,
+  toLocalDayKey,
   type PersistedHistoryEntry,
   type PersistedSessionDetail,
 } from '@/lib/local-data/session-lifecycle';
 
 type JournalHistoryState = {
   entries: PersistedHistoryEntry[];
+  isEmpty: boolean;
+  isSingleEntry: boolean;
+  isMultiEntry: boolean;
   isLoading: boolean;
   error: Error | null;
 };
@@ -49,7 +53,11 @@ export function useJournalHistory(limit?: number): JournalHistoryState {
     };
   }, [limit]);
 
-  return { entries, isLoading, error };
+  const isEmpty = !isLoading && entries.length === 0;
+  const isSingleEntry = !isLoading && entries.length === 1;
+  const isMultiEntry = !isLoading && entries.length > 1;
+
+  return { entries, isEmpty, isSingleEntry, isMultiEntry, isLoading, error };
 }
 
 type JournalEntryDetailState = {
@@ -101,4 +109,32 @@ export function useJournalEntryDetail(sessionId: string | null): JournalEntryDet
   }, [sessionId]);
 
   return { detail, isLoading, error };
+}
+
+function getTodayLocalDayKey(): string {
+  return toLocalDayKey(new Date());
+}
+
+export function useCurrentDayCompletedSession(): {
+  entry: PersistedHistoryEntry | null;
+  isCurrentDay: boolean;
+  isLoading: boolean;
+  error: Error | null;
+} {
+  const { entries, isLoading, error } = useJournalHistory(1);
+  const todayKey = getTodayLocalDayKey();
+
+  const currentDayEntry =
+    entries.length > 0 &&
+    entries[0].session.status === 'completed' &&
+    entries[0].session.localDayKey === todayKey
+      ? entries[0]
+      : null;
+
+  return {
+    entry: currentDayEntry,
+    isCurrentDay: currentDayEntry !== null,
+    isLoading,
+    error,
+  };
 }
