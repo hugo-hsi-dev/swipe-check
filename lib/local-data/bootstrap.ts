@@ -1,7 +1,7 @@
 import { QUESTIONS } from '@/constants/questions';
 import type { Question, QuestionPool } from '@/constants/question-contract';
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export type BootstrapResult = {
   initializedAt: string;
@@ -74,9 +74,11 @@ const createTableStatements = [
   );`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_daily_unique_day
    ON sessions(session_type, local_day_key);`,
+
   `CREATE TABLE IF NOT EXISTS session_answers (
     session_id TEXT NOT NULL,
     question_id TEXT NOT NULL,
+    question_text TEXT NOT NULL,
     answer TEXT NOT NULL,
     answered_at TEXT NOT NULL,
     created_at TEXT NOT NULL,
@@ -86,6 +88,10 @@ const createTableStatements = [
     FOREIGN KEY (question_id) REFERENCES question_catalog(id),
     CHECK (answer IN ('agree', 'disagree'))
   );`,
+
+  `CREATE INDEX IF NOT EXISTS idx_sessions_completed_at
+   ON sessions(completed_at DESC, started_at DESC, id DESC);`,
+
   `CREATE TABLE IF NOT EXISTS type_snapshots (
     id TEXT PRIMARY KEY NOT NULL,
     session_id TEXT,
@@ -102,9 +108,9 @@ const createTableStatements = [
     CHECK (source_type IN ('onboarding', 'daily', 'manual'))
   );`,
   `CREATE INDEX IF NOT EXISTS idx_type_snapshots_created_at
-   ON type_snapshots(created_at);`,
+    ON type_snapshots(created_at);`,
   `CREATE INDEX IF NOT EXISTS idx_type_snapshots_session_id
-   ON type_snapshots(session_id);`,
+    ON type_snapshots(session_id);`,
 ];
 
 function serializeMetadata(question: Question): string | null {
@@ -265,6 +271,62 @@ export async function bootstrapLocalData(adapter: LocalDatabaseAdapter): Promise
       wasUntouchedInstall: existingInitialization == null,
       catalogQuestionCount: catalog.length,
     };
+  } catch (error) {
+    await adapter.execAsync('ROLLBACK;');
+    throw error;
+  }
+}
+
+export async function migrateToSchemaV4(adapter: LocalDatabaseAdapter): Promise<void> {
+  await adapter.execAsync('BEGIN IMMEDIATE;');
+
+  try {
+    await adapter.execAsync(
+      `CREATE TABLE IF NOT EXISTS session_answers_v4 (
+        session_id TEXT NOT NULL,
+        question_id TEXT NOT NULL,
+        question_text TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        answered_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY (session_id, question_id),
+        FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+        FOREIGN KEY (question_id) REFERENCES question_catalog(id),
+        CHECK (answer IN ('agree', 'disagree'))
+      );`
+    );
+
+    await adapter.execAsync(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_session_answers_v4_unique
+       ON session_answers_v4(session_id, question_id);`
+    );
+
+    await adapter.execAsync(
+      `CREATE INDEX IF NOT EXISTS idx_sessions_completed_at
+       ON sessions(completed_at DESC, started_at DESC, id DESC);`
+    );
+
+    await adapter.execAsync(
+      `INSERT INTO session_answers_v4 (session_id, question_id, question_text, answer, answered_at, created_at, updated_at)
+       SELECT sa.session_id, sa.question_id, qc.prompt, sa.answer, sa.answered_at, sa.created_at, sa.updated_at
+       FROM session_answers sa
+       INNER JOIN question_catalog qc ON qc.id = sa.question_id;`
+    );
+
+    await adapter.execAsync('DROP TABLE session_answers;');
+
+    await adapter.execAsync(
+      `ALTER TABLE session_answers_v4 RENAME TO session_answers;`
+    );
+
+    await adapter.runAsync(
+      'INSERT OR REPLACE INTO schema_migrations (version, applied_at) VALUES (?, ?);',
+      4,
+      new Date().toISOString()
+    );
+
+    await adapter.execAsync('COMMIT;');
   } catch (error) {
     await adapter.execAsync('ROLLBACK;');
     throw error;

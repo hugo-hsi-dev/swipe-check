@@ -53,9 +53,6 @@ const mockDb = {
   getFirstAsync: jest.fn(() => Promise.resolve(null)),
   getAllAsync: jest.fn((sql: string, ...params: unknown[]) => {
     if (sql.includes('FROM sessions s') && sql.includes('WHERE s.status = ')) {
-      const limitParam = params[0];
-      const limit = typeof limitParam === 'number' && limitParam > 0 ? limitParam : undefined;
-
       let entries = mockDbState.historyEntries.map((entry) => {
         const session = entry.session;
         const snapshot = entry.snapshot;
@@ -97,9 +94,9 @@ const mockDb = {
           return timeB - timeA;
         };
         entries.sort(timestampSort);
-        if (limit !== undefined && limit > 0) {
-          entries = entries.slice(0, limit);
-        }
+
+        const pageSize = params[params.length - 1] as number;
+        entries = entries.slice(0, pageSize);
       }
 
       return Promise.resolve(entries);
@@ -689,14 +686,15 @@ const snapshot = createMockSnapshot({
       mockDbState.historyEntries = sessions;
 
       // Act: Request limited history
-      const { result } = renderHook(() => useJournalHistory(5));
+      const { result } = renderHook(() => useJournalHistory());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert: Should return limited entries
-      expect(result.current.entries.length).toBeLessThanOrEqual(5);
+      // Assert: Should return all 10 entries (less than page size of 25)
+      expect(result.current.entries.length).toBe(10);
+      expect(result.current.hasMore).toBe(false);
       expect(result.current.error).toBeNull();
     });
   });

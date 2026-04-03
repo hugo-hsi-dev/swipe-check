@@ -5,7 +5,6 @@ import { Avatar, Card, Chip, Skeleton, Separator } from 'heroui-native';
 
 import { useJournalEntryDetail } from '@/hooks/use-journal-data';
 import type { PersistedSessionAnswer } from '@/lib/local-data/session-lifecycle';
-import { QUESTIONS } from '@/constants/questions';
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -27,11 +26,6 @@ function formatTime(dateString: string): string {
 
 function getEntryTypeLabel(type: string): string {
   return type === 'onboarding' ? 'Onboarding' : 'Daily Check-in';
-}
-
-function getQuestionText(questionId: string): string {
-  const question = QUESTIONS.find((q) => q.id === questionId);
-  return question?.prompt ?? questionId;
 }
 
 function getAnswerIcon(answer: PersistedSessionAnswer['answer']): { name: string; color: string } {
@@ -102,9 +96,9 @@ export default function JournalEntryDetailScreen() {
           title: completedAt ? formatDate(completedAt) : 'Entry Detail',
         }}
       />
-      <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+<ScrollView
+          className="flex-1 bg-background"
+          contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
         {/* Header Card */}
         <Card>
           <Card.Body className="gap-4">
@@ -180,7 +174,7 @@ export default function JournalEntryDetailScreen() {
                       </View>
                       <View className="flex-1 gap-1">
                         <Card.Title className="text-sm font-normal leading-5">
-                          {getQuestionText(answer.questionId)}
+                          {answer.questionText}
                         </Card.Title>
                         <Card.Description className="text-xs capitalize">
                           {answer.answer} · {formatTime(answer.answeredAt)}

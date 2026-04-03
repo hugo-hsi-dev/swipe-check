@@ -264,6 +264,7 @@ export function useDailySessionFlow(): DailySessionFlowController {
           db,
           session.id,
           currentQuestion.question.id,
+          currentQuestion.question.prompt,
           response
         );
 

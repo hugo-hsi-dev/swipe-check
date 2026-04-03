@@ -4,6 +4,7 @@ import {
   bootstrapLocalData,
   clearLocalData,
   readQuestionCatalog,
+  migrateToSchemaV4,
   type BootstrapResult,
   type ClearResult,
   type LocalDatabaseAdapter,
@@ -56,6 +57,11 @@ async function initializeSQLite(dbName: string): Promise<InitializedSQLite> {
     bootstrapPromise = (async () => {
       const { db, adapter } = await openAdapter(dbName);
       const result = await bootstrapLocalData(adapter);
+
+      if (result.schemaVersion < 4) {
+        await migrateToSchemaV4(adapter);
+      }
+
       return {
         db,
         result,

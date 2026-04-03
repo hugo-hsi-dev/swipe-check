@@ -30,7 +30,7 @@ function getEntryTypeLabel(type: string): string {
 }
 
 export default function JournalScreen() {
-  const { entries, isLoading, error } = useJournalHistory(50);
+  const { entries, isLoading, isLoadingMore, hasMore, error, loadMore } = useJournalHistory();
   const {
     entry: currentDayEntry,
     isCurrentDay: isDayComplete,
@@ -233,6 +233,18 @@ export default function JournalScreen() {
               );
             })}
           </ListGroup>
+          {hasMore && (
+            <Button
+              variant="secondary"
+              onPress={loadMore}
+              isDisabled={isLoadingMore}>
+              {isLoadingMore ? (
+                <Button.Label>Loading more...</Button.Label>
+              ) : (
+                <Button.Label>Load more entries</Button.Label>
+              )}
+            </Button>
+          )}
         </View>
       )}
     </ScrollView>

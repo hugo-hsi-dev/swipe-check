@@ -297,12 +297,14 @@ describe('Today Screen - Daily Session States', () => {
         {
           sessionId: 'in-progress-session',
           questionId: 'q-daily-1',
+          questionText: 'Test daily question 1',
           answer: 'agree',
           answeredAt: new Date().toISOString(),
         },
         {
           sessionId: 'in-progress-session',
           questionId: 'q-daily-2',
+          questionText: 'Test daily question 2',
           answer: 'disagree',
           answeredAt: new Date().toISOString(),
         },
@@ -384,18 +386,21 @@ describe('Today Screen - Daily Session States', () => {
         {
           sessionId: 'completed-session',
           questionId: 'q-daily-1',
+          questionText: 'Test daily question 1',
           answer: 'agree',
           answeredAt: new Date(Date.now() - 3000000).toISOString(),
         },
         {
           sessionId: 'completed-session',
           questionId: 'q-daily-2',
+          questionText: 'Test daily question 2',
           answer: 'disagree',
           answeredAt: new Date(Date.now() - 2000000).toISOString(),
         },
         {
           sessionId: 'completed-session',
           questionId: 'q-daily-3',
+          questionText: 'Test daily question 3',
           answer: 'agree',
           answeredAt: new Date(Date.now() - 1000000).toISOString(),
         },
@@ -470,12 +475,14 @@ describe('Today Screen - Daily Session States', () => {
         {
           sessionId: 'completed-session',
           questionId: 'q-daily-1',
+          questionText: 'Test daily question 1',
           answer: 'agree',
           answeredAt: new Date().toISOString(),
         },
         {
           sessionId: 'completed-session',
           questionId: 'q-daily-2',
+          questionText: 'Test daily question 2',
           answer: 'disagree',
           answeredAt: new Date().toISOString(),
         },
@@ -511,6 +518,7 @@ describe('Today Screen - Daily Session States', () => {
         {
           sessionId: 'existing-session',
           questionId: 'q-daily-1',
+          questionText: 'Test daily question 1',
           answer: 'agree',
           answeredAt: new Date(Date.now() - 3600000).toISOString(),
         },
@@ -550,6 +558,7 @@ describe('Today Screen - Daily Session States', () => {
         {
           sessionId: 'completed-session',
           questionId: 'q-daily-1',
+          questionText: 'Test daily question 1',
           answer: 'agree',
           answeredAt: new Date(Date.now() - 7000000).toISOString(),
         },

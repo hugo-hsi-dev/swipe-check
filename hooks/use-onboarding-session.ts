@@ -139,7 +139,11 @@ export function useOnboardingSession(): OnboardingController {
 
       try {
         const db = await getSQLiteDatabase();
-        await upsertSessionAnswer(db, session.id, questionId, response);
+        const question = ONBOARDING_QUESTIONS.find((q) => q.id === questionId);
+        if (!question) {
+          throw new Error(`Question ${questionId} not found`);
+        }
+        await upsertSessionAnswer(db, session.id, questionId, question.prompt, response);
 
         // Refresh answers after submission
         const sessionAnswers = await readSessionAnswers(db, session.id);

@@ -19,6 +19,7 @@ export type PersistedSession = {
 export type PersistedSessionAnswer = {
   sessionId: string;
   questionId: string;
+  questionText: string;
   answer: QuestionResponse;
   answeredAt: string;
 };
@@ -32,6 +33,18 @@ export type PersistedSessionDetail = {
   session: PersistedSession;
   answers: PersistedSessionAnswer[];
   snapshot: TypeSnapshot | null;
+};
+
+export type Cursor = {
+  completedAt: string;
+  startedAt: string;
+  id: string;
+};
+
+export type PaginatedResult<T> = {
+  entries: T[];
+  hasMore: boolean;
+  nextCursor: Cursor | undefined;
 };
 
 type SessionRow = {
@@ -48,6 +61,7 @@ type SessionRow = {
 type SessionAnswerRow = {
   session_id: string;
   question_id: string;
+  question_text: string;
   answer: QuestionResponse;
   answered_at: string;
 };
@@ -189,6 +203,7 @@ export async function upsertSessionAnswer(
   adapter: LocalDatabaseAdapter,
   sessionId: string,
   questionId: string,
+  questionText: string,
   answer: QuestionResponse,
   answeredAt = new Date()
 ): Promise<void> {
@@ -196,19 +211,21 @@ export async function upsertSessionAnswer(
 
   const result = await adapter.runAsync(
     `INSERT INTO session_answers
-     (session_id, question_id, answer, answered_at, created_at, updated_at)
-     SELECT ?, ?, ?, ?, ?, ?
+     (session_id, question_id, question_text, answer, answered_at, created_at, updated_at)
+     SELECT ?, ?, ?, ?, ?, ?, ?
      WHERE EXISTS (
        SELECT 1
        FROM sessions
        WHERE id = ? AND status = 'in_progress'
      )
      ON CONFLICT(session_id, question_id) DO UPDATE SET
+       question_text = excluded.question_text,
        answer = excluded.answer,
        answered_at = excluded.answered_at,
        updated_at = excluded.updated_at;`,
     sessionId,
     questionId,
+    questionText,
     answer,
     answeredAtIso,
     answeredAtIso,
@@ -226,7 +243,7 @@ export async function readSessionAnswers(
   sessionId: string
 ): Promise<PersistedSessionAnswer[]> {
   const rows = await adapter.getAllAsync<SessionAnswerRow>(
-    `SELECT session_id, question_id, answer, answered_at
+    `SELECT session_id, question_id, question_text, answer, answered_at
      FROM session_answers
      WHERE session_id = ?
      ORDER BY answered_at ASC, question_id ASC;`,
@@ -236,6 +253,7 @@ export async function readSessionAnswers(
   return rows.map((row) => ({
     sessionId: row.session_id,
     questionId: row.question_id,
+    questionText: row.question_text,
     answer: row.answer,
     answeredAt: row.answered_at,
   }));
@@ -477,9 +495,35 @@ export async function readLatestTypeSnapshot(
 
 export async function readCompletedSessionHistory(
   adapter: LocalDatabaseAdapter,
-  limit?: number
-): Promise<PersistedHistoryEntry[]> {
-  const normalizedLimit = typeof limit === 'number' ? Math.max(0, Math.trunc(limit)) : null;
+  pageSize: number = 25,
+  cursor?: Cursor
+): Promise<PaginatedResult<PersistedHistoryEntry>> {
+  const normalizedPageSize = Math.max(1, Math.trunc(pageSize));
+  
+  let sql = `SELECT
+      s.id, s.session_type, s.status, s.local_day_key, s.started_at, s.completed_at, s.created_at, s.updated_at,
+      ts.id AS snapshot_id, ts.session_id AS snapshot_session_id, ts.current_type, ts.axis_scores_json, ts.axis_strengths_json,
+      ts.source_type, ts.source_session_id, ts.question_count, ts.created_at AS snapshot_created_at
+     FROM sessions s
+     LEFT JOIN type_snapshots ts ON ts.id = (
+      SELECT candidate.id
+      FROM type_snapshots candidate
+      WHERE candidate.session_id = s.id
+      ORDER BY candidate.created_at DESC, candidate.id DESC
+      LIMIT 1
+     )
+     WHERE s.status = 'completed'`;
+  
+  const params: (string | number)[] = [];
+  
+  if (cursor) {
+    sql += ` AND (s.completed_at < ? OR (s.completed_at = ? AND s.started_at < ?) OR (s.completed_at = ? AND s.started_at = ? AND s.id < ?))`;
+    params.push(cursor.completedAt, cursor.completedAt, cursor.startedAt, cursor.completedAt, cursor.startedAt, cursor.id);
+  }
+  
+  sql += ` ORDER BY s.completed_at DESC, s.started_at DESC, s.id DESC LIMIT ?`;
+  params.push(normalizedPageSize + 1);
+  
   const rows = await adapter.getAllAsync<
     SessionRow & {
       snapshot_id: string | null;
@@ -492,26 +536,12 @@ export async function readCompletedSessionHistory(
       question_count: number | null;
       snapshot_created_at: string | null;
     }
-  >(
-    `SELECT
-      s.id, s.session_type, s.status, s.local_day_key, s.started_at, s.completed_at, s.created_at, s.updated_at,
-      ts.id AS snapshot_id, ts.session_id AS snapshot_session_id, ts.current_type, ts.axis_scores_json, ts.axis_strengths_json,
-      ts.source_type, ts.source_session_id, ts.question_count, ts.created_at AS snapshot_created_at
-     FROM sessions s
-     LEFT JOIN type_snapshots ts ON ts.id = (
-      SELECT candidate.id
-      FROM type_snapshots candidate
-      WHERE candidate.session_id = s.id
-      ORDER BY candidate.created_at DESC, candidate.id DESC
-      LIMIT 1
-     )
-     WHERE s.status = 'completed'
-     ORDER BY s.completed_at DESC, s.started_at DESC, s.id DESC
-     LIMIT ?;`,
-    normalizedLimit ?? -1
-  );
+  >(sql, ...params);
 
-  const history = rows.map((row) => ({
+  const hasMore = rows.length > normalizedPageSize;
+  const entries = hasMore ? rows.slice(0, -1) : rows;
+  
+  const history = entries.map((row) => ({
     session: mapSessionRow(row),
     snapshot:
       row.snapshot_id &&
@@ -535,7 +565,13 @@ export async function readCompletedSessionHistory(
         : null,
   }));
 
-  return history;
+  const nextCursor: Cursor | undefined = hasMore && history.length > 0 ? {
+    completedAt: history[history.length - 1].session.completedAt ?? history[history.length - 1].session.startedAt,
+    startedAt: history[history.length - 1].session.startedAt,
+    id: history[history.length - 1].session.id,
+  } : undefined;
+
+  return { entries: history, hasMore, nextCursor };
 }
 
 export async function readLatestCompletedSessionForDay(

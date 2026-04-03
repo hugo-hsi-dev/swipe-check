@@ -36,6 +36,7 @@ type SessionRecord = {
 type SessionAnswerRecord = {
   sessionId: string;
   questionId: string;
+  questionText: string;
   answer: QuestionResponse;
   answeredAt: string;
   createdAt: string;
@@ -121,7 +122,8 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
     }
 
     if (sql.includes('INSERT INTO session_answers')) {
-      const [sessionId, questionId, answer, answeredAt, createdAt, updatedAt] = params as [
+      const [sessionId, questionId, questionText, answer, answeredAt, createdAt, updatedAt] = params as [
+        string,
         string,
         string,
         QuestionResponse,
@@ -133,6 +135,7 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
       this.answers.set(`${sessionId}::${questionId}`, {
         sessionId,
         questionId,
+        questionText,
         answer,
         answeredAt,
         createdAt,
@@ -424,6 +427,7 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
         .map((answer) => ({
           session_id: answer.sessionId,
           question_id: answer.questionId,
+          question_text: answer.questionText,
           answer: answer.answer,
           answered_at: answer.answeredAt,
         })) as T[];
@@ -509,9 +513,9 @@ describe('session lifecycle persistence helpers', () => {
     const adapter = new FakeSessionAdapter();
     const session = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
 
-    await upsertSessionAnswer(adapter, session.id, 'q-001', 'agree', new Date('2026-01-01T08:01:00.000Z'));
-    await upsertSessionAnswer(adapter, session.id, 'q-001', 'disagree', new Date('2026-01-01T08:02:00.000Z'));
-    await upsertSessionAnswer(adapter, session.id, 'q-002', 'agree', new Date('2026-01-01T08:03:00.000Z'));
+    await upsertSessionAnswer(adapter, session.id, 'q-001', 'Question 1', 'agree', new Date('2026-01-01T08:01:00.000Z'));
+    await upsertSessionAnswer(adapter, session.id, 'q-001', 'Question 1', 'disagree', new Date('2026-01-01T08:02:00.000Z'));
+    await upsertSessionAnswer(adapter, session.id, 'q-002', 'Question 2', 'agree', new Date('2026-01-01T08:03:00.000Z'));
 
     const answers = await readSessionAnswers(adapter, session.id);
 
@@ -519,12 +523,14 @@ describe('session lifecycle persistence helpers', () => {
       {
         sessionId: session.id,
         questionId: 'q-001',
+        questionText: 'Question 1',
         answer: 'disagree',
         answeredAt: '2026-01-01T08:02:00.000Z',
       },
       {
         sessionId: session.id,
         questionId: 'q-002',
+        questionText: 'Question 2',
         answer: 'agree',
         answeredAt: '2026-01-01T08:03:00.000Z',
       },
@@ -564,8 +570,8 @@ describe('session lifecycle persistence helpers', () => {
       new Date('2026-01-01T08:00:00.000Z')
     );
 
-    await upsertSessionAnswer(adapter, firstSession.id, 'q-013', 'agree', new Date('2026-01-01T08:01:00.000Z'));
-    await upsertSessionAnswer(adapter, firstSession.id, 'q-014', 'disagree', new Date('2026-01-01T08:02:00.000Z'));
+    await upsertSessionAnswer(adapter, firstSession.id, 'q-013', 'Test question for q-013', 'agree', new Date('2026-01-01T08:01:00.000Z'));
+    await upsertSessionAnswer(adapter, firstSession.id, 'q-014', 'Test question for q-014', 'disagree', new Date('2026-01-01T08:02:00.000Z'));
 
     // Simulate app restart - same day, later time
     const resumedSession = await getOrCreateDailySessionForLocalDay(
@@ -585,7 +591,7 @@ describe('session lifecycle persistence helpers', () => {
     expect(answers.map((a) => a.questionId)).toContain('q-014');
 
     // Can continue adding answers
-    await upsertSessionAnswer(adapter, resumedSession.id, 'q-023', 'agree', new Date('2026-01-01T12:05:00.000Z'));
+    await upsertSessionAnswer(adapter, resumedSession.id, 'q-023', 'Test question for q-023', 'agree', new Date('2026-01-01T12:05:00.000Z'));
     const updatedAnswers = await readSessionAnswers(adapter, resumedSession.id);
     expect(updatedAnswers).toHaveLength(3);
   });
@@ -634,7 +640,7 @@ describe('session lifecycle persistence helpers', () => {
     const adapter = new FakeSessionAdapter();
 
     const onboarding = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
-    await upsertSessionAnswer(adapter, onboarding.id, 'q-001', 'agree', new Date('2026-01-01T08:01:00.000Z'));
+    await upsertSessionAnswer(adapter, onboarding.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-01T08:01:00.000Z'));
     await completeSession(adapter, onboarding.id, new Date('2026-01-01T08:02:00.000Z'));
 
     const onboardingSnapshot: TypeSnapshot = {
@@ -653,7 +659,7 @@ describe('session lifecycle persistence helpers', () => {
       '2026-01-02',
       new Date('2026-01-02T08:00:00.000Z')
     );
-    await upsertSessionAnswer(adapter, daily.id, 'q-002', 'disagree', new Date('2026-01-02T08:01:00.000Z'));
+    await upsertSessionAnswer(adapter, daily.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-02T08:01:00.000Z'));
     await completeSession(adapter, daily.id, new Date('2026-01-02T08:02:00.000Z'));
 
     const dailySnapshot: TypeSnapshot = {
@@ -671,7 +677,7 @@ describe('session lifecycle persistence helpers', () => {
 
     expect(await hasCompletedOnboardingSession(adapter)).toBe(false);
     expect(await readSessionTypeSnapshot(adapter, onboarding.id)).toBeNull();
-    expect(await readCompletedSessionHistory(adapter)).toHaveLength(1);
+    expect((await readCompletedSessionHistory(adapter)).entries).toHaveLength(1);
     expect(await readLatestTypeSnapshot(adapter)).toEqual(dailySnapshot);
   });
 
@@ -696,11 +702,11 @@ describe('session lifecycle persistence helpers', () => {
   it('reads completed history list and entry detail for journal', async () => {
     const adapter = new FakeSessionAdapter();
     const onboarding = await startOrResumeOnboardingSession(adapter, new Date('2026-01-01T08:00:00.000Z'));
-    await upsertSessionAnswer(adapter, onboarding.id, 'q-001', 'agree', new Date('2026-01-01T08:01:00.000Z'));
+    await upsertSessionAnswer(adapter, onboarding.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-01T08:01:00.000Z'));
     await completeSession(adapter, onboarding.id, new Date('2026-01-01T08:02:00.000Z'));
 
     const daily = await getOrCreateDailySessionForLocalDay(adapter, '2026-01-02', new Date('2026-01-02T08:00:00.000Z'));
-    await upsertSessionAnswer(adapter, daily.id, 'q-002', 'disagree', new Date('2026-01-02T08:01:00.000Z'));
+    await upsertSessionAnswer(adapter, daily.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-02T08:01:00.000Z'));
     await completeSession(adapter, daily.id, new Date('2026-01-02T08:02:00.000Z'));
 
     const snapshot: TypeSnapshot = {
@@ -718,11 +724,11 @@ describe('session lifecycle persistence helpers', () => {
     const detail = await readCompletedSessionDetail(adapter, daily.id);
     const truncated = await readCompletedSessionHistory(adapter, 1);
 
-    expect(history.map((entry) => entry.session.id)).toEqual([daily.id, onboarding.id]);
-    expect(history[0]?.snapshot).toEqual(snapshot);
+    expect(history.entries.map((entry) => entry.session.id)).toEqual([daily.id, onboarding.id]);
+    expect(history.entries[0]?.snapshot).toEqual(snapshot);
     expect(detail?.answers).toHaveLength(1);
     expect(detail?.snapshot).toEqual(snapshot);
-    expect(truncated).toHaveLength(1);
+    expect(truncated.entries).toHaveLength(1);
   });
 
   it('reads current type snapshot for insights', async () => {
@@ -766,6 +772,7 @@ describe('onboarding assessment controller', () => {
         adapter,
         session.id,
         `q-${String(i).padStart(3, '0')}`,
+        `Test question ${i}`,
         'agree',
         new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
       );
@@ -804,6 +811,7 @@ describe('onboarding assessment controller', () => {
         adapter,
         session.id,
         `q-${String(i).padStart(3, '0')}`,
+        `Test question ${i}`,
         i % 2 === 0 ? 'agree' : 'disagree',
         new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
       );
@@ -840,6 +848,7 @@ describe('onboarding assessment controller', () => {
         adapter,
         firstSession.id,
         `q-${String(i).padStart(3, '0')}`,
+        `Test question ${i}`,
         'agree',
         new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
       );
@@ -867,6 +876,7 @@ describe('onboarding assessment controller', () => {
         adapter,
         resumedSession.id,
         `q-${String(i).padStart(3, '0')}`,
+        `Test question ${i}`,
         'disagree',
         new Date(`2026-01-01T09:${String(i).padStart(2, '0')}:00.000Z`)
       );
@@ -897,6 +907,7 @@ describe('onboarding assessment controller', () => {
         adapter,
         session.id,
         `q-${String(i).padStart(3, '0')}`,
+        `Test question ${i}`,
         'agree',
         new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
       );
@@ -936,6 +947,7 @@ describe('onboarding assessment controller', () => {
         adapter,
         session.id,
         `q-${String(i).padStart(3, '0')}`,
+        `Test question ${i}`,
         'agree',
         new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
       );
@@ -950,6 +962,7 @@ describe('onboarding assessment controller', () => {
         adapter,
         session.id,
         `q-${String(i).padStart(3, '0')}`,
+        `Test question ${i}`,
         'disagree',
         new Date(`2026-01-01T08:${String(i).padStart(2, '0')}:00.000Z`)
       );
@@ -978,6 +991,7 @@ describe('onboarding assessment controller', () => {
       adapter,
       session.id,
       'q-011',
+      'Test question 11',
       'agree',
       new Date('2026-01-01T08:11:00.000Z')
     );
@@ -985,6 +999,7 @@ describe('onboarding assessment controller', () => {
       adapter,
       session.id,
       'q-012',
+      'Test question 12',
       'disagree',
       new Date('2026-01-01T08:12:00.000Z')
     );
@@ -1010,8 +1025,8 @@ describe('onboarding assessment controller', () => {
 
     const day1Session = await getOrCreateDailySessionForLocalDay(adapter, todayKey, new Date('2026-01-15T08:00:00.000Z'));
 
-    await upsertSessionAnswer(adapter, day1Session.id, 'q-013', 'agree', new Date('2026-01-15T08:02:00.000Z'));
-    await upsertSessionAnswer(adapter, day1Session.id, 'q-014', 'disagree', new Date('2026-01-15T08:03:00.000Z'));
+    await upsertSessionAnswer(adapter, day1Session.id, 'q-013', 'Test question for q-013', 'agree', new Date('2026-01-15T08:02:00.000Z'));
+    await upsertSessionAnswer(adapter, day1Session.id, 'q-014', 'Test question for q-014', 'disagree', new Date('2026-01-15T08:03:00.000Z'));
 
     const day1Snapshot: TypeSnapshot = {
       id: 'snap-daily-015',
@@ -1033,6 +1048,7 @@ describe('onboarding assessment controller', () => {
         adapter,
         onboarding.id,
         `q-${String(i).padStart(3, '0')}`,
+        `Test question ${i}`,
         'agree',
         new Date(`2026-01-15T12:${String(i).padStart(2, '0')}:00.000Z`)
       );

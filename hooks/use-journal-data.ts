@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 import { getSQLiteDatabase } from '@/lib/local-data/sqlite-runtime';
 import {
@@ -8,6 +8,7 @@ import {
   toLocalDayKey,
   type PersistedHistoryEntry,
   type PersistedSessionDetail,
+  type Cursor,
 } from '@/lib/local-data/session-lifecycle';
 
 type JournalHistoryState = {
@@ -16,13 +17,20 @@ type JournalHistoryState = {
   isSingleEntry: boolean;
   isMultiEntry: boolean;
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
   error: Error | null;
+  loadMore: () => void;
 };
 
-export function useJournalHistory(limit?: number): JournalHistoryState {
+export function useJournalHistory(): JournalHistoryState {
   const [entries, setEntries] = useState<PersistedHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [cursor, setCursor] = useState<Cursor | undefined>(undefined);
+  const PAGE_SIZE = 25;
 
   useEffect(() => {
     let isMounted = true;
@@ -30,10 +38,12 @@ export function useJournalHistory(limit?: number): JournalHistoryState {
     async function loadHistory() {
       try {
         const db = await getSQLiteDatabase();
-        const history = await readCompletedSessionHistory(db, limit);
+        const result = await readCompletedSessionHistory(db, PAGE_SIZE, undefined);
 
         if (isMounted) {
-          setEntries(history);
+          setEntries(result.entries);
+          setHasMore(result.hasMore);
+          setCursor(result.nextCursor);
           setError(null);
         }
       } catch (err) {
@@ -52,13 +62,31 @@ export function useJournalHistory(limit?: number): JournalHistoryState {
     return () => {
       isMounted = false;
     };
-  }, [limit]);
+  }, []);
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const db = await getSQLiteDatabase();
+      const result = await readCompletedSessionHistory(db, PAGE_SIZE, cursor);
+
+      setEntries((prev) => [...prev, ...result.entries]);
+      setHasMore(result.hasMore);
+      setCursor(result.nextCursor);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [hasMore, isLoadingMore, cursor]);
 
   const isEmpty = !isLoading && entries.length === 0;
   const isSingleEntry = !isLoading && entries.length === 1;
   const isMultiEntry = !isLoading && entries.length > 1;
 
-  return { entries, isEmpty, isSingleEntry, isMultiEntry, isLoading, error };
+  return { entries, isEmpty, isSingleEntry, isMultiEntry, isLoading, isLoadingMore, hasMore, error, loadMore };
 }
 
 type JournalEntryDetailState = {

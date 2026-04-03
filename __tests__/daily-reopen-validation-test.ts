@@ -27,6 +27,7 @@ type SessionRecord = {
 type SessionAnswerRecord = {
   sessionId: string;
   questionId: string;
+  questionText: string;
   answer: QuestionResponse;
   answeredAt: string;
   createdAt: string;
@@ -77,7 +78,8 @@ class FakeDailyReopenAdapter implements LocalDatabaseAdapter {
 
     // Insert session answer with status check
     if (sql.includes('INSERT INTO session_answers')) {
-      const [sessionId, questionId, answer, answeredAt, createdAt, updatedAt] = params as [
+      const [sessionId, questionId, questionText, answer, answeredAt, createdAt, updatedAt] = params as [
+        string,
         string,
         string,
         QuestionResponse,
@@ -95,6 +97,7 @@ class FakeDailyReopenAdapter implements LocalDatabaseAdapter {
       this.answers.set(`${sessionId}::${questionId}`, {
         sessionId,
         questionId,
+        questionText,
         answer,
         answeredAt,
         createdAt,
@@ -198,6 +201,7 @@ class FakeDailyReopenAdapter implements LocalDatabaseAdapter {
         .map((answer) => ({
           session_id: answer.sessionId,
           question_id: answer.questionId,
+          question_text: answer.questionText,
           answer: answer.answer,
           answered_at: answer.answeredAt,
         })) as T[];
@@ -298,8 +302,8 @@ describe('Daily Reopen Behavior Validation', () => {
         new Date('2026-01-15T08:00:00.000Z')
       );
 
-      await upsertSessionAnswer(adapter, firstSession.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
-      await upsertSessionAnswer(adapter, firstSession.id, 'q-002', 'disagree', new Date('2026-01-15T08:02:00.000Z'));
+      await upsertSessionAnswer(adapter, firstSession.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, firstSession.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-15T08:02:00.000Z'));
 
       // Simulate app restart - same day, later time
       const resumedSession = await getOrCreateDailySessionForLocalDay(
@@ -330,7 +334,7 @@ describe('Daily Reopen Behavior Validation', () => {
         new Date('2026-01-15T08:00:00.000Z')
       );
 
-      await upsertSessionAnswer(adapter, session.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
 
       // Simulate restart
       const resumedSession = await getOrCreateDailySessionForLocalDay(
@@ -340,8 +344,8 @@ describe('Daily Reopen Behavior Validation', () => {
       );
 
       // Add more answers after resuming
-      await upsertSessionAnswer(adapter, resumedSession.id, 'q-002', 'disagree', new Date('2026-01-15T12:01:00.000Z'));
-      await upsertSessionAnswer(adapter, resumedSession.id, 'q-003', 'agree', new Date('2026-01-15T12:02:00.000Z'));
+      await upsertSessionAnswer(adapter, resumedSession.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-15T12:01:00.000Z'));
+      await upsertSessionAnswer(adapter, resumedSession.id, 'q-003', 'Test question for q-003', 'agree', new Date('2026-01-15T12:02:00.000Z'));
 
       // All answers should be present
       const answers = await readSessionAnswers(adapter, resumedSession.id);
@@ -359,15 +363,15 @@ describe('Daily Reopen Behavior Validation', () => {
         new Date('2026-01-15T08:00:00.000Z')
       );
 
-      await upsertSessionAnswer(adapter, session.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
 
       // First resume
       await getOrCreateDailySessionForLocalDay(adapter, dayKey, new Date('2026-01-15T10:00:00.000Z'));
-      await upsertSessionAnswer(adapter, session.id, 'q-002', 'disagree', new Date('2026-01-15T10:01:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-15T10:01:00.000Z'));
 
       // Second resume
       await getOrCreateDailySessionForLocalDay(adapter, dayKey, new Date('2026-01-15T14:00:00.000Z'));
-      await upsertSessionAnswer(adapter, session.id, 'q-003', 'agree', new Date('2026-01-15T14:01:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-003', 'Test question for q-003', 'agree', new Date('2026-01-15T14:01:00.000Z'));
 
       // Third resume - verify all answers still present
       const finalSession = await getOrCreateDailySessionForLocalDay(
@@ -394,9 +398,9 @@ describe('Daily Reopen Behavior Validation', () => {
         new Date('2026-01-15T08:00:00.000Z')
       );
 
-      await upsertSessionAnswer(adapter, session.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
-      await upsertSessionAnswer(adapter, session.id, 'q-002', 'disagree', new Date('2026-01-15T08:02:00.000Z'));
-      await upsertSessionAnswer(adapter, session.id, 'q-003', 'agree', new Date('2026-01-15T08:03:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-15T08:02:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-003', 'Test question for q-003', 'agree', new Date('2026-01-15T08:03:00.000Z'));
 
       await completeSession(adapter, session.id, new Date('2026-01-15T08:05:00.000Z'));
 
@@ -424,12 +428,12 @@ describe('Daily Reopen Behavior Validation', () => {
         new Date('2026-01-15T08:00:00.000Z')
       );
 
-      await upsertSessionAnswer(adapter, session.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
       await completeSession(adapter, session.id, new Date('2026-01-15T08:05:00.000Z'));
 
       // Try to add answer after completion
       await expect(
-        upsertSessionAnswer(adapter, session.id, 'q-002', 'disagree', new Date('2026-01-15T14:00:00.000Z'))
+        upsertSessionAnswer(adapter, session.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-15T14:00:00.000Z'))
       ).rejects.toThrow('Cannot modify answers for a completed session.');
 
       // Original answer should remain
@@ -449,12 +453,12 @@ describe('Daily Reopen Behavior Validation', () => {
         new Date('2026-01-15T08:00:00.000Z')
       );
 
-      await upsertSessionAnswer(adapter, session.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, session.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
       await completeSession(adapter, session.id, new Date('2026-01-15T08:05:00.000Z'));
 
       // Try to modify the existing answer
       await expect(
-        upsertSessionAnswer(adapter, session.id, 'q-001', 'disagree', new Date('2026-01-15T14:00:00.000Z'))
+        upsertSessionAnswer(adapter, session.id, 'q-001', 'Test question for q-001', 'disagree', new Date('2026-01-15T14:00:00.000Z'))
       ).rejects.toThrow('Cannot modify answers for a completed session.');
 
       // Answer should remain unchanged
@@ -474,7 +478,7 @@ describe('Daily Reopen Behavior Validation', () => {
         new Date('2026-01-15T08:00:00.000Z')
       );
 
-      await upsertSessionAnswer(adapter, morningSession.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, morningSession.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
       await completeSession(adapter, morningSession.id, new Date('2026-01-15T08:05:00.000Z'));
 
       // Reopen at various times throughout the day
@@ -639,7 +643,7 @@ describe('Daily Reopen Behavior Validation', () => {
         new Date('2026-01-15T08:00:00.000Z')
       );
 
-      await upsertSessionAnswer(adapter, morningSession.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, morningSession.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
 
       // 2. Interrupt (simulate app close)
 
@@ -651,8 +655,8 @@ describe('Daily Reopen Behavior Validation', () => {
       );
       expect(lunchSession.id).toBe(morningSession.id);
 
-      await upsertSessionAnswer(adapter, lunchSession.id, 'q-002', 'disagree', new Date('2026-01-15T12:01:00.000Z'));
-      await upsertSessionAnswer(adapter, lunchSession.id, 'q-003', 'agree', new Date('2026-01-15T12:02:00.000Z'));
+      await upsertSessionAnswer(adapter, lunchSession.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-15T12:01:00.000Z'));
+      await upsertSessionAnswer(adapter, lunchSession.id, 'q-003', 'Test question for q-003', 'agree', new Date('2026-01-15T12:02:00.000Z'));
 
       // 4. Complete session
       await completeSession(adapter, lunchSession.id, new Date('2026-01-15T12:05:00.000Z'));
@@ -682,7 +686,7 @@ describe('Daily Reopen Behavior Validation', () => {
         '2026-01-15',
         new Date('2026-01-15T08:00:00.000Z')
       );
-      await upsertSessionAnswer(adapter, day1SessionCreated.id, 'q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, day1SessionCreated.id, 'q-001', 'Test question for q-001', 'agree', new Date('2026-01-15T08:01:00.000Z'));
       await completeSession(adapter, day1SessionCreated.id, new Date('2026-01-15T08:05:00.000Z'));
 
       // Day 2: In progress
@@ -691,7 +695,7 @@ describe('Daily Reopen Behavior Validation', () => {
         '2026-01-16',
         new Date('2026-01-16T08:00:00.000Z')
       );
-      await upsertSessionAnswer(adapter, day2Session.id, 'q-002', 'disagree', new Date('2026-01-16T08:01:00.000Z'));
+      await upsertSessionAnswer(adapter, day2Session.id, 'q-002', 'Test question for q-002', 'disagree', new Date('2026-01-16T08:01:00.000Z'));
 
       // Day 3: Not started (no session yet)
 
@@ -732,6 +736,7 @@ describe('Daily Reopen Behavior Validation', () => {
           adapter,
           session.id,
           `q-${String(i).padStart(3, '0')}`,
+          `Test question ${i}`,
           i % 2 === 0 ? 'agree' : 'disagree',
           new Date(`2026-01-15T08:${String(i).padStart(2, '0')}:00.000Z`)
         );
@@ -750,7 +755,7 @@ describe('Daily Reopen Behavior Validation', () => {
 
       // Verify immutability - cannot add more answers
       await expect(
-        upsertSessionAnswer(adapter, session.id, 'q-004', 'agree', new Date('2026-01-15T14:00:00.000Z'))
+        upsertSessionAnswer(adapter, session.id, 'q-004', 'Test question for q-004', 'agree', new Date('2026-01-15T14:00:00.000Z'))
       ).rejects.toThrow('Cannot modify answers for a completed session.');
 
       // Answers should still be 3
