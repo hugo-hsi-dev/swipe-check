@@ -29,12 +29,12 @@ export default function SettingsScreen() {
       }}
     >
       <Card>
-        <Card.Header>
+        <Card.Body className="gap-3">
           <Card.Title className="text-xl">Settings</Card.Title>
           <Card.Description>
             App information and local data controls
           </Card.Description>
-        </Card.Header>
+        </Card.Body>
       </Card>
 
       <Card>
