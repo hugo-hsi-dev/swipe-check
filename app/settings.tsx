@@ -8,13 +8,19 @@ import { clearSQLiteData } from '@/lib/local-data/sqlite';
 
 export default function SettingsScreen() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
+  const [isWiping, setIsWiping] = React.useState(false);
+  const [wipeError, setWipeError] = React.useState<string | null>(null);
 
   async function handleResetData() {
+    setIsWiping(true);
+    setWipeError(null);
     try {
       await clearSQLiteData();
       router.replace('/onboarding');
     } catch (error) {
-      console.error('Failed to reset data:', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setWipeError(message);
+      setIsWiping(false);
     }
   }
 
@@ -80,12 +86,23 @@ export default function SettingsScreen() {
                   This will permanently delete all your local data. The app will return to its
                   first-launch state.
                 </Text>
+                {wipeError && (
+                  <Text className="text-sm text-destructive text-center">
+                    Failed to delete data: {wipeError}
+                  </Text>
+                )}
               </View>
-              <Button variant="danger" onPress={handleResetData}>
+              <Button variant="danger" onPress={handleResetData} isDisabled={isWiping}>
                 <Ionicons name="trash-outline" size={18} />
-                <Button.Label>Yes, Delete All Data</Button.Label>
+                <Button.Label>{isWiping ? 'Deleting...' : 'Yes, Delete All Data'}</Button.Label>
               </Button>
-              <Button variant="secondary" onPress={() => setShowDeleteConfirmation(false)}>
+              <Button
+                variant="secondary"
+                onPress={() => {
+                  setShowDeleteConfirmation(false);
+                  setWipeError(null);
+                }}
+              >
                 <Button.Label>Cancel</Button.Label>
               </Button>
             </>
