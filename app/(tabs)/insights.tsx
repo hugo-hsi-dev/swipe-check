@@ -34,19 +34,13 @@ function AxisStrengthCard({
   const dominancePercent = Math.round(Math.abs(strength) * 100);
   const isTied = dominantPoleId === null;
 
-  let barLeftPercent: number;
-  let dominanceText: string;
+  const dominanceText = isTied
+    ? 'Balanced'
+    : dominantPoleId === axis.poleA.id
+      ? `${poleAName} (${dominancePercent}%)`
+      : `${poleBName} (${dominancePercent}%)`;
 
-  if (isTied) {
-    barLeftPercent = 50;
-    dominanceText = 'Balanced';
-  } else if (dominantPoleId === axis.poleA.id) {
-    barLeftPercent = 50 - (strength * 50);
-    dominanceText = `${poleAName} (${dominancePercent}%)`;
-  } else {
-    barLeftPercent = 50 + (strength * 50);
-    dominanceText = `${poleBName} (${dominancePercent}%)`;
-  }
+  const isPoleBDominant = dominantPoleId === axis.poleB.id;
 
   return (
     <Card>
@@ -56,12 +50,20 @@ function AxisStrengthCard({
           <Text className="font-medium">{poleBName}</Text>
         </View>
         <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
-          <View
-            className={`h-full rounded-full ${isTied ? 'bg-surface-tertiary' : 'bg-accent'}`}
-            style={{
-              width: `${isTied ? 50 : barLeftPercent}%`,
-            }}
-          />
+          {isTied ? (
+            <View
+              className="h-full w-1/2 rounded-full bg-surface-tertiary"
+              style={{ alignSelf: 'center' }}
+            />
+          ) : (
+            <View
+              className="h-full rounded-full bg-accent"
+              style={{
+                width: `${dominancePercent}%`,
+                alignSelf: isPoleBDominant ? 'flex-start' : 'flex-end',
+              }}
+            />
+          )}
         </View>
         <Text className="text-center text-sm text-text-secondary">
           {dominanceText}
