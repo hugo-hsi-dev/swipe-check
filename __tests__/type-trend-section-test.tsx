@@ -84,6 +84,24 @@ describe('TypeTrendSection', () => {
 
       expect(screen.getByText('5 days ago')).toBeTruthy();
     });
+
+    it('should render Yesterday for snapshot from yesterday evening even after midnight', () => {
+      const now = new Date();
+      const yesterdayEvening = new Date(now);
+      yesterdayEvening.setDate(now.getDate() - 1);
+      yesterdayEvening.setHours(22, 30, 0, 0);
+
+      const snapshot: TypeSnapshot = createMockSnapshot({
+        id: 'snap-1',
+        currentType: 'INTJ',
+        daysAgo: 1,
+      });
+      snapshot.createdAt = yesterdayEvening;
+
+      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
+
+      expect(screen.getByText('Yesterday')).toBeTruthy();
+    });
   });
 
   describe('Populated History State (Multiple Snapshots)', () => {

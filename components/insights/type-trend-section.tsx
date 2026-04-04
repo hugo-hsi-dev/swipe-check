@@ -19,11 +19,27 @@ function getLatestSnapshotStatus(sortedHistory: TypeSnapshot[]): SnapshotStatus 
 
 function formatDate(date: Date): string {
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
+  const sameDay =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  if (sameDay) return 'Today';
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const yesterdayDay =
+    date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate();
+
+  if (yesterdayDay) return 'Yesterday';
+
+  const oneDay = 24 * 60 * 60 * 1000;
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / oneDay);
+
   if (diffDays < 7) return `${diffDays} days ago`;
   if (diffDays < 30) {
     const weeks = Math.floor(diffDays / 7);
