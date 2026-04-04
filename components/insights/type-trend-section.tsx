@@ -8,14 +8,13 @@ export type TypeTrendSectionProps = {
   history: TypeSnapshot[];
 };
 
-type TrendDirection = 'up' | 'down' | 'stable' | 'new';
+type SnapshotStatus = 'new' | 'stable' | 'shifted';
 
-function getTrendDirection(history: TypeSnapshot[], currentIndex: number): TrendDirection {
-  if (currentIndex >= history.length - 1) return 'new';
-  const previousType = history[currentIndex + 1]?.currentType;
-  if (!previousType) return 'new';
-  if (previousType === history[currentIndex]?.currentType) return 'stable';
-  return 'up';
+function getLatestSnapshotStatus(sortedHistory: TypeSnapshot[]): SnapshotStatus {
+  const latest = sortedHistory[0];
+  const previous = sortedHistory[1];
+  if (!latest || !previous) return 'new';
+  return latest.currentType === previous.currentType ? 'stable' : 'shifted';
 }
 
 function formatDate(date: Date): string {
@@ -33,11 +32,11 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function TrendIndicator({ direction }: { direction: TrendDirection }) {
-  if (direction === 'new') {
+function StatusIndicator({ status }: { status: SnapshotStatus }) {
+  if (status === 'new') {
     return <Text className="text-xs text-accent font-medium">First result</Text>;
   }
-  if (direction === 'stable') {
+  if (status === 'stable') {
     return <Text className="text-xs text-text-secondary">Same as before</Text>;
   }
   return <Text className="text-xs text-warning font-medium">Type shifted</Text>;
@@ -63,7 +62,7 @@ function SingleSnapshot({ latestType, snapshot }: { latestType: string; snapshot
           <Text className="text-lg font-semibold">{latestType}</Text>
           <Text className="text-xs text-text-secondary">{formatDate(snapshot.createdAt)}</Text>
         </View>
-        <TrendIndicator direction="new" />
+        <StatusIndicator status="new" />
         <Text className="text-sm text-text-secondary">
           This is your first recorded personality type.
         </Text>
@@ -82,7 +81,6 @@ function SnapshotRow({
   total: number;
 }) {
   const isLatest = index === 0;
-  const direction = getTrendDirection([snapshot], 0);
 
   return (
     <View
@@ -107,18 +105,19 @@ function SnapshotRow({
           </Text>
         </View>
       </View>
-      {isLatest && <TrendIndicator direction={direction} />}
     </View>
   );
 }
 
-function TrendHistory({ latestType, history }: { latestType: string; history: TypeSnapshot[] }) {
+function TrendHistory({ history }: { history: TypeSnapshot[] }) {
   const sortedHistory = [...history].sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id)
   );
 
-  const previousType = history.length > 1 ? history[history.length - 1]?.currentType : null;
-  const typeChanged = previousType && previousType !== latestType;
+  const latestStatus = getLatestSnapshotStatus(sortedHistory);
+  const latest = sortedHistory[0];
+  const previous = sortedHistory[1];
+  const typeChanged = latestStatus === 'shifted' && previous;
 
   return (
     <Card>
@@ -130,11 +129,11 @@ function TrendHistory({ latestType, history }: { latestType: string; history: Ty
           </Text>
         </View>
 
-        {typeChanged && (
+        {typeChanged && previous && (
           <View className="bg-warning-soft rounded-lg p-3">
             <Text className="text-sm text-warning font-medium">Type changed</Text>
             <Text className="text-xs text-text-secondary mt-1">
-              You went from {previousType} to {latestType}
+              You went from {previous.currentType} to {latest?.currentType}
             </Text>
           </View>
         )}
@@ -148,6 +147,11 @@ function TrendHistory({ latestType, history }: { latestType: string; history: Ty
               total={Math.min(sortedHistory.length, 5)}
             />
           ))}
+          {latest && sortedHistory.length > 0 && (
+            <View className="flex-row items-center justify-end py-2">
+              <StatusIndicator status={latestStatus} />
+            </View>
+          )}
         </View>
 
         {sortedHistory.length > 5 && (
@@ -170,5 +174,5 @@ export function TypeTrendSection({ latestType, history }: TypeTrendSectionProps)
     return <SingleSnapshot latestType={latestType} snapshot={history[0]} />;
   }
 
-  return <TrendHistory latestType={latestType} history={history} />;
+  return <TrendHistory history={history} />;
 }
