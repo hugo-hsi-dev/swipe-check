@@ -97,4 +97,36 @@ describe('Insights Screen', () => {
     expect(screen.getByText('Type History')).toBeTruthy();
     expect(screen.getByText('2 snapshots recorded')).toBeTruthy();
   });
+
+  it('should render Balanced label for tied axis (strength 0, dominantPoleId null)', () => {
+    const tiedSnapshot: TypeSnapshot = {
+      id: 'snap-tie',
+      currentType: 'INTJ',
+      axisScores: [
+        { axisId: 'e-i', poleA: { poleId: 'e', count: 3 }, poleB: { poleId: 'i', count: 3 }, totalResponses: 6 },
+        { axisId: 's-n', poleA: { poleId: 's', count: 1 }, poleB: { poleId: 'n', count: 2 }, totalResponses: 3 },
+        { axisId: 't-f', poleA: { poleId: 't', count: 3 }, poleB: { poleId: 'f', count: 0 }, totalResponses: 3 },
+        { axisId: 'j-p', poleA: { poleId: 'j', count: 2 }, poleB: { poleId: 'p', count: 1 }, totalResponses: 3 },
+      ],
+      axisStrengths: [
+        { axisId: 'e-i', strength: 0, dominantPoleId: null, rawDifference: 0 },
+        { axisId: 's-n', strength: 0.33, dominantPoleId: 'n', rawDifference: 1 },
+        { axisId: 't-f', strength: -1.0, dominantPoleId: 't', rawDifference: -3 },
+        { axisId: 'j-p', strength: -0.33, dominantPoleId: 'j', rawDifference: -1 },
+      ],
+      createdAt: new Date(),
+      source: { type: 'onboarding', sessionId: 'onboarding-session' },
+      questionCount: 12,
+    };
+
+    jest.mocked(useInsightsData).mockReturnValue({
+      status: 'populated',
+      latestType: 'INTJ',
+      latestSnapshot: tiedSnapshot,
+      history: [tiedSnapshot],
+    });
+
+    renderWithHeroUI(<InsightsScreen />);
+    expect(screen.getByText('Balanced')).toBeTruthy();
+  });
 });

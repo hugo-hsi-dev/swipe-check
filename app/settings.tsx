@@ -1,113 +1,40 @@
-import { router } from 'expo-router';
+import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, View } from 'react-native';
-import {
-  Avatar,
-  Button,
-  Card,
-  Description,
-  Input,
-  Label,
-  ListGroup,
-  Switch,
-  TextField,
-} from 'heroui-native';
-import { useState } from 'react';
+import { router } from 'expo-router';
+import { ScrollView, Text, View } from 'react-native';
+import { Button, Card, Description } from 'heroui-native';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { clearSQLiteData } from '@/lib/local-data/sqlite';
 
 export default function SettingsScreen() {
-  const colorScheme = useColorScheme();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(colorScheme === 'dark');
-  const [email, setEmail] = useState('');
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
 
-  function handleOpenOnboardingPreview() {
-    router.push({
-      pathname: '/onboarding',
-      params: { preview: '1' },
-    });
+  async function handleResetData() {
+    try {
+      await clearSQLiteData();
+      router.replace('/onboarding');
+    } catch (error) {
+      console.error('Failed to reset data:', error);
+    }
   }
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerStyle={{
+        gap: 16,
+        padding: 16,
+        paddingTop: 24,
+        paddingBottom: 24,
+      }}
+    >
       <Card>
-        <Card.Header className="flex-row items-center gap-3">
-          <Avatar alt="User" color="accent" size="lg">
-            <Avatar.Fallback>JD</Avatar.Fallback>
-          </Avatar>
-          <View className="shrink">
-            <Card.Title>John Doe</Card.Title>
-            <Card.Description>
-              john.doe@example.com
-            </Card.Description>
-          </View>
+        <Card.Header>
+          <Card.Title className="text-xl">Settings</Card.Title>
+          <Card.Description>
+            App information and local data controls
+          </Card.Description>
         </Card.Header>
-      </Card>
-
-      <ListGroup>
-        <ListGroup.Item>
-          <ListGroup.ItemPrefix>
-            <View className="size-10 items-center justify-center rounded-full bg-accent-soft">
-              <Ionicons name="notifications-outline" size={18} />
-            </View>
-          </ListGroup.ItemPrefix>
-          <ListGroup.ItemContent>
-            <ListGroup.ItemTitle>Notifications</ListGroup.ItemTitle>
-            <ListGroup.ItemDescription>
-              Push alerts and reminders
-            </ListGroup.ItemDescription>
-          </ListGroup.ItemContent>
-          <Switch isSelected={notificationsEnabled} onSelectedChange={setNotificationsEnabled}>
-            <Switch.Thumb />
-          </Switch>
-        </ListGroup.Item>
-
-        <ListGroup.Item>
-          <ListGroup.ItemPrefix>
-            <View className="size-10 items-center justify-center rounded-full bg-surface-secondary">
-              <Ionicons name="moon-outline" size={18} />
-            </View>
-          </ListGroup.ItemPrefix>
-          <ListGroup.ItemContent>
-            <ListGroup.ItemTitle>Dark Mode</ListGroup.ItemTitle>
-            <ListGroup.ItemDescription>
-              Use dark theme
-            </ListGroup.ItemDescription>
-          </ListGroup.ItemContent>
-          <Switch isSelected={darkModeEnabled} onSelectedChange={setDarkModeEnabled}>
-            <Switch.Thumb />
-          </Switch>
-        </ListGroup.Item>
-      </ListGroup>
-
-      <Card>
-        <Card.Body className="gap-4">
-          <Card.Title>Account</Card.Title>
-          <TextField>
-            <Label>Email</Label>
-            <Input
-              autoCapitalize="none"
-              keyboardType="email-address"
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              value={email}
-            />
-            <Description>Update your email address.</Description>
-          </TextField>
-        </Card.Body>
-      </Card>
-
-      <Card>
-        <Card.Body className="gap-4">
-          <Card.Title>Onboarding Preview</Card.Title>
-          <Description>Open the full onboarding flow without clearing any saved data.</Description>
-
-          <Button variant="secondary" onPress={handleOpenOnboardingPreview}>
-            <Ionicons name="play-outline" size={18} />
-            <Button.Label>Replay onboarding</Button.Label>
-          </Button>
-        </Card.Body>
       </Card>
 
       <Card>
@@ -123,6 +50,46 @@ export default function SettingsScreen() {
               <Description>100</Description>
             </View>
           </View>
+        </Card.Body>
+      </Card>
+
+      <Card className="bg-danger-soft">
+        <Card.Body className="gap-4">
+          {!showDeleteConfirmation ? (
+            <>
+              <Card.Title className="text-destructive">Clear Local Data</Card.Title>
+              <Description>
+                This will permanently delete all your data, including your personality profile and
+                journal history. This action cannot be undone.
+              </Description>
+              <Button variant="danger" onPress={() => setShowDeleteConfirmation(true)}>
+                <Ionicons name="trash-outline" size={18} />
+                <Button.Label>Delete All Data</Button.Label>
+              </Button>
+            </>
+          ) : (
+            <>
+              <View className="items-center gap-3 pb-2">
+                <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
+                  <Ionicons name="warning-outline" size={28} color="#ef4444" />
+                </View>
+                <Text className="text-lg font-semibold text-center text-destructive">
+                  Are you sure?
+                </Text>
+                <Text className="text-sm text-text-secondary text-center">
+                  This will permanently delete all your local data. The app will return to its
+                  first-launch state.
+                </Text>
+              </View>
+              <Button variant="danger" onPress={handleResetData}>
+                <Ionicons name="trash-outline" size={18} />
+                <Button.Label>Yes, Delete All Data</Button.Label>
+              </Button>
+              <Button variant="secondary" onPress={() => setShowDeleteConfirmation(false)}>
+                <Button.Label>Cancel</Button.Label>
+              </Button>
+            </>
+          )}
         </Card.Body>
       </Card>
 
