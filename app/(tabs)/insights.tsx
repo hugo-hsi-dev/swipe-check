@@ -34,21 +34,13 @@ function AxisStrengthCard({
   const dominancePercent = Math.round(Math.abs(strength) * 100);
   const isTied = dominantPoleId === null;
 
-  const fillWidth = Math.abs(strength) * 100;
-
-  const containerClass = isTied
-    ? 'justify-center'
-    : dominantPoleId === axis.poleA.id
-      ? 'justify-start'
-      : 'justify-end';
-
-  const fillClass = isTied ? 'bg-surface-tertiary' : 'bg-accent';
-
   const dominanceText = isTied
     ? 'Balanced'
     : dominantPoleId === axis.poleA.id
       ? `${poleAName} (${dominancePercent}%)`
       : `${poleBName} (${dominancePercent}%)`;
+
+  const isPoleBDominant = dominantPoleId === axis.poleB.id;
 
   return (
     <Card>
@@ -57,12 +49,23 @@ function AxisStrengthCard({
           <Text className="font-medium">{poleAName}</Text>
           <Text className="font-medium">{poleBName}</Text>
         </View>
-        <View className={`h-2 overflow-hidden rounded-full bg-surface-secondary flex-row ${containerClass}`}>
-          <View
-            className={`h-full rounded-full ${fillClass}`}
-            style={{ width: isTied ? '50%' : `${fillWidth}%` }}
-            testID={`axis-fill-${axisId}`}
-          />
+<View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
+          {isTied ? (
+            <View
+              className="h-full w-1/2 rounded-full bg-surface-tertiary"
+              style={{ alignSelf: 'center' }}
+              testID={`axis-fill-${axisId}`}
+            />
+          ) : (
+            <View
+              className="h-full rounded-full bg-accent"
+              style={{
+                width: `${dominancePercent}%`,
+                alignSelf: isPoleBDominant ? 'flex-start' : 'flex-end',
+              }}
+              testID={`axis-fill-${axisId}`}
+            />
+          )}
         </View>
         <Text className="text-center text-sm text-text-secondary">
           {dominanceText}
