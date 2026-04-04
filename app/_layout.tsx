@@ -18,8 +18,8 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { bootstrapError, isBootstrapping } = useAppBootstrap();
   const pathname = usePathname();
+  const { bootstrapError, isBootstrapping } = useAppBootstrap(pathname);
   const { preview } = useGlobalSearchParams<{ preview?: string }>();
   const { evaluatedPathname, isDeterminingRoute, routeError, targetRoute } = useInitialRoute(pathname);
   const isOnboardingPreview = preview === '1';

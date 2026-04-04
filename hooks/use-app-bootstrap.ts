@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { bootstrapSQLite } from '@/lib/local-data/sqlite';
+import { bootstrapSQLite, getBootstrapGeneration } from '@/lib/local-data/sqlite';
 import type { BootstrapResult } from '@/lib/local-data/bootstrap';
 
 type AppBootstrapState = {
@@ -9,13 +9,15 @@ type AppBootstrapState = {
   isBootstrapping: boolean;
 };
 
-export function useAppBootstrap(): AppBootstrapState {
+export function useAppBootstrap(pathname: string): AppBootstrapState {
   const [bootstrapResult, setBootstrapResult] = useState<BootstrapResult | null>(null);
   const [bootstrapError, setBootstrapError] = useState<Error | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [lastGeneration, setLastGeneration] = useState(getBootstrapGeneration());
 
   useEffect(() => {
     let isMounted = true;
+    const currentGeneration = getBootstrapGeneration();
 
     async function runBootstrap() {
       try {
@@ -23,6 +25,7 @@ export function useAppBootstrap(): AppBootstrapState {
 
         if (isMounted) {
           setBootstrapResult(result);
+          setLastGeneration(getBootstrapGeneration());
         }
       } catch (error) {
         if (isMounted) {
@@ -35,12 +38,15 @@ export function useAppBootstrap(): AppBootstrapState {
       }
     }
 
-    runBootstrap();
+    if (currentGeneration !== lastGeneration) {
+      setIsBootstrapping(true);
+      runBootstrap();
+    }
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [pathname, lastGeneration]);
 
   return { bootstrapResult, bootstrapError, isBootstrapping };
 }
