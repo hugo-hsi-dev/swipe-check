@@ -42,6 +42,16 @@ type OpenedSQLite = {
 };
 
 let bootstrapPromise: Promise<InitializedSQLite> | null = null;
+let schemaVersion: number | null = null;
+let bootstrapGeneration = 0;
+
+export function getSchemaVersion(): number | null {
+  return schemaVersion;
+}
+
+export function getBootstrapGeneration(): number {
+  return bootstrapGeneration;
+}
 
 async function openAdapter(dbName: string): Promise<OpenedSQLite> {
   const db = await openDatabaseAsync(dbName);
@@ -61,6 +71,8 @@ async function initializeSQLite(dbName: string): Promise<InitializedSQLite> {
       if (result.schemaVersion < 4) {
         await migrateToSchemaV4(adapter);
       }
+
+      schemaVersion = result.schemaVersion;
 
       return {
         db,
@@ -97,7 +109,12 @@ export async function clearSQLiteData(dbName = 'swipe-check.db'): Promise<ClearR
   const adapter = new ExpoSQLiteAdapter(db);
 
   const result = await clearLocalData(adapter);
-  await bootstrapLocalData(adapter);
+
+  bootstrapPromise = null;
+  bootstrapGeneration++;
+
+  const rebootstrapResult = await bootstrapLocalData(adapter);
+  schemaVersion = rebootstrapResult.schemaVersion;
 
   return result;
 }
