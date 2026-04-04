@@ -1,8 +1,6 @@
-import { QUESTIONS } from '@/constants/questions';
 import {
   bootstrapLocalData,
   clearLocalData,
-  readQuestionCatalog,
   SCHEMA_VERSION,
   type LocalDatabaseAdapter,
 } from '@/lib/local-data/bootstrap';
@@ -12,34 +10,18 @@ type MetaRecord = {
   updatedAt: string;
 };
 
-type QuestionRecord = {
-  id: string;
-  prompt: string;
-  axisId: string;
-  agreePoleId: string;
-  pool: string;
-  isActive: number;
-  metadataJson: string | null;
-  sortIndex: number;
-};
-
 class FakeDatabaseAdapter implements LocalDatabaseAdapter {
   private readonly appMeta = new Map<string, MetaRecord>();
   private readonly migrations = new Set<number>();
-  private readonly questionCatalog = new Map<string, QuestionRecord>();
   private isCleared = false;
 
   async execAsync(sql: string): Promise<void> {
-    // No-op for BEGIN / COMMIT / ROLLBACK in fake adapter.
-    // Handle DROP TABLE statements for clearLocalData
     if (sql.includes('DROP TABLE IF EXISTS')) {
       this.isCleared = true;
       this.appMeta.clear();
       this.migrations.clear();
-      this.questionCatalog.clear();
     }
 
-    // Reset cleared state when tables are being created (during re-bootstrap)
     if (sql.includes('CREATE TABLE IF NOT EXISTS')) {
       this.isCleared = false;
     }
@@ -53,33 +35,6 @@ class FakeDatabaseAdapter implements LocalDatabaseAdapter {
     if (sql.includes('schema_migrations')) {
       const version = Number(params[0]);
       this.migrations.add(version);
-      return;
-    }
-
-    if (sql.includes('INSERT OR IGNORE INTO question_catalog')) {
-      const [id, prompt, axisId, agreePoleId, pool, isActive, metadataJson, sortIndex] = params as [
-        string,
-        string,
-        string,
-        string,
-        string,
-        number,
-        string | null,
-        number,
-      ];
-
-      if (!this.questionCatalog.has(id)) {
-        this.questionCatalog.set(id, {
-          id,
-          prompt,
-          axisId,
-          agreePoleId,
-          pool,
-          isActive,
-          metadataJson,
-          sortIndex,
-        });
-      }
       return;
     }
 
@@ -112,22 +67,7 @@ class FakeDatabaseAdapter implements LocalDatabaseAdapter {
     return null;
   }
 
-  async getAllAsync<T>(sql: string): Promise<T[]> {
-    if (sql.includes('FROM question_catalog')) {
-      return [...this.questionCatalog.values()]
-        .sort((a, b) => a.sortIndex - b.sortIndex || a.id.localeCompare(b.id))
-        .map((record) => ({
-          id: record.id,
-          prompt: record.prompt,
-          axis_id: record.axisId,
-          agree_pole_id: record.agreePoleId,
-          pool: record.pool,
-          is_active: record.isActive,
-          metadata_json: record.metadataJson,
-          sort_index: record.sortIndex,
-        })) as T[];
-    }
-
+  async getAllAsync<T>(_sql: string): Promise<T[]> {
     return [];
   }
 
@@ -152,7 +92,6 @@ describe('bootstrapLocalData', () => {
 
     expect(result.wasUntouchedInstall).toBe(true);
     expect(result.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(result.catalogQuestionCount).toBe(QUESTIONS.length);
     expect(adapter.hasMigration(SCHEMA_VERSION)).toBe(true);
     expect(adapter.getMeta('initializedAt')).toBeDefined();
     expect(adapter.getMeta('lastBootstrapAt')).toBeDefined();
@@ -166,26 +105,10 @@ describe('bootstrapLocalData', () => {
     const secondRun = await bootstrapLocalData(adapter);
 
     expect(secondRun.wasUntouchedInstall).toBe(false);
-    expect(secondRun.catalogQuestionCount).toBe(QUESTIONS.length);
     expect(secondRun.initializedAt).toBe(firstRun.initializedAt);
     expect(new Date(secondRun.lastBootstrapAt).getTime()).toBeGreaterThanOrEqual(
       new Date(firstRun.lastBootstrapAt).getTime()
     );
-  });
-
-  it('reads question catalog with the same stable order after restart', async () => {
-    const adapter = new FakeDatabaseAdapter();
-
-    await bootstrapLocalData(adapter);
-    const firstCatalogRead = await readQuestionCatalog(adapter);
-
-    await bootstrapLocalData(adapter);
-    const secondCatalogRead = await readQuestionCatalog(adapter);
-
-    expect(firstCatalogRead.map((question) => question.id)).toEqual(
-      QUESTIONS.map((question) => question.id)
-    );
-    expect(secondCatalogRead).toEqual(firstCatalogRead);
   });
 });
 
@@ -214,21 +137,5 @@ describe('clearLocalData', () => {
     const secondRun = await bootstrapLocalData(adapter);
     expect(secondRun.wasUntouchedInstall).toBe(true);
     expect(secondRun.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(secondRun.catalogQuestionCount).toBe(QUESTIONS.length);
-  });
-
-  it('produces consistent catalog after clear and re-bootstrap', async () => {
-    const adapter = new FakeDatabaseAdapter();
-
-    await bootstrapLocalData(adapter);
-    const firstCatalog = await readQuestionCatalog(adapter);
-
-    await clearLocalData(adapter);
-    await bootstrapLocalData(adapter);
-
-    const secondCatalog = await readQuestionCatalog(adapter);
-
-    expect(secondCatalog).toEqual(firstCatalog);
-    expect(secondCatalog.map((q) => q.id)).toEqual(QUESTIONS.map((q) => q.id));
   });
 });

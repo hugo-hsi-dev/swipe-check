@@ -3,13 +3,12 @@ import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
 import {
   bootstrapLocalData,
   clearLocalData,
-  readQuestionCatalog,
   migrateToSchemaV4,
   type BootstrapResult,
   type ClearResult,
   type LocalDatabaseAdapter,
 } from '@/lib/local-data/bootstrap';
-import type { Question } from '@/constants/question-contract';
+
 
 class ExpoSQLiteAdapter implements LocalDatabaseAdapter {
   constructor(private readonly db: SQLiteDatabase) {}
@@ -97,11 +96,6 @@ export async function getBootstrappedSQLiteDatabase(
 ): Promise<SQLiteDatabase> {
   const { db } = await initializeSQLite(dbName);
   return db;
-}
-
-export async function getStoredQuestionsSQLite(dbName = 'swipe-check.db'): Promise<Question[]> {
-  const { adapter } = await openAdapter(dbName);
-  return readQuestionCatalog(adapter);
 }
 
 export async function clearSQLiteData(dbName = 'swipe-check.db'): Promise<ClearResult> {
