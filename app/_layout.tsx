@@ -56,7 +56,6 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="session" options={{ headerShown: false }} />
             <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Details' }} />
             <Stack.Screen
               name="journal/[id]"
               options={{
