@@ -14,6 +14,8 @@
 import { waitFor, renderHook } from '@testing-library/react-native';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 
+import { useInsightsData } from '@/hooks/use-insights-data';
+
 jest.mock('@/lib/local-data/sqlite-runtime', () => ({
   getSQLiteDatabase: jest.fn(() => Promise.resolve(mockDb)),
 }));
@@ -24,8 +26,6 @@ const mockDb = {
   getFirstAsync: jest.fn() as jest.Mock,
   getAllAsync: jest.fn(() => Promise.resolve([])) as jest.Mock,
 };
-
-import { useInsightsData } from '@/hooks/use-insights-data';
 
 function createMockSnapshot({
   id,

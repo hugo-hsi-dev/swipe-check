@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { getSQLiteDatabase } from '@/lib/local-data/sqlite-runtime';
-import {
-  readLatestTypeSnapshot,
-  readAllTypeSnapshots,
-} from '@/lib/local-data/session-lifecycle';
+import { readLatestTypeSnapshot } from '@/lib/local-data/session-lifecycle';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 
 export function useCurrentTypeSnapshot(): {
