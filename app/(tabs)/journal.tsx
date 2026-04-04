@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
-import { Avatar, Button, Card, Chip, ListGroup, Skeleton } from 'heroui-native';
+import { Avatar, Button, Card, Chip, ListGroup, Skeleton, useThemeColor } from 'heroui-native';
 
 import {
   useCurrentDayCompletedSession,
@@ -37,6 +37,7 @@ export default function JournalScreen() {
     isLoading: isCurrentDayLoading,
     error: currentDayError,
   } = useCurrentDayCompletedSession();
+  const [foreground, muted] = useThemeColor(['foreground', 'muted']);
 
   const dailyEntries = entries.filter((entry) => entry.session.type === 'daily');
   const onboardingEntries = entries.filter((entry) => entry.session.type === 'onboarding');
@@ -104,7 +105,7 @@ export default function JournalScreen() {
           <Card.Body className="gap-4">
             <View className="items-center gap-4 py-8">
               <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
-                <Ionicons name="journal-outline" size={28} color="currentColor" />
+                <Ionicons name="journal-outline" size={28} color={foreground} />
               </View>
               <View className="items-center gap-2">
                 <Card.Title className="text-center">
@@ -154,7 +155,7 @@ export default function JournalScreen() {
           <Card className="border-accent-soft">
             <Card.Body className="gap-3">
               <View className="flex-row items-center gap-2">
-                <Ionicons name="star" size={16} color="currentColor" />
+                <Ionicons name="star" size={16} color={foreground} />
                 <Card.Title className="text-base">Today</Card.Title>
               </View>
               <Button
@@ -180,7 +181,7 @@ export default function JournalScreen() {
                         : ''}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color="currentColor" />
+                  <Ionicons name="chevron-forward" size={18} color={muted} />
                 </View>
               </Button>
             </Card.Body>
@@ -243,7 +244,7 @@ export default function JournalScreen() {
                     </ListGroup.ItemDescription>
                   </ListGroup.ItemContent>
                   <ListGroup.ItemSuffix>
-                    <Ionicons name="chevron-forward" size={18} color="currentColor" />
+                    <Ionicons name="chevron-forward" size={18} color={muted} />
                   </ListGroup.ItemSuffix>
                 </ListGroup.Item>
               );
@@ -299,7 +300,7 @@ export default function JournalScreen() {
                     </ListGroup.ItemDescription>
                   </ListGroup.ItemContent>
                   <ListGroup.ItemSuffix>
-                    <Ionicons name="chevron-forward" size={18} color="currentColor" />
+                    <Ionicons name="chevron-forward" size={18} color={muted} />
                   </ListGroup.ItemSuffix>
                 </ListGroup.Item>
               );

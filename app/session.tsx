@@ -48,6 +48,7 @@ function SwipeIndicator({
     opacity: opacity.value,
     transform: [{ scale: scale.value }],
   }));
+  const [accentForeground] = useThemeColor(['accent-foreground']);
 
   const isRight = direction === 'right';
 
@@ -64,7 +65,7 @@ function SwipeIndicator({
       <Ionicons
         name={isRight ? 'checkmark' : 'close'}
         size={32}
-        color="white"
+        color={accentForeground}
       />
       <Text style={styles.swipeIndicatorText}>
         {isRight ? 'Agree' : 'Disagree'}
@@ -92,6 +93,7 @@ function QuestionCard({
   const leftScale = useSharedValue(0.5);
   const rightOpacity = useSharedValue(0);
   const rightScale = useSharedValue(0.5);
+  const [accentForeground] = useThemeColor(['accent-foreground']);
 
   const gesture = Gesture.Pan()
     .onUpdate((event) => {
@@ -201,7 +203,7 @@ function QuestionCard({
           isDisabled={isSubmitting}
           size="lg"
           className="w-full">
-          <Ionicons name="checkmark" size={22} color="white" />
+          <Ionicons name="checkmark" size={22} color={accentForeground} />
           <Button.Label className="text-lg font-semibold">Agree</Button.Label>
         </Button>
 
@@ -274,11 +276,12 @@ export default function SessionScreen() {
     submitAnswer,
   } = useDailySessionFlow();
 
-  const [accent, accentForeground, foreground, success] = useThemeColor([
+  const [accent, accentForeground, foreground, success, danger] = useThemeColor([
     'accent',
     'accent-foreground',
     'foreground',
     'success',
+    'danger',
   ]);
 
   // Animation values for card
@@ -357,7 +360,7 @@ export default function SessionScreen() {
           <View
             className="size-20 items-center justify-center rounded-full"
             style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)' }}>
-            <Ionicons name="alert-circle" size={40} color="#EF4444" />
+            <Ionicons name="alert-circle" size={40} color={danger} />
           </View>
 
           <View className="gap-3 items-center">
