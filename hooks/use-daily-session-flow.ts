@@ -5,18 +5,16 @@ import { getQuestionById, AXES } from '@/constants/questions';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 import { getSQLiteDatabase } from '@/lib/local-data/sqlite-runtime';
 import {
-  completeSession,
+  completeDailySessionAtomic,
   getOrCreateDailySessionForLocalDay,
   readSessionAnswers,
   toLocalDayKey,
   type PersistedSession,
   type PersistedSessionAnswer,
   upsertSessionAnswer,
-  upsertTypeSnapshot,
 } from '@/lib/local-data/session-lifecycle';
 import {
   getOrCreateDailyQuestionSelection,
-  updateTrackingAfterDailyCompletion,
   type DailyQuestionsSelection,
 } from '@/lib/local-data/daily-selection-tracking';
 import { createTypeSnapshot } from '@/lib/scoring';
@@ -231,15 +229,8 @@ export function useDailySessionFlow(): DailySessionFlowController {
       sessionId,
     });
 
-    // Store snapshot
-    await upsertTypeSnapshot(db, snapshot);
-
-    // Mark session as completed
-    await completeSession(db, sessionId);
-
-    // Update tracking data
     const questionIds = sessionAnswers.map((a) => a.questionId);
-    await updateTrackingAfterDailyCompletion(db, questionIds);
+    await completeDailySessionAtomic(db, sessionId, snapshot, questionIds);
   }
 
   const submitAnswer = useCallback(
