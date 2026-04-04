@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
-import { Button, Card, Chip } from 'heroui-native';
+import { Button, Card, Chip, useThemeColor } from 'heroui-native';
 
 import { useCurrentTypeSnapshot } from '@/hooks/use-current-type-snapshot';
 import { useDailySession } from '@/hooks/use-daily-session';
@@ -37,6 +37,7 @@ export default function TodayScreen() {
     detail,
     isLoading: isDetailLoading,
   } = useTodaysSessionDetail();
+  const [success, muted] = useThemeColor(['success', 'muted']);
 
   const session = detail?.session ?? null;
   const isCompleted = session?.status === 'completed';
@@ -174,7 +175,7 @@ export default function TodayScreen() {
           {isCompleted && (
             <View className="gap-2">
               <View className="flex-row items-center justify-center gap-2">
-                <Ionicons name="checkmark-circle" size={16} color="var(--colors-success)" />
+                <Ionicons name="checkmark-circle" size={16} color={success} />
                 <Text className="text-sm text-success">Completed today</Text>
               </View>
               {snapshot && (
@@ -236,11 +237,11 @@ export default function TodayScreen() {
               minute and helps you track your patterns over time.
             </Text>
             <View className="flex-row items-center gap-2">
-              <Ionicons name="time-outline" size={16} color="var(--colors-text-secondary)" />
+              <Ionicons name="time-outline" size={16} color={muted} />
               <Text className="text-sm text-text-secondary">About 1 minute</Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <Ionicons name="list-outline" size={16} color="var(--colors-text-secondary)" />
+              <Ionicons name="list-outline" size={16} color={muted} />
               <Text className="text-sm text-text-secondary">3 quick questions</Text>
             </View>
           </Card.Body>
@@ -256,7 +257,7 @@ export default function TodayScreen() {
           {isCompleted ? (
             <View className="gap-2">
               <View className="flex-row items-center gap-2">
-                <Ionicons name="checkmark-circle" size={16} color="var(--colors-success)" />
+                <Ionicons name="checkmark-circle" size={16} color={success} />
                 <Text className="text-sm text-text-secondary">
                   Daily check-in completed today
                 </Text>

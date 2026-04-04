@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { ScrollView, View } from 'react-native';
-import { Avatar, Card, Chip, Skeleton, Separator } from 'heroui-native';
+import { Avatar, Card, Chip, Skeleton, Separator, useThemeColor } from 'heroui-native';
 
 import { useJournalEntryDetail } from '@/hooks/use-journal-data';
 import type { PersistedSessionAnswer } from '@/lib/local-data/session-lifecycle';
@@ -28,15 +28,14 @@ function getEntryTypeLabel(type: string): string {
   return type === 'onboarding' ? 'Baseline (Onboarding)' : 'Daily Check-in';
 }
 
-function getAnswerIcon(answer: PersistedSessionAnswer['answer']): { name: string; color: string } {
-  return answer === 'agree'
-    ? { name: 'checkmark-circle', color: 'success' }
-    : { name: 'close-circle', color: 'danger' };
+function getAnswerIconName(answer: PersistedSessionAnswer['answer']): string {
+  return answer === 'agree' ? 'checkmark-circle' : 'close-circle';
 }
 
 export default function JournalEntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { detail, isLoading, error } = useJournalEntryDetail(id ?? null);
+  const [foreground, success, danger] = useThemeColor(['foreground', 'success', 'danger']);
 
   if (isLoading) {
     return (
@@ -184,7 +183,8 @@ export default function JournalEntryDetailScreen() {
             </Card.Header>
             <Card.Body className="gap-0">
               {answers.map((answer, index) => {
-                const icon = getAnswerIcon(answer.answer);
+                const iconName = getAnswerIconName(answer.answer);
+                const iconColor = answer.answer === 'agree' ? success : danger;
                 const isLast = index === answers.length - 1;
 
                 return (
@@ -192,9 +192,9 @@ export default function JournalEntryDetailScreen() {
                     <View className="flex-row items-start gap-3 py-3">
                       <View className="mt-0.5">
                         <Ionicons
-                          name={icon.name as any}
+                          name={iconName as any}
                           size={20}
-                          color={icon.color}
+                          color={iconColor}
                         />
                       </View>
                       <View className="flex-1 gap-1">
@@ -219,7 +219,7 @@ export default function JournalEntryDetailScreen() {
           <Card>
             <Card.Body className="items-center gap-3 py-8">
               <View className="size-12 items-center justify-center rounded-full bg-surface-secondary">
-                <Ionicons name="help-circle-outline" size={24} color="currentColor" />
+                <Ionicons name="help-circle-outline" size={24} color={foreground} />
               </View>
               <Card.Description className="text-center">
                 No responses recorded for this session.

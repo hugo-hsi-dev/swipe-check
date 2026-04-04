@@ -2,7 +2,7 @@ import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
-import { Button, Card, Description } from 'heroui-native';
+import { Button, Card, Description, useThemeColor } from 'heroui-native';
 
 import { clearSQLiteData } from '@/lib/local-data/sqlite';
 
@@ -11,6 +11,7 @@ export default function SettingsScreen() {
   const [isWiping, setIsWiping] = React.useState(false);
   const [wipeError, setWipeError] = React.useState<string | null>(null);
   const isMounted = React.useRef(true);
+  const [danger] = useThemeColor(['danger']);
 
   React.useEffect(
     () => () => {
@@ -90,7 +91,7 @@ export default function SettingsScreen() {
             <>
               <View className="items-center gap-3 pb-2">
                 <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
-                  <Ionicons name="warning-outline" size={28} color="#ef4444" />
+                  <Ionicons name="warning-outline" size={28} color={danger} />
                 </View>
                 <Text className="text-lg font-semibold text-center text-destructive">
                   Are you sure?
