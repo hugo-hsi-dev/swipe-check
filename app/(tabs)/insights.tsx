@@ -49,7 +49,10 @@ function AxisStrengthCard({
           <Text className="font-medium">{poleAName}</Text>
           <Text className="font-medium">{poleBName}</Text>
         </View>
-<View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
+        <View
+          className="h-2 overflow-hidden rounded-full bg-surface-secondary"
+          testID={`axis-bar-${axisId}`}
+        >
           {isTied ? (
             <View
               className="h-full w-1/2 rounded-full bg-surface-tertiary"
