@@ -11,11 +11,11 @@
 import type { AnsweredQuestion } from '@/constants/question-contract';
 import {
   calculateType,
-  createTypeSnapshot,
+  createDisplaySnapshot,
   getChangedAxes,
   typeCodesMatch,
   recalculateTypeHistory,
-} from '@/constants/scoring';
+} from '@/lib/scoring';
 import { getQuestionById, AXES } from '@/constants/questions';
 
 /**
@@ -367,8 +367,8 @@ describe('calculateType', () => {
 
       const result1 = calculateType(session1Answers);
       const result2 = calculateType(session2Answers, { previousResult: result1 });
-      const snapshot1 = createTypeSnapshot(result1, 'session-1');
-      const snapshot2 = createTypeSnapshot(result2, 'session-2');
+      const snapshot1 = createDisplaySnapshot(result1, 'session-1');
+      const snapshot2 = createDisplaySnapshot(result2, 'session-2');
 
       expect(() =>
         recalculateTypeHistory(
@@ -422,14 +422,14 @@ describe('calculateType', () => {
   });
 });
 
-describe('createTypeSnapshot', () => {
+describe('createDisplaySnapshot', () => {
   it('should create snapshot with unique ID', () => {
     const typeResult = calculateType([
       createAnswer('q-001', 'agree'),
       createAnswer('q-004', 'agree'),
     ]);
 
-    const snapshot = createTypeSnapshot(typeResult, 'session-123');
+    const snapshot = createDisplaySnapshot(typeResult, 'session-123');
 
     expect(snapshot.id).toMatch(/^snapshot-\d+-[a-z0-9]+$/);
     expect(snapshot.sessionId).toBe('session-123');
