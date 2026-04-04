@@ -10,17 +10,30 @@ export default function SettingsScreen() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
   const [isWiping, setIsWiping] = React.useState(false);
   const [wipeError, setWipeError] = React.useState<string | null>(null);
+  const isMounted = React.useRef(true);
+
+  React.useEffect(
+    () => () => {
+      isMounted.current = false;
+    },
+    []
+  );
 
   async function handleResetData() {
     setIsWiping(true);
     setWipeError(null);
+
     try {
       await clearSQLiteData();
-      router.replace('/onboarding');
+      if (isMounted.current) {
+        router.replace('/onboarding');
+      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      setWipeError(message);
-      setIsWiping(false);
+      if (isMounted.current) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        setWipeError(message);
+        setIsWiping(false);
+      }
     }
   }
 
@@ -102,6 +115,7 @@ export default function SettingsScreen() {
                   setShowDeleteConfirmation(false);
                   setWipeError(null);
                 }}
+                isDisabled={isWiping}
               >
                 <Button.Label>Cancel</Button.Label>
               </Button>
@@ -110,7 +124,7 @@ export default function SettingsScreen() {
         </Card.Body>
       </Card>
 
-      <Button variant="secondary" onPress={() => router.back()}>
+      <Button variant="secondary" onPress={() => router.back()} isDisabled={isWiping}>
         <Ionicons name="arrow-back" size={16} />
         <Button.Label>Go Back</Button.Label>
       </Button>
