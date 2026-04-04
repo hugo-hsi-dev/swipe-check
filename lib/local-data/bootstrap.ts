@@ -218,10 +218,9 @@ export async function bootstrapLocalData(adapter: LocalDatabaseAdapter): Promise
       'initializedAt'
     );
 
-    await adapter.runAsync(
-      'INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?);',
-      SCHEMA_VERSION,
-      nowIso
+    const existingVersionRow = await adapter.getFirstAsync<{ version: number }>(
+      'SELECT version FROM schema_migrations WHERE version = ? LIMIT 1;',
+      SCHEMA_VERSION
     );
 
     await seedQuestionCatalog(adapter, nowIso);
@@ -246,6 +245,14 @@ export async function bootstrapLocalData(adapter: LocalDatabaseAdapter): Promise
       String(SCHEMA_VERSION),
       nowIso
     );
+
+    if (!existingVersionRow) {
+      await adapter.runAsync(
+        'INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?);',
+        SCHEMA_VERSION,
+        nowIso
+      );
+    }
 
     await adapter.execAsync('COMMIT;');
 
