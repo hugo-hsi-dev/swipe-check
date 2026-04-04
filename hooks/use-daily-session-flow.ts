@@ -48,8 +48,6 @@ export type DailySessionFlowController = {
   error: string | null;
   /** Submit an answer for the current question */
   submitAnswer: (response: QuestionResponse) => Promise<void>;
-  /** Refresh the controller state */
-  refresh: () => Promise<void>;
 };
 
 function getYesterdayKey(todayKey: string): string {
@@ -160,17 +158,7 @@ export function useDailySessionFlow(): DailySessionFlowController {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    void (async () => {
-      if (isMounted) {
-        await loadSession();
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
+    void loadSession();
   }, [loadSession]);
 
   // Build question states from selection and answers
@@ -279,10 +267,6 @@ export function useDailySessionFlow(): DailySessionFlowController {
     [session, phase, questions, currentQuestionIndex]
   );
 
-  const refresh = useCallback(async () => {
-    await loadSession();
-  }, [loadSession]);
-
   return {
     phase,
     session,
@@ -294,7 +278,6 @@ export function useDailySessionFlow(): DailySessionFlowController {
     isSubmitting,
     error,
     submitAnswer,
-    refresh,
   };
 }
 
