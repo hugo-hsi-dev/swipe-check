@@ -307,4 +307,31 @@ describe('Settings Screen', () => {
       expect(router.replace).not.toHaveBeenCalled();
     });
   });
+
+  describe('MVP Scope Boundary', () => {
+    it('should NOT display reminders settings', () => {
+      renderWithHeroUI(<SettingsScreen />);
+      expect(screen.queryByText(/reminder/i)).toBeNull();
+      expect(screen.queryByText(/notification/i)).toBeNull();
+    });
+
+    it('should NOT display accounts settings', () => {
+      renderWithHeroUI(<SettingsScreen />);
+      expect(screen.queryByText(/account/i)).toBeNull();
+      expect(screen.queryByText(/^profile$/i)).toBeNull();
+    });
+
+    it('should NOT display sync settings', () => {
+      renderWithHeroUI(<SettingsScreen />);
+      expect(screen.queryByText(/sync/i)).toBeNull();
+      expect(screen.queryByText(/cloud/i)).toBeNull();
+    });
+
+    it('should NOT display theme customization', () => {
+      renderWithHeroUI(<SettingsScreen />);
+      expect(screen.queryByText(/theme/i)).toBeNull();
+      expect(screen.queryByText(/dark mode/i)).toBeNull();
+      expect(screen.queryByText(/appearance/i)).toBeNull();
+    });
+  });
 });
