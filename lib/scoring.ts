@@ -6,6 +6,7 @@ import type {
   AnsweredQuestion,
   Axis,
 } from '@/constants/question-contract';
+import { AXES } from '@/constants/questions';
 import type {
   AxisScores,
   AxisStrength,
@@ -261,4 +262,267 @@ export function calculateAxisShift(
   if (!beforeStrength || !afterStrength) return null;
   
   return afterStrength.strength - beforeStrength.strength;
+}
+
+/**
+ * Represents the state of a single axis with full transparency about data availability.
+ */
+export type AxisResult = {
+  axisId: string;
+  winningPoleId: string | null;
+  displayLetter: string;
+  poleACount: number;
+  poleBCount: number;
+  totalAnswers: number;
+  strength: number;
+  hasMinimumData: boolean;
+  wasTieBroken: boolean;
+};
+
+/**
+ * Complete personality type result with metadata about data quality.
+ */
+export type TypeResult = {
+  typeCode: string;
+  axes: AxisResult[];
+  totalAnswers: number;
+  axesWithMinimumData: number;
+  isComplete: boolean;
+  computedAt: Date;
+};
+
+/**
+ * Type snapshot stored after each completed session (legacy display-oriented version).
+ */
+export type LegacyTypeSnapshot = TypeResult & {
+  id: string;
+  sessionId: string;
+};
+
+function countAxisResponses(
+  answers: AnsweredQuestion[],
+  axis: Axis
+): { poleACount: number; poleBCount: number; total: number } {
+  const axisAnswers = answers.filter((a) => a.question.axisId === axis.id);
+
+  let poleACount = 0;
+  let poleBCount = 0;
+
+  for (const answer of axisAnswers) {
+    if (answer.supportedPoleId === axis.poleA.id) {
+      poleACount++;
+    } else if (answer.supportedPoleId === axis.poleB.id) {
+      poleBCount++;
+    }
+  }
+
+  return { poleACount, poleBCount, total: axisAnswers.length };
+}
+
+function determineWinningPole(
+  poleACount: number,
+  poleBCount: number,
+  axis: Axis,
+  previousWinningPoleId?: string | null
+): { winningPoleId: string | null; wasTieBroken: boolean } {
+  if (poleACount === 0 && poleBCount === 0) {
+    return { winningPoleId: null, wasTieBroken: false };
+  }
+
+  if (poleACount > poleBCount) {
+    return { winningPoleId: axis.poleA.id, wasTieBroken: false };
+  }
+
+  if (poleBCount > poleACount) {
+    return { winningPoleId: axis.poleB.id, wasTieBroken: false };
+  }
+
+  if (previousWinningPoleId) {
+    const isValidPreviousPole =
+      previousWinningPoleId === axis.poleA.id || previousWinningPoleId === axis.poleB.id;
+
+    if (isValidPreviousPole) {
+      return { winningPoleId: previousWinningPoleId, wasTieBroken: true };
+    }
+  }
+
+  return { winningPoleId: axis.poleA.id, wasTieBroken: true };
+}
+
+function getDisplayLetter(poleId: string | null, axis: Axis): string {
+  if (!poleId) {
+    return 'X';
+  }
+
+  if (poleId === axis.poleA.id) {
+    return axis.poleA.label.charAt(0).toUpperCase();
+  }
+
+  if (poleId === axis.poleB.id) {
+    return axis.poleB.label.charAt(0).toUpperCase();
+  }
+
+  return 'X';
+}
+
+function getPreviousWinningPoleId(
+  previousResult: TypeResult | undefined,
+  axisId: string
+): string | null | undefined {
+  if (!previousResult) {
+    return undefined;
+  }
+
+  const previousAxis = previousResult.axes.find((a) => a.axisId === axisId);
+  return previousAxis?.winningPoleId;
+}
+
+function calculateAxisResult(
+  answers: AnsweredQuestion[],
+  axis: Axis,
+  previousResult?: TypeResult
+): AxisResult {
+  const { poleACount, poleBCount, total } = countAxisResponses(answers, axis);
+
+  const previousWinningPoleId = getPreviousWinningPoleId(previousResult, axis.id);
+  const { winningPoleId, wasTieBroken } = determineWinningPole(
+    poleACount,
+    poleBCount,
+    axis,
+    previousWinningPoleId
+  );
+
+  const strength = Math.abs(poleACount - poleBCount);
+  const hasMinimumData = total >= 3;
+
+  return {
+    axisId: axis.id,
+    winningPoleId,
+    displayLetter: getDisplayLetter(winningPoleId, axis),
+    poleACount,
+    poleBCount,
+    totalAnswers: total,
+    strength,
+    hasMinimumData,
+    wasTieBroken,
+  };
+}
+
+export type CalculateTypeOptions = {
+  previousResult?: TypeResult;
+  computedAt?: Date;
+};
+
+export function calculateType(
+  answers: AnsweredQuestion[],
+  options: CalculateTypeOptions = {}
+): TypeResult {
+  const { previousResult, computedAt = new Date() } = options;
+
+  const axes = AXES.map((axis) => calculateAxisResult(answers, axis, previousResult));
+
+  const typeCode = axes.map((axis) => axis.displayLetter).join('');
+
+  const totalAnswers = answers.length;
+  const axesWithMinimumData = axes.filter((a) => a.hasMinimumData).length;
+  const isComplete = axesWithMinimumData === 4;
+
+  return {
+    typeCode,
+    axes,
+    totalAnswers,
+    axesWithMinimumData,
+    isComplete,
+    computedAt,
+  };
+}
+
+export function createDisplaySnapshot(
+  typeResult: TypeResult,
+  sessionId: string
+): LegacyTypeSnapshot {
+  return {
+    ...typeResult,
+    id: `snapshot-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+    sessionId,
+  };
+}
+
+export function recalculateTypeHistory(
+  snapshots: LegacyTypeSnapshot[],
+  allAnswers: AnsweredQuestion[][]
+): TypeResult[] {
+  if (snapshots.length > 0 && snapshots.length !== allAnswers.length) {
+    throw new Error('Snapshot history must align with answer history.');
+  }
+
+  const results: TypeResult[] = [];
+  let previousResult: TypeResult | undefined;
+
+  for (let i = 0; i < allAnswers.length; i++) {
+    const answers = allAnswers[i];
+    const snapshot = snapshots[i];
+    const result = calculateType(answers, {
+      previousResult,
+      computedAt: snapshot?.computedAt,
+    });
+
+    if (snapshot) {
+      const matchesSnapshot =
+        result.typeCode === snapshot.typeCode &&
+        result.totalAnswers === snapshot.totalAnswers &&
+        result.axesWithMinimumData === snapshot.axesWithMinimumData &&
+        result.isComplete === snapshot.isComplete &&
+        result.axes.length === snapshot.axes.length &&
+        result.axes.every((axis, index) => {
+          const snapshotAxis = snapshot.axes[index];
+          if (!snapshotAxis) {
+            return false;
+          }
+
+          return (
+            axis.axisId === snapshotAxis.axisId &&
+            axis.winningPoleId === snapshotAxis.winningPoleId &&
+            axis.displayLetter === snapshotAxis.displayLetter &&
+            axis.poleACount === snapshotAxis.poleACount &&
+            axis.poleBCount === snapshotAxis.poleBCount &&
+            axis.totalAnswers === snapshotAxis.totalAnswers &&
+            axis.strength === snapshotAxis.strength &&
+            axis.hasMinimumData === snapshotAxis.hasMinimumData &&
+            axis.wasTieBroken === snapshotAxis.wasTieBroken
+          );
+        }) &&
+        result.computedAt.getTime() === snapshot.computedAt.getTime();
+
+      if (!matchesSnapshot) {
+        throw new Error(`Snapshot history does not match answer history at index ${i}.`);
+      }
+    }
+
+    results.push(result);
+    previousResult = result;
+  }
+
+  return results;
+}
+
+export function typeCodesMatch(result1: TypeResult, result2: TypeResult): boolean {
+  return result1.typeCode === result2.typeCode;
+}
+
+export function getChangedAxes(
+  previousResult: TypeResult | undefined,
+  currentResult: TypeResult
+): AxisResult[] {
+  if (!previousResult) {
+    return currentResult.axes.filter((a) => a.winningPoleId !== null);
+  }
+
+  return currentResult.axes.filter((currentAxis) => {
+    const previousAxis = previousResult.axes.find((a) => a.axisId === currentAxis.axisId);
+    if (!previousAxis) {
+      return currentAxis.winningPoleId !== null;
+    }
+    return currentAxis.winningPoleId !== previousAxis.winningPoleId;
+  });
 }
