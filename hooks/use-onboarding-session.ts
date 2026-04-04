@@ -10,7 +10,6 @@ import {
   readSessionAnswers,
   startOrResumeOnboardingSession,
   upsertSessionAnswer,
-  upsertTypeSnapshot,
 } from '@/lib/local-data/session-lifecycle';
 import type { PersistedSession, PersistedSessionAnswer } from '@/lib/local-data/session-lifecycle';
 import { createTypeSnapshot } from '@/lib/scoring';
@@ -216,9 +215,6 @@ export function useOnboardingSession(): OnboardingController {
 
       // Complete the session with snapshot
       await completeOnboardingSession(db, session.id, snapshot);
-
-      // Store snapshot separately as well
-      await upsertTypeSnapshot(db, snapshot);
 
       // Update local state
       const updatedSession = { ...session, status: 'completed' as const };

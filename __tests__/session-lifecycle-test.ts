@@ -1,7 +1,9 @@
 import type { QuestionResponse } from '@/constants/question-contract';
 import {
+  completeDailySessionAtomic,
   completeOnboardingSession,
   completeSession,
+  DailySessionCompletionError,
   getOrCreateDailySessionForLocalDay,
   hasCompletedOnboardingSession,
   OnboardingCompletionError,
@@ -47,12 +49,87 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
   private readonly sessions = new Map<string, SessionRecord>();
   private readonly answers = new Map<string, SessionAnswerRecord>();
   private readonly snapshots = new Map<string, TypeSnapshot>();
+  private readonly meta = new Map<string, string>();
 
-  async execAsync(_sql: string): Promise<void> {
-    // no-op for tests
+  private _inTransaction = false;
+  private _transactionFailed = false;
+  private _failNextWrite = false;
+  private _pendingSnapshots = new Map<string, TypeSnapshot>();
+  private _pendingSessionUpdates = new Map<string, Partial<SessionRecord>>();
+  private _pendingMetaUpdates = new Map<string, string>();
+
+  setFailNextWrite(): void {
+    this._failNextWrite = true;
+  }
+
+  clearTransactionState(): void {
+    this._inTransaction = false;
+    this._transactionFailed = false;
+    this._failNextWrite = false;
+    this._pendingSnapshots.clear();
+    this._pendingSessionUpdates.clear();
+    this._pendingMetaUpdates.clear();
+  }
+
+  async execAsync(sql: string): Promise<void> {
+    const normalized = sql.trim().toUpperCase();
+
+    if (normalized === 'BEGIN IMMEDIATE;') {
+      this._inTransaction = true;
+      this._transactionFailed = false;
+      this._pendingSnapshots.clear();
+      this._pendingSessionUpdates.clear();
+      this._pendingMetaUpdates.clear();
+      return;
+    }
+
+    if (normalized === 'COMMIT;') {
+      if (this._transactionFailed) {
+        this._pendingSnapshots.clear();
+        this._pendingSessionUpdates.clear();
+        this._pendingMetaUpdates.clear();
+      } else {
+        for (const [id, snapshot] of this._pendingSnapshots) {
+          this.snapshots.set(id, snapshot);
+        }
+        for (const [id, update] of this._pendingSessionUpdates) {
+          const existing = this.sessions.get(id);
+          if (existing) {
+            this.sessions.set(id, { ...existing, ...update });
+          }
+        }
+        for (const [key, value] of this._pendingMetaUpdates) {
+          this.meta.set(key, value);
+        }
+      }
+      this._inTransaction = false;
+      this._transactionFailed = false;
+      this._pendingSnapshots.clear();
+      this._pendingSessionUpdates.clear();
+      this._pendingMetaUpdates.clear();
+      return;
+    }
+
+    if (normalized === 'ROLLBACK;') {
+      this._pendingSnapshots.clear();
+      this._pendingSessionUpdates.clear();
+      this._pendingMetaUpdates.clear();
+      this._inTransaction = false;
+      this._transactionFailed = false;
+      return;
+    }
   }
 
   async runAsync(sql: string, ...params: (string | number | null)[]): Promise<unknown> {
+    if (this._inTransaction && this._failNextWrite) {
+      this._transactionFailed = true;
+      this._failNextWrite = false;
+      throw new Error('Simulated write failure');
+    }
+
+    if (this._inTransaction && this._transactionFailed) {
+      throw new Error('Transaction has failed');
+    }
     if (sql.includes('DELETE FROM session_answers') && sql.includes('WHERE session_id = ?')) {
       const [sessionId] = params as [string];
       for (const [key, answer] of this.answers.entries()) {
@@ -151,16 +228,36 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
         return;
       }
 
-      this.sessions.set(sessionId, {
-        ...session,
-        status: 'completed',
+      const update = {
+        status: 'completed' as const,
         completedAt,
         updatedAt,
-      });
+      };
+
+      if (this._inTransaction) {
+        this._pendingSessionUpdates.set(sessionId, update);
+      } else {
+        this.sessions.set(sessionId, { ...session, ...update });
+      }
       return;
     }
 
-    if (sql.includes('INSERT INTO type_snapshots')) {
+    if (sql.includes('INSERT INTO type_snapshots') || sql.includes('INSERT OR REPLACE INTO app_meta')) {
+      if (sql.includes('INSERT OR REPLACE INTO app_meta') && sql.includes('daily_tracking_')) {
+        const [key, valueJson] = params as [string, string];
+        const keyMatch = key.match(/daily_tracking_(.+)/);
+        if (keyMatch && this._inTransaction) {
+          this._pendingMetaUpdates.set(keyMatch[1], valueJson);
+        } else if (keyMatch) {
+          this.meta.set(keyMatch[1], valueJson);
+        }
+        return;
+      }
+
+      if (!sql.includes('INSERT INTO type_snapshots')) {
+        return;
+      }
+
       const [
         id,
         sessionId,
@@ -173,7 +270,7 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
         createdAt,
       ] = params as [string, string | null, string, string, string, 'onboarding' | 'daily' | 'manual', string | null, number, string];
 
-      this.snapshots.set(id, {
+      const snapshot: TypeSnapshot = {
         id,
         currentType,
         axisScores: JSON.parse(axisScoresJson),
@@ -184,7 +281,13 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
           sessionId: sourceSessionId ?? undefined,
         },
         questionCount,
-      });
+      };
+
+      if (this._inTransaction) {
+        this._pendingSnapshots.set(id, snapshot);
+      } else {
+        this.snapshots.set(id, snapshot);
+      }
     }
   }
 
@@ -243,6 +346,27 @@ class FakeSessionAdapter implements LocalDatabaseAdapter {
         completed_at: dailySession.completedAt,
         created_at: dailySession.createdAt,
         updated_at: dailySession.updatedAt,
+      } as T;
+    }
+
+    // Handle session validation for completeDailySessionAtomic
+    if (sql.includes("WHERE id = ? AND session_type = 'daily' AND status = 'in_progress'")) {
+      const [sessionId] = params as [string];
+      const session = this.sessions.get(sessionId);
+
+      if (!session || session.type !== 'daily' || session.status !== 'in_progress') {
+        return null;
+      }
+
+      return {
+        id: session.id,
+        session_type: session.type,
+        status: session.status,
+        local_day_key: session.localDayKey,
+        started_at: session.startedAt,
+        completed_at: session.completedAt,
+        created_at: session.createdAt,
+        updated_at: session.updatedAt,
       } as T;
     }
 
@@ -1082,5 +1206,159 @@ describe('onboarding assessment controller', () => {
     const result = await readLatestCompletedSessionForDay(adapter, futureDayKey);
 
     expect(result).toBeNull();
+  });
+});
+
+describe('atomic daily session completion', () => {
+  it('completes daily session atomically with snapshot and tracking update', async () => {
+    const adapter = new FakeSessionAdapter();
+    adapter.clearTransactionState();
+
+    const session = await getOrCreateDailySessionForLocalDay(
+      adapter,
+      '2026-01-01',
+      new Date('2026-01-01T08:00:00.000Z')
+    );
+
+    await upsertSessionAnswer(
+      adapter,
+      session.id,
+      'q-001',
+      'Question 1',
+      'agree',
+      new Date('2026-01-01T08:01:00.000Z')
+    );
+    await upsertSessionAnswer(
+      adapter,
+      session.id,
+      'q-002',
+      'Question 2',
+      'disagree',
+      new Date('2026-01-01T08:02:00.000Z')
+    );
+    await upsertSessionAnswer(
+      adapter,
+      session.id,
+      'q-003',
+      'Question 3',
+      'agree',
+      new Date('2026-01-01T08:03:00.000Z')
+    );
+
+    const snapshot: TypeSnapshot = {
+      id: 'snap-daily-atomic-001',
+      currentType: 'INTJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:10:00.000Z'),
+      source: { type: 'daily', sessionId: session.id },
+      questionCount: 3,
+    };
+
+    await completeDailySessionAtomic(
+      adapter,
+      session.id,
+      snapshot,
+      ['q-001', 'q-002', 'q-003'],
+      new Date('2026-01-01T08:10:00.000Z')
+    );
+
+    const updatedSession = await readActiveOrLatestDailySession(adapter);
+    expect(updatedSession?.status).toBe('completed');
+    expect(updatedSession?.id).toBe(session.id);
+
+    const storedSnapshot = await readSessionTypeSnapshot(adapter, session.id);
+    expect(storedSnapshot).toEqual(snapshot);
+  });
+
+  it('rolls back all changes when a failure occurs mid-transaction', async () => {
+    const adapter = new FakeSessionAdapter();
+    adapter.clearTransactionState();
+
+    const session = await getOrCreateDailySessionForLocalDay(
+      adapter,
+      '2026-01-02',
+      new Date('2026-01-02T08:00:00.000Z')
+    );
+
+    await upsertSessionAnswer(
+      adapter,
+      session.id,
+      'q-001',
+      'Question 1',
+      'agree',
+      new Date('2026-01-02T08:01:00.000Z')
+    );
+    await upsertSessionAnswer(
+      adapter,
+      session.id,
+      'q-002',
+      'Question 2',
+      'disagree',
+      new Date('2026-01-02T08:02:00.000Z')
+    );
+    await upsertSessionAnswer(
+      adapter,
+      session.id,
+      'q-003',
+      'Question 3',
+      'agree',
+      new Date('2026-01-02T08:03:00.000Z')
+    );
+
+    const snapshotBeforeFailure: TypeSnapshot = {
+      id: 'snap-daily-atomic-002',
+      currentType: 'ENTP',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-02T08:10:00.000Z'),
+      source: { type: 'daily', sessionId: session.id },
+      questionCount: 3,
+    };
+
+    adapter.setFailNextWrite();
+
+    await expect(
+      completeDailySessionAtomic(
+        adapter,
+        session.id,
+        snapshotBeforeFailure,
+        ['q-001', 'q-002', 'q-003'],
+        new Date('2026-01-02T08:10:00.000Z')
+      )
+    ).rejects.toThrow('Simulated write failure');
+
+    adapter.clearTransactionState();
+
+    const updatedSession = await readActiveOrLatestDailySession(adapter);
+    expect(updatedSession?.id).toBe(session.id);
+    expect(updatedSession?.status).toBe('in_progress');
+
+    const storedSnapshot = await readSessionTypeSnapshot(adapter, session.id);
+    expect(storedSnapshot).toBeNull();
+  });
+
+  it('throws DailySessionCompletionError for non-existent or non-in-progress session', async () => {
+    const adapter = new FakeSessionAdapter();
+    adapter.clearTransactionState();
+
+    const snapshot: TypeSnapshot = {
+      id: 'snap-daily-invalid',
+      currentType: 'INTJ',
+      axisScores: [],
+      axisStrengths: [],
+      createdAt: new Date('2026-01-01T08:10:00.000Z'),
+      source: { type: 'daily', sessionId: 'non-existent-session' },
+      questionCount: 3,
+    };
+
+    await expect(
+      completeDailySessionAtomic(
+        adapter,
+        'non-existent-session',
+        snapshot,
+        ['q-001', 'q-002', 'q-003']
+      )
+    ).rejects.toThrow(DailySessionCompletionError);
   });
 });

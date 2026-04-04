@@ -1,6 +1,9 @@
 import type { QuestionResponse } from '@/constants/question-contract';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 import type { LocalDatabaseAdapter } from '@/lib/local-data/bootstrap';
+import {
+  updateTrackingAfterDailyCompletion,
+} from '@/lib/local-data/daily-selection-tracking';
 
 export type PersistedSessionType = 'onboarding' | 'daily';
 export type PersistedSessionStatus = 'in_progress' | 'completed';
@@ -340,6 +343,48 @@ export async function completeOnboardingSession(
 
   // Mark session as completed
   await completeSession(adapter, sessionId, completedAt);
+}
+
+export class DailySessionCompletionError extends Error {
+  constructor(message: string, public readonly sessionId: string) {
+    super(message);
+    this.name = 'DailySessionCompletionError';
+  }
+}
+
+export async function completeDailySessionAtomic(
+  adapter: LocalDatabaseAdapter,
+  sessionId: string,
+  snapshot: TypeSnapshot,
+  completedQuestionIds: string[],
+  completedAt = new Date()
+): Promise<void> {
+  const sessionRow = await adapter.getFirstAsync<SessionRow>(
+    `SELECT id, session_type, status
+     FROM sessions
+     WHERE id = ? AND session_type = 'daily' AND status = 'in_progress'
+     LIMIT 1;`,
+    sessionId
+  );
+
+  if (!sessionRow) {
+    throw new DailySessionCompletionError(
+      'Daily session not found or not in progress',
+      sessionId
+    );
+  }
+
+  await adapter.execAsync('BEGIN IMMEDIATE;');
+
+  try {
+    await upsertTypeSnapshot(adapter, snapshot);
+    await completeSession(adapter, sessionId, completedAt);
+    await updateTrackingAfterDailyCompletion(adapter, completedQuestionIds, completedAt);
+    await adapter.execAsync('COMMIT;');
+  } catch (error) {
+    await adapter.execAsync('ROLLBACK;');
+    throw error;
+  }
 }
 
 export async function hasCompletedOnboardingSession(adapter: LocalDatabaseAdapter): Promise<boolean> {
