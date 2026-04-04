@@ -1,7 +1,6 @@
 import {
   bootstrapLocalData,
   clearLocalData,
-  SCHEMA_VERSION,
   type LocalDatabaseAdapter,
 } from '@/lib/local-data/bootstrap';
 
@@ -12,14 +11,12 @@ type MetaRecord = {
 
 class FakeDatabaseAdapter implements LocalDatabaseAdapter {
   private readonly appMeta = new Map<string, MetaRecord>();
-  private readonly migrations = new Set<number>();
   private isCleared = false;
 
   async execAsync(sql: string): Promise<void> {
     if (sql.includes('DROP TABLE IF EXISTS')) {
       this.isCleared = true;
       this.appMeta.clear();
-      this.migrations.clear();
     }
 
     if (sql.includes('CREATE TABLE IF NOT EXISTS')) {
@@ -30,12 +27,6 @@ class FakeDatabaseAdapter implements LocalDatabaseAdapter {
   async runAsync(sql: string, ...params: (string | number | null)[]): Promise<unknown> {
     if (this.isCleared && !sql.includes('CREATE TABLE')) {
       throw new Error('Database is cleared, must re-bootstrap before use');
-    }
-
-    if (sql.includes('schema_migrations')) {
-      const version = Number(params[0]);
-      this.migrations.add(version);
-      return;
     }
 
     if (sql.includes('INSERT OR IGNORE INTO app_meta')) {
@@ -71,10 +62,6 @@ class FakeDatabaseAdapter implements LocalDatabaseAdapter {
     return [];
   }
 
-  hasMigration(version: number): boolean {
-    return this.migrations.has(version);
-  }
-
   getMeta(key: string): MetaRecord | undefined {
     return this.appMeta.get(key);
   }
@@ -91,11 +78,8 @@ describe('bootstrapLocalData', () => {
     const result = await bootstrapLocalData(adapter);
 
     expect(result.wasUntouchedInstall).toBe(true);
-    expect(result.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(adapter.hasMigration(SCHEMA_VERSION)).toBe(true);
     expect(adapter.getMeta('initializedAt')).toBeDefined();
     expect(adapter.getMeta('lastBootstrapAt')).toBeDefined();
-    expect(adapter.getMeta('schemaVersion')?.value).toBe(String(SCHEMA_VERSION));
   });
 
   it('keeps initializedAt stable while refreshing bootstrap metadata', async () => {
@@ -117,7 +101,6 @@ describe('clearLocalData', () => {
     const adapter = new FakeDatabaseAdapter();
 
     await bootstrapLocalData(adapter);
-    expect(adapter.hasMigration(SCHEMA_VERSION)).toBe(true);
     expect(adapter.getMeta('initializedAt')).toBeDefined();
 
     const result = await clearLocalData(adapter);
@@ -136,6 +119,5 @@ describe('clearLocalData', () => {
 
     const secondRun = await bootstrapLocalData(adapter);
     expect(secondRun.wasUntouchedInstall).toBe(true);
-    expect(secondRun.schemaVersion).toBe(SCHEMA_VERSION);
   });
 });
