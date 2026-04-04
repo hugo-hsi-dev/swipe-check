@@ -41,8 +41,6 @@ export default function JournalScreen() {
   const dailyEntries = entries.filter((entry) => entry.session.type === 'daily');
   const onboardingEntries = entries.filter((entry) => entry.session.type === 'onboarding');
 
-  const hasDailyHistory = dailyEntries.length > 0;
-
   const filteredPastDailyEntries = dailyEntries.filter((entry) => {
     if (!isDayComplete || !currentDayEntry) return true;
     return entry.session.id !== currentDayEntry.session.id;
