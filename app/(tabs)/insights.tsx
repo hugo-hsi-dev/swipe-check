@@ -5,6 +5,7 @@ import { Card } from 'heroui-native';
 import { useInsightsData } from '@/hooks/use-insights-data';
 import { AXES } from '@/constants/questions';
 import { TypeTrendSection } from '@/components/insights/type-trend-section';
+import type { AxisStrength } from '@/constants/scoring-contract';
 
 function TypeHero({ type }: { type: string }) {
   return (
@@ -19,18 +20,33 @@ function TypeHero({ type }: { type: string }) {
 
 function AxisStrengthCard({
   axisId,
-  strength,
+  strength: axisStrength,
 }: {
   axisId: string;
-  strength: number;
+  strength: AxisStrength;
 }) {
   const axis = AXES.find((a) => a.id === axisId);
   if (!axis) return null;
 
   const poleAName = axis.poleA.label;
   const poleBName = axis.poleB.label;
-  const isPoleADominant = strength < 0;
+  const { strength, dominantPoleId } = axisStrength;
   const dominancePercent = Math.round(Math.abs(strength) * 100);
+  const isTied = dominantPoleId === null;
+
+  let barLeftPercent: number;
+  let dominanceText: string;
+
+  if (isTied) {
+    barLeftPercent = 50;
+    dominanceText = 'Balanced';
+  } else if (dominantPoleId === axis.poleA.id) {
+    barLeftPercent = 50 - (strength * 50);
+    dominanceText = `${poleAName} (${dominancePercent}%)`;
+  } else {
+    barLeftPercent = 50 + (strength * 50);
+    dominanceText = `${poleBName} (${dominancePercent}%)`;
+  }
 
   return (
     <Card>
@@ -41,14 +57,14 @@ function AxisStrengthCard({
         </View>
         <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
           <View
-            className="h-full rounded-full bg-accent"
+            className={`h-full rounded-full ${isTied ? 'bg-surface-tertiary' : 'bg-accent'}`}
             style={{
-              width: `${50 + (strength * 50)}%`,
+              width: `${isTied ? 50 : barLeftPercent}%`,
             }}
           />
         </View>
         <Text className="text-center text-sm text-text-secondary">
-          {isPoleADominant ? poleAName : poleBName} ({dominancePercent}%)
+          {dominanceText}
         </Text>
       </Card.Body>
     </Card>
@@ -176,7 +192,7 @@ export default function InsightsScreen() {
           <AxisStrengthCard
             key={strength.axisId}
             axisId={strength.axisId}
-            strength={strength.strength}
+            strength={strength}
           />
         ))}
 
@@ -207,13 +223,13 @@ export default function InsightsScreen() {
 
       <TypeTrendSection latestType={latestType} history={history} />
 
-      {latestSnapshot?.axisStrengths.map((strength) => (
-        <AxisStrengthCard
-          key={strength.axisId}
-          axisId={strength.axisId}
-          strength={strength.strength}
-        />
-      ))}
+{latestSnapshot?.axisStrengths.map((strength) => (
+          <AxisStrengthCard
+            key={strength.axisId}
+            axisId={strength.axisId}
+            strength={strength}
+          />
+        ))}
 
       <MBTIDisclaimer />
     </ScrollView>
