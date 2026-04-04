@@ -443,7 +443,7 @@ export function createDisplaySnapshot(
 ): LegacyTypeSnapshot {
   return {
     ...typeResult,
-    id: `snapshot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `snapshot-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     sessionId,
   };
 }
