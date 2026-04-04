@@ -110,7 +110,6 @@ describe('useInsightsData Hook', () => {
 
   describe('Empty State', () => {
     it('should emit empty state when no snapshots exist', async () => {
-      mockDb.getFirstAsync.mockResolvedValueOnce(null as never);
       mockDb.getAllAsync.mockResolvedValueOnce([]);
 
       const { result } = renderHook(() => useInsightsData());
@@ -126,7 +125,7 @@ describe('useInsightsData Hook', () => {
   describe('Error State', () => {
     it('should emit error state when DB access fails', async () => {
       const error = new Error('Database connection failed');
-      mockDb.getFirstAsync.mockRejectedValueOnce(error);
+      mockDb.getAllAsync.mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useInsightsData());
 
@@ -139,7 +138,7 @@ describe('useInsightsData Hook', () => {
 
     it('should wrap non-error errors', async () => {
       const nonError = 'Database connection failed';
-      mockDb.getFirstAsync.mockRejectedValueOnce(nonError);
+      mockDb.getAllAsync.mockRejectedValueOnce(nonError);
 
       const { result } = renderHook(() => useInsightsData());
 
@@ -164,7 +163,6 @@ describe('useInsightsData Hook', () => {
         sourceType: 'onboarding',
       });
 
-      mockDb.getFirstAsync.mockResolvedValueOnce(mapSnapshotRow(snapshot) as never);
       mockDb.getAllAsync.mockResolvedValueOnce([mapSnapshotRow(snapshot)]);
 
       const { result } = renderHook(() => useInsightsData());
@@ -200,7 +198,6 @@ describe('useInsightsData Hook', () => {
         sourceType: 'daily',
       });
 
-      mockDb.getFirstAsync.mockResolvedValueOnce(mapSnapshotRow(snapshot2) as never);
       mockDb.getAllAsync.mockResolvedValueOnce([mapSnapshotRow(snapshot1), mapSnapshotRow(snapshot2)]);
 
       const { result } = renderHook(() => useInsightsData());
@@ -215,6 +212,51 @@ describe('useInsightsData Hook', () => {
         latestSnapshot: snapshot2,
         history: [snapshot1, snapshot2],
       });
+    });
+  });
+
+  describe('Race Condition Prevention', () => {
+    it('should guarantee latestSnapshot matches first element of sorted history', async () => {
+      const snapshot1 = createMockSnapshot({
+        id: 'snap-001',
+        sessionId: 'session-001',
+        currentType: 'INTJ',
+        questionCount: 12,
+        sourceType: 'onboarding',
+      });
+
+      const snapshot2 = createMockSnapshot({
+        id: 'snap-002',
+        sessionId: 'session-002',
+        currentType: 'ENTJ',
+        questionCount: 4,
+        sourceType: 'daily',
+      });
+
+      const snapshot3 = createMockSnapshot({
+        id: 'snap-003',
+        sessionId: 'session-003',
+        currentType: 'ESTJ',
+        questionCount: 4,
+        sourceType: 'daily',
+      });
+
+      mockDb.getAllAsync.mockResolvedValueOnce([mapSnapshotRow(snapshot1), mapSnapshotRow(snapshot2), mapSnapshotRow(snapshot3)]);
+
+      const { result } = renderHook(() => useInsightsData());
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('populated');
+      });
+
+      const state = result.current;
+      if (state.status === 'populated') {
+        const sortedHistory = [...state.history].sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id)
+        );
+        expect(state.latestSnapshot).toEqual(sortedHistory[0]);
+        expect(state.latestType).toBe(sortedHistory[0].currentType);
+      }
     });
   });
 });

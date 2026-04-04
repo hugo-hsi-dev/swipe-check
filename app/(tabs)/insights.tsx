@@ -4,6 +4,7 @@ import { Card } from 'heroui-native';
 
 import { useInsightsData } from '@/hooks/use-insights-data';
 import { AXES } from '@/constants/questions';
+import { TypeTrendSection } from '@/components/insights/type-trend-section';
 
 export default function InsightsScreen() {
   const state = useInsightsData();
@@ -80,6 +81,7 @@ export default function InsightsScreen() {
 
   const currentType = state.latestType;
   const snapshot = state.latestSnapshot;
+  const history = state.history;
 
   return (
     <ScrollView
@@ -102,6 +104,8 @@ export default function InsightsScreen() {
           <Text className="text-text-secondary">Your personality type</Text>
         </Card.Body>
       </Card>
+
+      <TypeTrendSection latestType={currentType ?? '???'} history={history} />
 
       {snapshot?.axisStrengths.map((strength) => {
         const axis = AXES.find((a) => a.id === strength.axisId);

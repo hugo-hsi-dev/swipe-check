@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { readAllTypeSnapshots, readLatestTypeSnapshot } from '@/lib/local-data/session-lifecycle';
+import { readAllTypeSnapshots } from '@/lib/local-data/session-lifecycle';
 import { getSQLiteDatabase } from '@/lib/local-data/sqlite-runtime';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 
@@ -20,22 +20,26 @@ export function useInsightsData(): InsightsDataState {
     async function loadData() {
       try {
         const db = await getSQLiteDatabase();
-        const [latestSnapshot, allSnapshots] = await Promise.all([
-          readLatestTypeSnapshot(db),
-          readAllTypeSnapshots(db),
-        ]);
+        const allSnapshots = await readAllTypeSnapshots(db);
 
         if (!isMounted) return;
 
-        if (!latestSnapshot || allSnapshots.length === 0) {
+        if (allSnapshots.length === 0) {
           setState({ status: 'empty' });
           return;
         }
 
+        const sortedHistory = [...allSnapshots].sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id)
+        );
+
+        const latestSnapshot = sortedHistory[0];
+        const latestType = latestSnapshot.currentType;
+
         if (allSnapshots.length === 1) {
           setState({
             status: 'sparse',
-            latestType: latestSnapshot.currentType,
+            latestType,
             latestSnapshot,
             history: allSnapshots,
           });
@@ -44,7 +48,7 @@ export function useInsightsData(): InsightsDataState {
 
         setState({
           status: 'populated',
-          latestType: latestSnapshot.currentType,
+          latestType,
           latestSnapshot,
           history: allSnapshots,
         });
