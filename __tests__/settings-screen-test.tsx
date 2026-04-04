@@ -20,6 +20,8 @@ jest.mock('@/lib/local-data/sqlite', () => ({
   clearSQLiteData: jest.fn(() => Promise.resolve()),
 }));
 
+const originalSetTimeout = global.setTimeout;
+
 jest.mock('expo-router', () => ({
   router: {
     replace: jest.fn(),
@@ -153,6 +155,156 @@ describe('Settings Screen', () => {
       fireEvent.press(backButton);
 
       expect(router.back).toHaveBeenCalled();
+    });
+  });
+
+  describe('Wipe Error Handling', () => {
+    it('should display error message when wipe fails', async () => {
+      const testError = new Error('Test wipe failure');
+      (clearSQLiteData as jest.Mock).mockRejectedValueOnce(testError);
+
+      renderWithHeroUI(<SettingsScreen />);
+
+      const deleteButton = screen.getByText('Delete All Data');
+      fireEvent.press(deleteButton);
+
+      const confirmButton = screen.getByText('Yes, Delete All Data');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Failed to delete data: Test wipe failure')).toBeTruthy();
+      });
+    });
+
+    it('should clear error when canceling after failed wipe', async () => {
+      const testError = new Error('Test wipe failure');
+      (clearSQLiteData as jest.Mock).mockRejectedValueOnce(testError);
+
+      renderWithHeroUI(<SettingsScreen />);
+
+      const deleteButton = screen.getByText('Delete All Data');
+      fireEvent.press(deleteButton);
+
+      const confirmButton = screen.getByText('Yes, Delete All Data');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Failed to delete data: Test wipe failure')).toBeTruthy();
+      });
+
+      const cancelButton = screen.getByText('Cancel');
+      fireEvent.press(cancelButton);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Failed to delete data: Test wipe failure')).toBeNull();
+      });
+    });
+  });
+
+  describe('Wipe Loading State', () => {
+    it('should disable confirm button while wiping', async () => {
+      let resolveWipe: ((value?: void) => void) | undefined;
+      (clearSQLiteData as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveWipe = resolve;
+          })
+      );
+
+      renderWithHeroUI(<SettingsScreen />);
+
+      const deleteButton = screen.getByText('Delete All Data');
+      fireEvent.press(deleteButton);
+
+      const confirmButton = screen.getByText('Yes, Delete All Data');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Deleting...')).toBeTruthy();
+        expect(confirmButton).toBeDisabled();
+      });
+
+      resolveWipe!();
+    });
+
+    it('should disable cancel button while wiping', async () => {
+      let resolveWipe: ((value?: void) => void) | undefined;
+      (clearSQLiteData as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveWipe = resolve;
+          })
+      );
+
+      renderWithHeroUI(<SettingsScreen />);
+
+      const deleteButton = screen.getByText('Delete All Data');
+      fireEvent.press(deleteButton);
+
+      const confirmButton = screen.getByText('Yes, Delete All Data');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Deleting...')).toBeTruthy();
+      });
+
+      const cancelButton = screen.getByText('Cancel');
+      expect(cancelButton).toBeDisabled();
+
+      resolveWipe!();
+    });
+
+    it('should disable go back button while wiping', async () => {
+      let resolveWipe: ((value?: void) => void) | undefined;
+      (clearSQLiteData as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveWipe = resolve;
+          })
+      );
+
+      renderWithHeroUI(<SettingsScreen />);
+
+      const deleteButton = screen.getByText('Delete All Data');
+      fireEvent.press(deleteButton);
+
+      const confirmButton = screen.getByText('Yes, Delete All Data');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Deleting...')).toBeTruthy();
+      });
+
+      const goBackButton = screen.getByText('Go Back');
+      expect(goBackButton).toBeDisabled();
+
+      resolveWipe!();
+    });
+
+    it('should not navigate if component unmounts during successful wipe', async () => {
+      let rejectWipe: ((reason?: unknown) => void) | undefined;
+      (clearSQLiteData as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((_, reject) => {
+            rejectWipe = reject;
+          })
+      );
+
+      const { unmount } = renderWithHeroUI(<SettingsScreen />);
+
+      const deleteButton = screen.getByText('Delete All Data');
+      fireEvent.press(deleteButton);
+
+      const confirmButton = screen.getByText('Yes, Delete All Data');
+      fireEvent.press(confirmButton);
+
+      unmount();
+
+      rejectWipe!(new Error('Wipe aborted'));
+
+      await new Promise((resolve) => originalSetTimeout(resolve, 0));
+
+      expect(router.replace).not.toHaveBeenCalled();
     });
   });
 });
