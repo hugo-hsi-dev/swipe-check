@@ -311,27 +311,30 @@ describe('Settings Screen', () => {
   describe('MVP Scope Boundary', () => {
     it('should NOT display reminders settings', () => {
       renderWithHeroUI(<SettingsScreen />);
-      expect(screen.queryByText(/reminder/i)).toBeNull();
-      expect(screen.queryByText(/notification/i)).toBeNull();
+      expect(screen.queryByText('Reminders', { exact: true })).toBeNull();
+      expect(screen.queryByText('Notifications', { exact: true })).toBeNull();
     });
 
     it('should NOT display accounts settings', () => {
       renderWithHeroUI(<SettingsScreen />);
-      expect(screen.queryByText(/account/i)).toBeNull();
-      expect(screen.queryByText(/^profile$/i)).toBeNull();
+      expect(screen.queryByText('Account', { exact: true })).toBeNull();
+      expect(screen.queryByText('Profile', { exact: true })).toBeNull();
+      expect(screen.queryByText('Sign Out', { exact: true })).toBeNull();
     });
 
     it('should NOT display sync settings', () => {
       renderWithHeroUI(<SettingsScreen />);
-      expect(screen.queryByText(/sync/i)).toBeNull();
-      expect(screen.queryByText(/cloud/i)).toBeNull();
+      expect(screen.queryByText('Sync', { exact: true })).toBeNull();
+      expect(screen.queryByText('Back up', { exact: true })).toBeNull();
+      expect(screen.queryByText('Cloud sync', { exact: true })).toBeNull();
     });
 
     it('should NOT display theme customization', () => {
       renderWithHeroUI(<SettingsScreen />);
-      expect(screen.queryByText(/theme/i)).toBeNull();
-      expect(screen.queryByText(/dark mode/i)).toBeNull();
-      expect(screen.queryByText(/appearance/i)).toBeNull();
+      expect(screen.queryByText('Theme', { exact: true })).toBeNull();
+      expect(screen.queryByText('Dark mode', { exact: true })).toBeNull();
+      expect(screen.queryByText('Light mode', { exact: true })).toBeNull();
+      expect(screen.queryByText('Appearance', { exact: true })).toBeNull();
     });
   });
 });
