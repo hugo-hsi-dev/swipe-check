@@ -434,7 +434,8 @@ export default function SessionScreen() {
               <Ionicons name="arrow-back" size={24} color={foreground} />
             </Button>
             <Text className="text-lg font-semibold text-foreground">Daily Check-in</Text>
-            <View className="w-10" /> {/* Spacer for alignment */}
+            {/* Spacer for alignment */}
+            <View className="w-10" />
           </View>
 
           {/* Progress header */}
