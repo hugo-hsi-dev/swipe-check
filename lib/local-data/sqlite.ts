@@ -3,13 +3,10 @@ import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
 import {
   bootstrapLocalData,
   clearLocalData,
-  readQuestionCatalog,
-  migrateToSchemaV4,
   type BootstrapResult,
   type ClearResult,
   type LocalDatabaseAdapter,
 } from '@/lib/local-data/bootstrap';
-import type { Question } from '@/constants/question-contract';
 
 class ExpoSQLiteAdapter implements LocalDatabaseAdapter {
   constructor(private readonly db: SQLiteDatabase) {}
@@ -42,12 +39,7 @@ type OpenedSQLite = {
 };
 
 let bootstrapPromise: Promise<InitializedSQLite> | null = null;
-let schemaVersion: number | null = null;
 let bootstrapGeneration = 0;
-
-export function getSchemaVersion(): number | null {
-  return schemaVersion;
-}
 
 export function getBootstrapGeneration(): number {
   return bootstrapGeneration;
@@ -66,13 +58,14 @@ async function initializeSQLite(dbName: string): Promise<InitializedSQLite> {
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
       const { db, adapter } = await openAdapter(dbName);
+
+      // Pre-MVP policy: discard any existing local database on startup.
+      // This app has no users yet and schema changes are frequent, so
+      // preserving upgrade paths is not worth the complexity. A proper
+      // migration pipeline will be added post-MVP.
+      await clearLocalData(adapter);
+
       const result = await bootstrapLocalData(adapter);
-
-      if (result.schemaVersion < 4) {
-        await migrateToSchemaV4(adapter);
-      }
-
-      schemaVersion = result.schemaVersion;
 
       return {
         db,
@@ -99,11 +92,6 @@ export async function getBootstrappedSQLiteDatabase(
   return db;
 }
 
-export async function getStoredQuestionsSQLite(dbName = 'swipe-check.db'): Promise<Question[]> {
-  const { adapter } = await openAdapter(dbName);
-  return readQuestionCatalog(adapter);
-}
-
 export async function clearSQLiteData(dbName = 'swipe-check.db'): Promise<ClearResult> {
   const db = await getBootstrappedSQLiteDatabase(dbName);
   const adapter = new ExpoSQLiteAdapter(db);
@@ -114,7 +102,6 @@ export async function clearSQLiteData(dbName = 'swipe-check.db'): Promise<ClearR
   bootstrapGeneration++;
 
   const rebootstrapResult = await bootstrapLocalData(adapter);
-  schemaVersion = rebootstrapResult.schemaVersion;
 
   return result;
 }
