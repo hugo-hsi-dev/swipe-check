@@ -98,6 +98,76 @@ describe('Insights Screen', () => {
     expect(screen.getByText('2 snapshots recorded')).toBeTruthy();
   });
 
+  it('should render pole A dominant axis with bar aligned to left', () => {
+    const poleADominantSnapshot: TypeSnapshot = {
+      id: 'snap-pole-a',
+      currentType: 'INTJ',
+      axisScores: [
+        { axisId: 't-f', poleA: { poleId: 't', count: 3 }, poleB: { poleId: 'f', count: 0 }, totalResponses: 3 },
+        { axisId: 'e-i', poleA: { poleId: 'e', count: 2 }, poleB: { poleId: 'i', count: 1 }, totalResponses: 3 },
+        { axisId: 's-n', poleA: { poleId: 's', count: 1 }, poleB: { poleId: 'n', count: 2 }, totalResponses: 3 },
+        { axisId: 'j-p', poleA: { poleId: 'j', count: 1 }, poleB: { poleId: 'p', count: 1 }, totalResponses: 2 },
+      ],
+      axisStrengths: [
+        { axisId: 't-f', strength: -1.0, dominantPoleId: 't', rawDifference: -3 },
+        { axisId: 'e-i', strength: -0.33, dominantPoleId: 'e', rawDifference: -1 },
+        { axisId: 's-n', strength: 0.33, dominantPoleId: 'n', rawDifference: 1 },
+        { axisId: 'j-p', strength: 0, dominantPoleId: null, rawDifference: 0 },
+      ],
+      createdAt: new Date(),
+      source: { type: 'onboarding', sessionId: 'onboarding-session' },
+      questionCount: 12,
+    };
+
+    jest.mocked(useInsightsData).mockReturnValue({
+      status: 'populated',
+      latestType: 'INTJ',
+      latestSnapshot: poleADominantSnapshot,
+      history: [poleADominantSnapshot],
+    });
+
+    renderWithHeroUI(<InsightsScreen />);
+    expect(screen.getByText(/Thinking.*\(100%\)/)).toBeTruthy();
+    expect(screen.getByText(/Extraversion.*\(33%\)/)).toBeTruthy();
+    expect(screen.getByTestId('axis-fill-t-f')).toBeTruthy();
+    expect(screen.getByTestId('axis-fill-e-i')).toBeTruthy();
+  });
+
+  it('should render pole B dominant axis with bar aligned to right', () => {
+    const poleBDominantSnapshot: TypeSnapshot = {
+      id: 'snap-pole-b',
+      currentType: 'ENFP',
+      axisScores: [
+        { axisId: 'e-i', poleA: { poleId: 'e', count: 0 }, poleB: { poleId: 'i', count: 3 }, totalResponses: 3 },
+        { axisId: 's-n', poleA: { poleId: 's', count: 1 }, poleB: { poleId: 'n', count: 2 }, totalResponses: 3 },
+        { axisId: 't-f', poleA: { poleId: 't', count: 0 }, poleB: { poleId: 'f', count: 3 }, totalResponses: 3 },
+        { axisId: 'j-p', poleA: { poleId: 'j', count: 1 }, poleB: { poleId: 'p', count: 2 }, totalResponses: 3 },
+      ],
+      axisStrengths: [
+        { axisId: 'e-i', strength: 1.0, dominantPoleId: 'i', rawDifference: 3 },
+        { axisId: 's-n', strength: 0.33, dominantPoleId: 'n', rawDifference: 1 },
+        { axisId: 't-f', strength: 1.0, dominantPoleId: 'f', rawDifference: 3 },
+        { axisId: 'j-p', strength: 0.33, dominantPoleId: 'p', rawDifference: 1 },
+      ],
+      createdAt: new Date(),
+      source: { type: 'onboarding', sessionId: 'onboarding-session' },
+      questionCount: 12,
+    };
+
+    jest.mocked(useInsightsData).mockReturnValue({
+      status: 'populated',
+      latestType: 'ENFP',
+      latestSnapshot: poleBDominantSnapshot,
+      history: [poleBDominantSnapshot],
+    });
+
+    renderWithHeroUI(<InsightsScreen />);
+    expect(screen.getByText(/Intuition.*\(33%\)/)).toBeTruthy();
+    expect(screen.getByText(/Feeling.*\(100%\)/)).toBeTruthy();
+    expect(screen.getByTestId('axis-fill-t-f')).toBeTruthy();
+    expect(screen.getByTestId('axis-fill-e-i')).toBeTruthy();
+  });
+
   it('should render Balanced label for tied axis (strength 0, dominantPoleId null)', () => {
     const tiedSnapshot: TypeSnapshot = {
       id: 'snap-tie',
@@ -128,5 +198,6 @@ describe('Insights Screen', () => {
 
     renderWithHeroUI(<InsightsScreen />);
     expect(screen.getByText('Balanced')).toBeTruthy();
+    expect(screen.getByTestId('axis-fill-e-i')).toBeTruthy();
   });
 });
