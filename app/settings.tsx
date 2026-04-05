@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 import { Button, Card, Description, useThemeColor } from 'heroui-native';
+import Constants from 'expo-constants';
 
 import { clearSQLiteData } from '@/lib/local-data/sqlite';
 
@@ -63,7 +64,7 @@ export default function SettingsScreen() {
           <View className="gap-2">
             <View className="flex-row items-center justify-between">
               <Description>Version</Description>
-              <Description>1.0.0</Description>
+              <Description>{Constants.expoConfig?.version ?? 'Unknown'}</Description>
             </View>
             <View className="flex-row items-center justify-between">
               <Description>Build</Description>

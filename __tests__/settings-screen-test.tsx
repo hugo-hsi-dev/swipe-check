@@ -7,9 +7,8 @@
  * - Post-wipe routing to first-launch state
  */
 
-import { waitFor, renderHook, act, fireEvent } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import { render, screen } from '@testing-library/react-native';
 import { HeroUINativeProvider } from 'heroui-native';
 import React from 'react';
 
@@ -26,6 +25,15 @@ jest.mock('expo-router', () => ({
   router: {
     replace: jest.fn(),
     back: jest.fn(),
+  },
+}));
+
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: {
+    expoConfig: {
+      version: '1.0.0',
+    },
   },
 }));
 
