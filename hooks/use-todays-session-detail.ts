@@ -27,8 +27,6 @@ export type TodaysSessionDetailState = {
   isLoading: boolean;
   /** Error if loading failed */
   error: Error | null;
-  /** Refresh the detail from storage (useful after writing answers) */
-  refresh: () => Promise<void>;
 };
 
 /**
@@ -80,22 +78,8 @@ export function useTodaysSessionDetail(): TodaysSessionDetailState {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    void (async () => {
-      if (isMounted) {
-        await loadDetail();
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
+    void loadDetail();
   }, [loadDetail]);
 
-  const refresh = useCallback(async () => {
-    await loadDetail();
-  }, [loadDetail]);
-
-  return { detail, isLoading, error, refresh };
+  return { detail, isLoading, error };
 }

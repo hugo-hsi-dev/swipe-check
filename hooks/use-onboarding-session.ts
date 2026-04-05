@@ -43,8 +43,6 @@ export type OnboardingController = {
   completeOnboarding: () => Promise<void>;
   /** Whether onboarding can be completed */
   canComplete: boolean;
-  /** Refresh the controller state */
-  refresh: () => Promise<void>;
 };
 
 /**
@@ -91,17 +89,7 @@ export function useOnboardingSession(): OnboardingController {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    void (async () => {
-      if (isMounted) {
-        await loadSession();
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
+    void loadSession();
   }, [loadSession]);
 
   // Build the questions state with answers
@@ -228,10 +216,6 @@ export function useOnboardingSession(): OnboardingController {
     }
   }, [session, totalCount]);
 
-  const refresh = useCallback(async () => {
-    await loadSession();
-  }, [loadSession]);
-
   return {
     session,
     questions,
@@ -244,7 +228,6 @@ export function useOnboardingSession(): OnboardingController {
     submitAnswer,
     completeOnboarding,
     canComplete,
-    refresh,
   };
 }
 

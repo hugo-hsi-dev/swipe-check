@@ -15,8 +15,6 @@ export type DailySessionController = {
   isLoading: boolean;
   /** Start or resume today's daily session */
   startTodaysSession: () => Promise<void>;
-  /** Refresh today's session from storage (useful after writing answers) */
-  refresh: () => Promise<void>;
 };
 
 /**
@@ -50,17 +48,7 @@ export function useDailySession(): DailySessionController {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    void (async () => {
-      if (isMounted) {
-        await loadSession();
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
+    void loadSession();
   }, [loadSession]);
 
   const startTodaysSession = useCallback(async () => {
@@ -75,9 +63,5 @@ export function useDailySession(): DailySessionController {
     }
   }, []);
 
-  const refresh = useCallback(async () => {
-    await loadSession();
-  }, [loadSession]);
-
-  return { todaysSession, isLoading, startTodaysSession, refresh };
+  return { todaysSession, isLoading, startTodaysSession };
 }
