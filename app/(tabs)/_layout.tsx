@@ -12,15 +12,16 @@ const MINIMAL_TAB_BAR_STYLE = StyleSheet.create({
     borderTopColor: COLORS.borderLight,
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: SPACING.md,
-    paddingBottom: 28,
+    paddingBottom: 34,
     paddingHorizontal: SPACING.lg,
+    height: 90,
   },
 }).root;
 
 const MINIMAL_TAB_BAR_ITEM_STYLE = StyleSheet.create({
   root: {
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.sm,
+    paddingTop: SPACING.xs,
+    paddingBottom: 0,
   },
 }).root;
 
@@ -30,7 +31,7 @@ const MINIMAL_TAB_BAR_LABEL_STYLE = StyleSheet.create({
     fontWeight: FONT_WEIGHTS.medium,
     letterSpacing: 0,
     textTransform: 'none',
-    marginTop: SPACING.sm,
+    marginTop: SPACING.md,
   },
 }).root;
 
