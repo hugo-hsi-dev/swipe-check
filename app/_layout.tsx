@@ -5,12 +5,25 @@ import 'react-native-reanimated';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
 import { useInitialRoute } from '@/hooks/use-initial-route';
 import { COLORS, FONT_SIZES, SPACING } from '@/constants/design-system';
 
 import '@/global.css';
+
+const ORGANIC_LIGHT_THEME = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: COLORS.cream,
+    border: COLORS.borderLight,
+    card: COLORS.warmWhite,
+    notification: COLORS.sage,
+    primary: COLORS.terracotta,
+    text: COLORS.softBrown,
+  },
+};
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -23,6 +36,7 @@ export default function RootLayout() {
   const { preview } = useGlobalSearchParams<{ preview?: string }>();
   const { evaluatedPathname, isDeterminingRoute, routeError, targetRoute } = useInitialRoute(pathname);
   const isOnboardingPreview = preview === '1';
+  const isDark = colorScheme === 'dark';
 
   if (isBootstrapping || isDeterminingRoute) {
     return (
@@ -62,7 +76,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={isDark ? DarkTheme : ORGANIC_LIGHT_THEME}>
         <Stack>
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -76,7 +90,7 @@ export default function RootLayout() {
             }}
           />
         </Stack>
-        <StatusBar style="auto" />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
       </ThemeProvider>
     </GestureHandlerRootView>
   );
