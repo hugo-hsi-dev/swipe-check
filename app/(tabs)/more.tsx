@@ -1,11 +1,11 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
-import { ScrollView, Text } from 'react-native';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import { ScrollView, Text } from 'react-native';
 
-import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Button, ButtonIcon, ButtonLabel } from '@/components/ui/button';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 export default function MoreScreen() {
@@ -51,14 +51,12 @@ export default function MoreScreen() {
           </Text>
         </CardHeader>
         <CardBody gap="sm">
-          <Link href="/journal" asChild>
-            <Button variant="secondary" style={{ alignSelf: 'stretch' }}>
-              <ButtonIcon>
-                <Ionicons name="book" size={20} color={COLORS.terracotta} />
-              </ButtonIcon>
-              <ButtonLabel>Journal</ButtonLabel>
-            </Button>
-          </Link>
+          <Button variant="secondary" onPress={() => router.push('/journal')} style={{ alignSelf: 'stretch' }}>
+            <ButtonIcon>
+              <Ionicons name="book" size={20} color={COLORS.terracotta} />
+            </ButtonIcon>
+            <ButtonLabel variant="secondary">Journal</ButtonLabel>
+          </Button>
           <Text
             style={{
               fontSize: FONT_SIZES.sm,
@@ -68,14 +66,12 @@ export default function MoreScreen() {
             View your history and past entries
           </Text>
 
-          <Link href="/settings" asChild>
-            <Button variant="secondary" style={{ alignSelf: 'stretch' }}>
-              <ButtonIcon>
-                <Ionicons name="settings" size={20} color={COLORS.terracotta} />
-              </ButtonIcon>
-              <ButtonLabel>Settings</ButtonLabel>
-            </Button>
-          </Link>
+          <Button variant="secondary" onPress={() => router.push('/settings')} style={{ alignSelf: 'stretch' }}>
+            <ButtonIcon>
+              <Ionicons name="settings" size={20} color={COLORS.terracotta} />
+            </ButtonIcon>
+            <ButtonLabel variant="secondary">Settings</ButtonLabel>
+          </Button>
           <Text
             style={{
               fontSize: FONT_SIZES.sm,
