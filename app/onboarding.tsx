@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Button, Card, Chip, useThemeColor } from 'heroui-native';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -10,13 +9,18 @@ import Animated, {
   FadeOut,
 } from 'react-native-reanimated';
 
+import { Card, CardBody } from '@/components/ui/card';
+import { Button, ButtonLabel } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ProgressBar } from '@/components/session/progress-bar';
+import { QuestionCard } from '@/components/session/question-card';
+import { AnswerButtonGroup } from '@/components/session/answer-button';
 import type { QuestionResponse } from '@/constants/question-contract';
 import { AXES } from '@/constants/questions';
 import { useOnboardingSession } from '@/hooks/use-onboarding-session';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
 type OnboardingPhase = 'intro' | 'questions' | 'complete';
-
-
 
 const INTRO_STEPS = [
   {
@@ -45,13 +49,21 @@ const INTRO_STEPS = [
   },
 ] as const;
 
-function DecorativeOrb({ color, size, top, left, right, bottom, opacity = 0.15 }: { 
-  color: string; 
-  size: number; 
-  top?: number; 
-  left?: number; 
-  right?: number; 
-  bottom?: number; 
+function DecorativeOrb({
+  color,
+  size,
+  top,
+  left,
+  right,
+  bottom,
+  opacity = 0.15,
+}: {
+  color: string;
+  size: number;
+  top?: number;
+  left?: number;
+  right?: number;
+  bottom?: number;
   opacity?: number;
 }) {
   return (
@@ -86,12 +98,7 @@ export default function OnboardingScreen() {
     canComplete,
   } = useOnboardingSession();
 
-  const [accent, accentForeground, foreground, success] = useThemeColor([
-    'accent',
-    'accent-foreground',
-    'foreground',
-    'success',
-  ]);
+  const accent = COLORS.terracotta;
 
   const [introStep, setIntroStep] = useState(0);
   const [phase, setPhase] = useState<OnboardingPhase>('intro');
@@ -152,14 +159,40 @@ export default function OnboardingScreen() {
 
   if (isLoading) {
     return (
-      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.centeredContainer} bounces={false} overScrollMode="never">
-        <View className="items-center gap-6">
-          <View className="size-16 items-center justify-center rounded-3xl" style={{ backgroundColor: `${accent}15` }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
+        contentContainerStyle={styles.centeredContainer}
+        bounces={false}
+        overScrollMode="never">
+        <View style={{ alignItems: 'center', gap: SPACING.xl }}>
+          <View
+            style={{
+              width: 64,
+              height: 64,
+              backgroundColor: `${accent}15`,
+              borderRadius: RADIUS.xl,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
             <Ionicons name="hourglass-outline" size={32} color={accent} />
           </View>
-          <View className="gap-2 items-center">
-            <Text className="text-2xl font-bold text-foreground">Preparing...</Text>
-            <Text className="text-center text-base text-muted">One moment</Text>
+          <View style={{ gap: SPACING.sm, alignItems: 'center' }}>
+            <Text
+              style={{
+                fontSize: FONT_SIZES['2xl'],
+                fontWeight: FONT_WEIGHTS.bold,
+                color: COLORS.softBrown,
+              }}>
+              Preparing...
+            </Text>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.base,
+                color: COLORS.warmGray,
+                textAlign: 'center',
+              }}>
+              One moment
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -168,25 +201,53 @@ export default function OnboardingScreen() {
 
   if (phase === 'complete') {
     return (
-      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.centeredContainer} bounces={false} overScrollMode="never">
-        <DecorativeOrb color={success} size={300} top={-100} left={-100} opacity={0.1} />
+      <ScrollView
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
+        contentContainerStyle={styles.centeredContainer}
+        bounces={false}
+        overScrollMode="never">
+        <DecorativeOrb color={COLORS.sage} size={300} top={-100} left={-100} opacity={0.1} />
         <DecorativeOrb color={accent} size={200} top={150} right={-80} opacity={0.08} />
 
-        <Animated.View entering={FadeInUp.duration(400)} className="items-center gap-8 w-full max-w-[340px]">
-          <View className="size-24 items-center justify-center rounded-full" style={{ backgroundColor: `${success}15` }}>
-            <Ionicons name="checkmark-circle" size={48} color={success} />
+        <Animated.View
+          entering={FadeInUp.duration(400)}
+          style={{ alignItems: 'center', gap: SPACING['3xl'], width: '100%', maxWidth: 340 }}>
+          <View
+            style={{
+              width: 96,
+              height: 96,
+              backgroundColor: `${COLORS.sage}15`,
+              borderRadius: 9999,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Ionicons name="checkmark-circle" size={48} color={COLORS.sage} />
           </View>
 
-          <View className="gap-3 items-center">
-            <Text className="text-3xl font-bold text-foreground text-center">All set</Text>
-            <Text className="text-center text-base leading-6 text-muted">
+          <View style={{ gap: SPACING.md, alignItems: 'center' }}>
+            <Text
+              style={{
+                fontSize: FONT_SIZES['3xl'],
+                fontWeight: FONT_WEIGHTS.bold,
+                color: COLORS.softBrown,
+                textAlign: 'center',
+              }}>
+              All set
+            </Text>
+            <Text
+              style={{
+                textAlign: 'center',
+                fontSize: FONT_SIZES.base,
+                lineHeight: FONT_SIZES.base * 1.5,
+                color: COLORS.warmGray,
+              }}>
               Your baseline is saved. Come back tomorrow for your first daily check-in.
             </Text>
           </View>
 
-          <Button onPress={() => void handleComplete()} isDisabled={isSubmitting} size="lg" className="w-full">
-            <Button.Label className="text-lg font-semibold">Start tracking</Button.Label>
-            {!isSubmitting && <Ionicons name="arrow-forward" size={18} color={accentForeground} />}
+          <Button onPress={() => void handleComplete()} isDisabled={isSubmitting}>
+            <ButtonLabel>Start tracking</ButtonLabel>
+            {!isSubmitting && <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
           </Button>
         </Animated.View>
       </ScrollView>
@@ -195,74 +256,86 @@ export default function OnboardingScreen() {
 
   if (phase === 'questions') {
     return (
-      <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.questionContainer} bounces={false} overScrollMode="never">
+      <ScrollView
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
+        contentContainerStyle={styles.questionContainer}
+        bounces={false}
+        overScrollMode="never">
         <DecorativeOrb color={accent} size={250} top={-80} left={-80} opacity={0.1} />
 
-        <Animated.View entering={FadeInUp.duration(350)} className="gap-6 w-full">
+        <Animated.View entering={FadeInUp.duration(350)} style={{ gap: SPACING.xl, width: '100%' }}>
           {/* Progress header */}
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
               <Ionicons name="help-circle-outline" size={20} color={accent} />
-              <Text className="text-sm font-medium text-muted">
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.sm,
+                  fontWeight: FONT_WEIGHTS.medium,
+                  color: COLORS.warmGray,
+                }}>
                 {answeredCount + 1} / {totalCount}
               </Text>
             </View>
             {currentAxis && (
-              <Chip variant="soft" color="accent" size="sm">
-                <Chip.Label>{currentAxis.name}</Chip.Label>
-              </Chip>
+              <Badge variant="terracotta" size="sm">
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.xs,
+                    fontWeight: FONT_WEIGHTS.semibold,
+                    color: COLORS.terracotta,
+                  }}>
+                  {currentAxis.name}
+                </Text>
+              </Badge>
             )}
           </View>
 
           {/* Progress bar */}
-          <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
-            <View
-              className="h-full rounded-full"
-              style={{ width: `${progressPercentage}%`, backgroundColor: accent }}
-            />
-          </View>
+          <ProgressBar
+            progressPercentage={progressPercentage}
+            currentStep={answeredCount + 1}
+            totalSteps={totalCount}
+            accentColor={accent}
+          />
 
           {/* Question card */}
-          <Card variant="secondary" className="overflow-hidden">
-            <View className="h-1 w-full" style={{ backgroundColor: accent, opacity: 0.2 }} />
-            <Card.Body className="p-6">
-              <Text className="text-xl font-semibold leading-relaxed text-foreground">
-                {currentQuestion?.question.prompt ?? 'Loading...'}
-              </Text>
-            </Card.Body>
-          </Card>
+          <QuestionCard
+            prompt={currentQuestion?.question.prompt ?? 'Loading...'}
+            categoryLabel={currentAxis?.name}
+          />
 
           {/* Answer buttons */}
-          <Animated.View entering={FadeInDown.delay(100).duration(300)} className="gap-3">
-            <Button
-              onPress={() => void handleAnswer('agree')}
+          <Animated.View entering={FadeInDown.delay(100).duration(300)} style={{ gap: SPACING.md }}>
+            <AnswerButtonGroup
+              onAgree={() => void handleAnswer('agree')}
+              onDisagree={() => void handleAnswer('disagree')}
               isDisabled={isSubmitting || !currentQuestion}
-              size="lg"
-              className="w-full"
-            >
-              <Ionicons name="checkmark" size={22} color={accentForeground} />
-              <Button.Label className="text-lg font-semibold">Agree</Button.Label>
-            </Button>
-
-            <Button
-              variant="outline"
-              onPress={() => void handleAnswer('disagree')}
-              isDisabled={isSubmitting || !currentQuestion}
-              size="lg"
-              className="w-full"
-            >
-              <Ionicons name="close" size={22} color={foreground} />
-              <Button.Label className="text-lg font-semibold">Disagree</Button.Label>
-            </Button>
+            />
           </Animated.View>
 
           {isSubmitting && (
             <Animated.View entering={FadeIn.duration(150)}>
-              <Card variant="tertiary">
-                <Card.Body className="flex-row items-center gap-3 p-4">
-                  <Ionicons name={lastAnswer === 'agree' ? 'checkmark' : 'close'} size={20} color={accent} />
-                  <Text className="text-sm text-muted">Saving...</Text>
-                </Card.Body>
+              <Card variant="default">
+                <CardBody
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: SPACING.md,
+                    padding: SPACING.lg,
+                  }}>
+                  <Ionicons
+                    name={lastAnswer === 'agree' ? 'checkmark' : 'close'}
+                    size={20}
+                    color={accent}
+                  />
+                  <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>Saving...</Text>
+                </CardBody>
               </Card>
             </Animated.View>
           )}
@@ -273,7 +346,11 @@ export default function OnboardingScreen() {
 
   // Intro phase
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={styles.centeredContainer} bounces={false} overScrollMode="never">
+    <ScrollView
+      style={{ flex: 1, backgroundColor: COLORS.cream }}
+      contentContainerStyle={styles.centeredContainer}
+      bounces={false}
+      overScrollMode="never">
       <DecorativeOrb color={accent} size={300} top={-100} left={-100} opacity={0.1} />
       <DecorativeOrb color="#8B5CF6" size={180} top={200} right={-60} opacity={0.06} />
 
@@ -281,20 +358,28 @@ export default function OnboardingScreen() {
         key={introStep}
         entering={FadeInUp.duration(350)}
         exiting={FadeOut.duration(150)}
-        className="items-center gap-8 w-full max-w-[340px]"
-      >
+        style={{ alignItems: 'center', gap: SPACING['3xl'], width: '100%', maxWidth: 340 }}>
         {/* Icon */}
-        <View className="size-20 items-center justify-center rounded-3xl" style={{ backgroundColor: `${accent}12` }}>
+        <View
+          style={{
+            width: 80,
+            height: 80,
+            backgroundColor: `${accent}12`,
+            borderRadius: RADIUS.xl,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
           <Ionicons name={currentIntroStep.icon} size={36} color={accent} />
         </View>
 
         {/* Step indicator dots */}
-        <View className="flex-row items-center gap-2">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
           {INTRO_STEPS.map((_, i) => (
             <View
               key={i}
-              className="h-2 rounded-full transition-all duration-300"
               style={{
+                height: 8,
+                borderRadius: 9999,
                 width: i === introStep ? 24 : 8,
                 backgroundColor: i <= introStep ? accent : 'rgba(0,0,0,0.08)',
               }}
@@ -303,43 +388,65 @@ export default function OnboardingScreen() {
         </View>
 
         {/* Text content */}
-        <View className="gap-3 items-center">
-          <Text className="text-3xl font-bold text-foreground text-center leading-tight">
+        <View style={{ gap: SPACING.md, alignItems: 'center' }}>
+          <Text
+            style={{
+              fontSize: FONT_SIZES['3xl'],
+              fontWeight: FONT_WEIGHTS.bold,
+              color: COLORS.softBrown,
+              textAlign: 'center',
+              lineHeight: FONT_SIZES['3xl'] * 1.2,
+            }}>
             {currentIntroStep.title}
           </Text>
 
-          <Text className="text-base text-accent font-medium">
+          <Text
+            style={{
+              fontSize: FONT_SIZES.base,
+              color: accent,
+              fontWeight: FONT_WEIGHTS.medium,
+            }}>
             {currentIntroStep.subtitle}
           </Text>
 
-          <Text className="text-center text-base leading-6 text-muted">
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: FONT_SIZES.base,
+              lineHeight: FONT_SIZES.base * 1.5,
+              color: COLORS.warmGray,
+            }}>
             {currentIntroStep.description}
           </Text>
         </View>
 
         {/* Action buttons */}
-        <View className="gap-3 w-full">
-          <Button onPress={handleNextIntroStep} size="lg" className="w-full">
-            <Button.Label className="text-lg font-semibold">
+        <View style={{ gap: SPACING.md, width: '100%' }}>
+          <Button onPress={handleNextIntroStep}>
+            <ButtonLabel>
               {introStep === INTRO_STEPS.length - 1 ? 'Start' : 'Next'}
-            </Button.Label>
-            <Ionicons name="arrow-forward" size={18} color={accentForeground} />
+            </ButtonLabel>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
           </Button>
 
           {introStep > 0 ? (
-            <Button variant="ghost" onPress={handleBackIntroStep} className="w-full">
-              <Ionicons name="arrow-back" size={18} color={foreground} />
-              <Button.Label>Back</Button.Label>
+            <Button variant="ghost" onPress={handleBackIntroStep}>
+              <Ionicons name="arrow-back" size={18} color={COLORS.softBrown} />
+              <ButtonLabel variant="ghost">Back</ButtonLabel>
             </Button>
           ) : (
             <Button variant="ghost" onPress={() => setPhase('questions')}>
-              <Button.Label className="text-muted">Skip intro</Button.Label>
+              <ButtonLabel variant="ghost" style={{ color: COLORS.warmGray }}>
+                Skip intro
+              </ButtonLabel>
             </Button>
           )}
 
           {answeredCount > 0 && (
             <Button variant="ghost" onPress={() => setPhase('questions')}>
-              <Button.Label style={{ color: accent }}>Resume</Button.Label>
+              <ButtonLabel variant="ghost" style={{ color: accent }}>
+                Resume
+              </ButtonLabel>
             </Button>
           )}
         </View>
@@ -353,13 +460,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: SPACING.xl,
     paddingTop: 48,
     paddingBottom: 32,
   },
   questionContainer: {
     flexGrow: 1,
-    padding: 24,
+    padding: SPACING.xl,
     paddingTop: 48,
     paddingBottom: 32,
   },

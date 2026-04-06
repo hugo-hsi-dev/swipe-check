@@ -2,17 +2,18 @@ import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
-import { Button, Card, Description, useThemeColor } from 'heroui-native';
 import Constants from 'expo-constants';
 
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { Button, ButtonLabel } from '@/components/ui/button';
 import { clearSQLiteData } from '@/lib/local-data/sqlite';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 export default function SettingsScreen() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
   const [isWiping, setIsWiping] = React.useState(false);
   const [wipeError, setWipeError] = React.useState<string | null>(null);
   const isMounted = React.useRef(true);
-  const [danger] = useThemeColor(['danger']);
 
   React.useEffect(
     () => () => {
@@ -41,75 +42,147 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-background"
+      style={{ flex: 1, backgroundColor: COLORS.cream }}
       contentContainerStyle={{
-        gap: 16,
-        padding: 16,
-        paddingTop: 24,
-        paddingBottom: 24,
-      }}
-    >
+        gap: SPACING.lg,
+        padding: SPACING.xl,
+        paddingTop: SPACING['3xl'],
+        paddingBottom: SPACING['2xl'],
+      }}>
       <Card>
-        <Card.Body className="gap-3">
-          <Card.Title className="text-xl">Settings</Card.Title>
-          <Card.Description>
+        <CardBody gap="sm">
+          <Text
+            style={{
+              fontSize: FONT_SIZES['2xl'],
+              fontWeight: FONT_WEIGHTS.bold,
+              color: COLORS.softBrown,
+            }}>
+            Settings
+          </Text>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.base,
+              color: COLORS.warmGray,
+              lineHeight: FONT_SIZES.base * 1.5,
+            }}>
             App information and local data controls
-          </Card.Description>
-        </Card.Body>
+          </Text>
+        </CardBody>
       </Card>
 
       <Card>
-        <Card.Body className="gap-3">
-          <Card.Title>About</Card.Title>
-          <View className="gap-2">
-            <View className="flex-row items-center justify-between">
-              <Description>Version</Description>
-              <Description>{Constants.expoConfig?.version ?? 'Unknown'}</Description>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <Description>Build</Description>
-              <Description>100</Description>
-            </View>
+        <CardHeader>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.xl,
+              fontWeight: FONT_WEIGHTS.semibold,
+              color: COLORS.softBrown,
+            }}>
+            About
+          </Text>
+        </CardHeader>
+        <CardBody gap="sm">
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Version</Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>
+              {Constants.expoConfig?.version ?? 'Unknown'}
+            </Text>
           </View>
-        </Card.Body>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Build</Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>100</Text>
+          </View>
+        </CardBody>
       </Card>
 
-      <Card className="bg-danger-soft">
-        <Card.Body className="gap-4">
+      <Card variant="default">
+        <CardBody gap="lg">
           {!showDeleteConfirmation ? (
             <>
-              <Card.Title className="text-destructive">Clear Local Data</Card.Title>
-              <Description>
-                This will permanently delete all your data, including your personality profile and
-                journal history. This action cannot be undone.
-              </Description>
+              <View>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.xl,
+                    fontWeight: FONT_WEIGHTS.semibold,
+                    color: COLORS.danger,
+                  }}>
+                  Clear Local Data
+                </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.base,
+                    color: COLORS.warmGray,
+                    lineHeight: FONT_SIZES.base * 1.5,
+                    marginTop: SPACING.sm,
+                  }}>
+                  This will permanently delete all your data, including your personality profile and
+                  journal history. This action cannot be undone.
+                </Text>
+              </View>
               <Button variant="danger" onPress={() => setShowDeleteConfirmation(true)}>
-                <Ionicons name="trash-outline" size={18} />
-                <Button.Label>Delete All Data</Button.Label>
+                <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                <ButtonLabel variant="danger">Delete All Data</ButtonLabel>
               </Button>
             </>
           ) : (
             <>
-              <View className="items-center gap-3 pb-2">
-                <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
-                  <Ionicons name="warning-outline" size={28} color={danger} />
+              <View style={{ alignItems: 'center', gap: SPACING.md, paddingBottom: SPACING.sm }}>
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    backgroundColor: COLORS.cream,
+                    borderRadius: 9999,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <Ionicons name="warning-outline" size={28} color={COLORS.danger} />
                 </View>
-                <Text className="text-lg font-semibold text-center text-destructive">
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.lg,
+                    fontWeight: FONT_WEIGHTS.semibold,
+                    textAlign: 'center',
+                    color: COLORS.danger,
+                  }}>
                   Are you sure?
                 </Text>
-                <Text className="text-sm text-text-secondary text-center">
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.sm,
+                    color: COLORS.warmGray,
+                    textAlign: 'center',
+                    lineHeight: FONT_SIZES.sm * 1.5,
+                  }}>
                   This will permanently delete all your local data. The app will return to its
                   first-launch state.
                 </Text>
                 {wipeError && (
-                  <Text className="text-sm text-destructive text-center">
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.sm,
+                      color: COLORS.danger,
+                      textAlign: 'center',
+                    }}>
                     Failed to delete data: {wipeError}
                   </Text>
                 )}
               </View>
               <Button variant="danger" onPress={handleResetData} isDisabled={isWiping}>
-                <Ionicons name="trash-outline" size={18} />
-                <Button.Label>{isWiping ? 'Deleting...' : 'Yes, Delete All Data'}</Button.Label>
+                <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                <ButtonLabel variant="danger">
+                  {isWiping ? 'Deleting...' : 'Yes, Delete All Data'}
+                </ButtonLabel>
               </Button>
               <Button
                 variant="secondary"
@@ -117,18 +190,17 @@ export default function SettingsScreen() {
                   setShowDeleteConfirmation(false);
                   setWipeError(null);
                 }}
-                isDisabled={isWiping}
-              >
-                <Button.Label>Cancel</Button.Label>
+                isDisabled={isWiping}>
+                <ButtonLabel variant="secondary">Cancel</ButtonLabel>
               </Button>
             </>
           )}
-        </Card.Body>
+        </CardBody>
       </Card>
 
       <Button variant="secondary" onPress={() => router.back()} isDisabled={isWiping}>
-        <Ionicons name="arrow-back" size={16} />
-        <Button.Label>Go Back</Button.Label>
+        <Ionicons name="arrow-back" size={16} color={COLORS.terracotta} />
+        <ButtonLabel variant="secondary">Go Back</ButtonLabel>
       </Button>
     </ScrollView>
   );

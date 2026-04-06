@@ -1,12 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
-import { Avatar, Button, Card, Chip, ListGroup, Skeleton, useThemeColor } from 'heroui-native';
 
+import { Card, CardBody } from '@/components/ui/card';
+import { Button, ButtonLabel } from '@/components/ui/button';
+
+import { Avatar } from '@/components/ui/icon-container';
+import { JournalListItem } from '@/components/journal/journal-list-item';
+import { EmptyState } from '@/components/journal/empty-state';
 import {
   useCurrentDayCompletedSession,
   useJournalHistory,
 } from '@/hooks/use-journal-data';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -37,7 +43,6 @@ export default function JournalScreen() {
     isLoading: isCurrentDayLoading,
     error: currentDayError,
   } = useCurrentDayCompletedSession();
-  const [foreground, muted] = useThemeColor(['foreground', 'muted']);
 
   const dailyEntries = entries.filter((entry) => entry.session.type === 'daily');
   const onboardingEntries = entries.filter((entry) => entry.session.type === 'onboarding');
@@ -54,24 +59,64 @@ export default function JournalScreen() {
   if (isLoading || isCurrentDayLoading) {
     return (
       <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
+        contentContainerStyle={{
+          gap: SPACING.lg,
+          padding: SPACING.xl,
+          paddingTop: SPACING['3xl'],
+          paddingBottom: SPACING['2xl'],
+        }}>
         <Card>
-          <Card.Body className="gap-4">
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-full" />
-          </Card.Body>
+          <CardBody gap="md">
+            <View
+              style={{
+                width: 120,
+                height: 24,
+                backgroundColor: COLORS.sageLight,
+                borderRadius: 4,
+              }}
+            />
+            <View
+              style={{
+                width: '100%',
+                height: 16,
+                backgroundColor: COLORS.sageLight,
+                borderRadius: 4,
+              }}
+            />
+          </CardBody>
         </Card>
-        <View className="gap-3">
+        <View style={{ gap: SPACING.md }}>
           {[1, 2, 3].map((i) => (
             <Card key={i}>
-              <Card.Body className="flex-row items-center gap-3">
-                <Skeleton className="size-10 rounded-full" />
-                <View className="flex-1 gap-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-24" />
+              <CardBody style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    backgroundColor: COLORS.sageLight,
+                    borderRadius: 9999,
+                  }}
+                />
+                <View style={{ flex: 1, gap: SPACING.sm }}>
+                  <View
+                    style={{
+                      width: 100,
+                      height: 16,
+                      backgroundColor: COLORS.sageLight,
+                      borderRadius: 4,
+                    }}
+                  />
+                  <View
+                    style={{
+                      width: 80,
+                      height: 12,
+                      backgroundColor: COLORS.sageLight,
+                      borderRadius: 4,
+                    }}
+                  />
                 </View>
-              </Card.Body>
+              </CardBody>
             </Card>
           ))}
         </View>
@@ -82,14 +127,18 @@ export default function JournalScreen() {
   if (error) {
     return (
       <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
-        <Card>
-          <Card.Body className="gap-2">
-            <Card.Title className="text-danger">Error loading journal</Card.Title>
-            <Card.Description>{error.message}</Card.Description>
-          </Card.Body>
-        </Card>
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
+        contentContainerStyle={{
+          gap: SPACING.lg,
+          padding: SPACING.xl,
+          paddingTop: SPACING['3xl'],
+          paddingBottom: SPACING['2xl'],
+        }}>
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Error loading journal"
+          description={error.message}
+        />
       </ScrollView>
     );
   }
@@ -99,223 +148,208 @@ export default function JournalScreen() {
   if (isFullyEmpty) {
     return (
       <ScrollView
-        className="flex-1 bg-background"
-        contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
-        <Card>
-          <Card.Body className="gap-4">
-            <View className="items-center gap-4 py-8">
-              <View className="size-16 items-center justify-center rounded-full bg-surface-secondary">
-                <Ionicons name="journal-outline" size={28} color={foreground} />
-              </View>
-              <View className="items-center gap-2">
-                <Card.Title className="text-center">
-                  {isFullyEmpty ? 'Your Journal is Empty' : 'Start Your Daily Entries'}
-                </Card.Title>
-                <Card.Description className="text-center">
-                  {isFullyEmpty
-                    ? 'Complete daily check-ins to build your history.'
-                    : 'Your baseline is saved. Start your first daily check-in to begin your journal.'}
-                </Card.Description>
-              </View>
-            </View>
-          </Card.Body>
-        </Card>
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
+        contentContainerStyle={{
+          gap: SPACING.lg,
+          padding: SPACING.xl,
+          paddingTop: SPACING['3xl'],
+          paddingBottom: SPACING['2xl'],
+        }}>
+        <EmptyState
+          icon="journal-outline"
+          title="Your Journal is Empty"
+          description="Complete daily check-ins to build your history."
+        />
       </ScrollView>
     );
   }
 
   return (
     <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+      style={{ flex: 1, backgroundColor: COLORS.cream }}
+      contentContainerStyle={{
+        gap: SPACING.lg,
+        padding: SPACING.xl,
+        paddingTop: SPACING['3xl'],
+        paddingBottom: SPACING['2xl'],
+      }}>
       <Card>
-        <Card.Body className="gap-2">
-          <Card.Title>Journal</Card.Title>
-          <Card.Description>
+        <CardBody gap="sm">
+          <Text
+            style={{
+              fontSize: FONT_SIZES['2xl'],
+              fontWeight: FONT_WEIGHTS.bold,
+              color: COLORS.softBrown,
+            }}>
+            Journal
+          </Text>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.base,
+              color: COLORS.warmGray,
+              lineHeight: FONT_SIZES.base * 1.5,
+            }}>
             Review your past check-ins and see how your type has evolved.
-          </Card.Description>
-        </Card.Body>
+          </Text>
+        </CardBody>
       </Card>
 
       {currentDayError && (
-        <View className="gap-3">
-          <Card className="border-danger-soft">
-            <Card.Body className="gap-2">
-              <Card.Title className="text-danger">
-                Today’s check-in unavailable
-              </Card.Title>
-              <Card.Description>{currentDayError.message}</Card.Description>
-            </Card.Body>
-          </Card>
-        </View>
+        <Card variant="default">
+          <CardBody gap="sm">
+            <Text
+              style={{
+                fontSize: FONT_SIZES.lg,
+                fontWeight: FONT_WEIGHTS.semibold,
+                color: COLORS.danger,
+              }}>
+              Today&apos;s check-in unavailable
+            </Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>
+              {currentDayError.message}
+            </Text>
+          </CardBody>
+        </Card>
       )}
 
       {isDayComplete && currentDayEntry && (
-        <View className="gap-3">
-          <Card className="border-accent-soft">
-            <Card.Body className="gap-3">
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="star" size={16} color={foreground} />
-                <Card.Title className="text-base">Today</Card.Title>
+        <View style={{ gap: SPACING.md }}>
+          <Card variant="terracotta">
+            <CardBody gap="md">
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
+                <Ionicons name="star" size={16} color={COLORS.softBrown} />
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.lg,
+                    fontWeight: FONT_WEIGHTS.semibold,
+                    color: COLORS.softBrown,
+                  }}>
+                  Today
+                </Text>
               </View>
-              <Button
-                variant="secondary"
-                onPress={() => handleEntryPress(currentDayEntry.session.id)}>
-                <View className="flex-row items-center gap-3">
-                  <Avatar
-                    size="sm"
-                    variant="soft"
-                    color="accent"
-                    alt="Today">
-                    <Avatar.Fallback>
+              <Button variant="secondary" onPress={() => handleEntryPress(currentDayEntry.session.id)}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
+                  <Avatar size="sm" variant="sage">
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.xs,
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: COLORS.sage,
+                      }}>
                       {currentDayEntry.snapshot?.currentType ?? 'DY'}
-                    </Avatar.Fallback>
-                  </Avatar>
-                  <View className="flex-1">
-                    <Text className="font-semibold text-foreground-primary">
-                      {currentDayEntry.snapshot?.currentType ?? getEntryTypeLabel(currentDayEntry.session.type)}
                     </Text>
-                    <Text className="text-sm text-foreground-secondary">
+                  </Avatar>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.base,
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: COLORS.softBrown,
+                      }}>
+                      {currentDayEntry.snapshot?.currentType ??
+                        getEntryTypeLabel(currentDayEntry.session.type)}
+                    </Text>
+                    <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
                       {currentDayEntry.session.completedAt
                         ? formatTime(currentDayEntry.session.completedAt)
                         : ''}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={muted} />
+                  <Ionicons name="chevron-forward" size={18} color={COLORS.warmGray} />
                 </View>
               </Button>
-            </Card.Body>
+            </CardBody>
           </Card>
 
           {filteredPastDailyEntries.length === 0 && (
-            <View className="items-center gap-2 py-4">
-              <Card.Description className="text-center">
+            <View style={{ alignItems: 'center', gap: SPACING.sm, paddingVertical: SPACING.lg }}>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.sm,
+                  color: COLORS.warmGray,
+                  textAlign: 'center',
+                }}>
                 No previous daily check-ins yet
-              </Card.Description>
+              </Text>
             </View>
           )}
         </View>
       )}
 
       {onboardingEntries.length > 0 && (
-        <View className="gap-3">
-          <View className="flex-row items-center gap-2">
-            <View className="h-px flex-1 bg-surface-tertiary" />
-            <Text className="text-sm text-foreground-secondary">Baseline</Text>
-            <View className="h-px flex-1 bg-surface-tertiary" />
+        <View style={{ gap: SPACING.md }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: SPACING.sm,
+            }}>
+            <View style={{ flex: 1, height: 1, backgroundColor: COLORS.border }} />
+            <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>Baseline</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: COLORS.border }} />
           </View>
-          <ListGroup>
+          <View style={{ gap: SPACING.md }}>
             {onboardingEntries.map((entry) => {
               const session = entry.session;
               const snapshot = entry.snapshot;
               const completedAt = session.completedAt;
 
               return (
-                <ListGroup.Item
+                <JournalListItem
                   key={session.id}
-                  onPress={() => handleEntryPress(session.id)}
-                  className="active:opacity-70">
-                  <ListGroup.ItemPrefix>
-                    <Avatar
-                      alt={getEntryTypeLabel(session.type)}
-                      color="accent"
-                      size="md"
-                      variant="soft">
-                      <Avatar.Fallback>
-                        {snapshot?.currentType ?? 'ON'}
-                      </Avatar.Fallback>
-                    </Avatar>
-                  </ListGroup.ItemPrefix>
-                  <ListGroup.ItemContent>
-                    <View className="flex-row items-center gap-2">
-                      <ListGroup.ItemTitle>
-                        {completedAt ? formatDate(completedAt) : 'Unknown date'}
-                      </ListGroup.ItemTitle>
-                      <Chip
-                        size="sm"
-                        variant="soft"
-                        color="accent">
-                        <Chip.Label>{getEntryTypeLabel(session.type)}</Chip.Label>
-                      </Chip>
-                    </View>
-                    <ListGroup.ItemDescription>
-                      {completedAt ? formatTime(completedAt) : ''}
-                      {snapshot && ` · ${snapshot.currentType}`}
-                    </ListGroup.ItemDescription>
-                  </ListGroup.ItemContent>
-                  <ListGroup.ItemSuffix>
-                    <Ionicons name="chevron-forward" size={18} color={muted} />
-                  </ListGroup.ItemSuffix>
-                </ListGroup.Item>
+                  id={session.id}
+                  title={completedAt ? formatDate(completedAt) : 'Unknown date'}
+                  subtitle={`${completedAt ? formatTime(completedAt) : ''}${snapshot ? ` · ${snapshot.currentType}` : ''}`}
+                  type="onboarding"
+                  typeLabel={getEntryTypeLabel(session.type)}
+                  avatarText={snapshot?.currentType ?? 'ON'}
+                  onPress={handleEntryPress}
+                />
               );
             })}
-          </ListGroup>
+          </View>
         </View>
       )}
 
       {filteredPastDailyEntries.length > 0 && (
-        <View className="gap-3">
-          <View className="flex-row items-center gap-2">
-            <View className="h-px flex-1 bg-surface-tertiary" />
-            <Text className="text-sm text-foreground-secondary">Past Daily Check-ins</Text>
-            <View className="h-px flex-1 bg-surface-tertiary" />
+        <View style={{ gap: SPACING.md }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: SPACING.sm,
+            }}>
+            <View style={{ flex: 1, height: 1, backgroundColor: COLORS.border }} />
+            <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+              Past Daily Check-ins
+            </Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: COLORS.border }} />
           </View>
-          <ListGroup>
+          <View style={{ gap: SPACING.md }}>
             {filteredPastDailyEntries.map((entry) => {
               const session = entry.session;
               const snapshot = entry.snapshot;
               const completedAt = session.completedAt;
 
               return (
-                <ListGroup.Item
+                <JournalListItem
                   key={session.id}
-                  onPress={() => handleEntryPress(session.id)}
-                  className="active:opacity-70">
-                  <ListGroup.ItemPrefix>
-                    <Avatar
-                      alt={getEntryTypeLabel(session.type)}
-                      color="success"
-                      size="md"
-                      variant="soft">
-                      <Avatar.Fallback>
-                        {snapshot?.currentType ?? 'DY'}
-                      </Avatar.Fallback>
-                    </Avatar>
-                  </ListGroup.ItemPrefix>
-                  <ListGroup.ItemContent>
-                    <View className="flex-row items-center gap-2">
-                      <ListGroup.ItemTitle>
-                        {completedAt ? formatDate(completedAt) : 'Unknown date'}
-                      </ListGroup.ItemTitle>
-                      <Chip
-                        size="sm"
-                        variant="soft"
-                        color="success">
-                        <Chip.Label>{getEntryTypeLabel(session.type)}</Chip.Label>
-                      </Chip>
-                    </View>
-                    <ListGroup.ItemDescription>
-                      {completedAt ? formatTime(completedAt) : ''}
-                      {snapshot && ` · ${snapshot.currentType}`}
-                    </ListGroup.ItemDescription>
-                  </ListGroup.ItemContent>
-                  <ListGroup.ItemSuffix>
-                    <Ionicons name="chevron-forward" size={18} color={muted} />
-                  </ListGroup.ItemSuffix>
-                </ListGroup.Item>
+                  id={session.id}
+                  title={completedAt ? formatDate(completedAt) : 'Unknown date'}
+                  subtitle={`${completedAt ? formatTime(completedAt) : ''}${snapshot ? ` · ${snapshot.currentType}` : ''}`}
+                  type="daily"
+                  typeLabel={getEntryTypeLabel(session.type)}
+                  avatarText={snapshot?.currentType ?? 'DY'}
+                  onPress={handleEntryPress}
+                />
               );
             })}
-          </ListGroup>
+          </View>
           {hasMore && (
-            <Button
-              variant="secondary"
-              onPress={loadMore}
-              isDisabled={isLoadingMore}>
-              {isLoadingMore ? (
-                <Button.Label>Loading more...</Button.Label>
-              ) : (
-                <Button.Label>Load more entries</Button.Label>
-              )}
+            <Button variant="secondary" onPress={loadMore} isDisabled={isLoadingMore}>
+              <ButtonLabel variant="secondary">
+                {isLoadingMore ? 'Loading more...' : 'Load more entries'}
+              </ButtonLabel>
             </Button>
           )}
         </View>

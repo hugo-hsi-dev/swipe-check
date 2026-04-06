@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react-native';
-import { HeroUINativeProvider } from 'heroui-native';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 import InsightsScreen from '@/app/(tabs)/insights';
 import { useInsightsData } from '@/hooks/use-insights-data';
@@ -7,10 +6,6 @@ import { useInsightsData } from '@/hooks/use-insights-data';
 jest.mock('@/hooks/use-insights-data', () => ({
   useInsightsData: jest.fn(),
 }));
-
-function renderWithHeroUI(ui: React.ReactElement) {
-  return render(<HeroUINativeProvider>{ui}</HeroUINativeProvider>);
-}
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -48,7 +43,7 @@ function createMockSnapshot({
 describe('Insights Screen', () => {
   it('should render loading state', () => {
     jest.mocked(useInsightsData).mockReturnValue({ status: 'loading' });
-    renderWithHeroUI(<InsightsScreen />);
+    render(<InsightsScreen />);
     expect(screen.getByText('Loading...')).toBeTruthy();
   });
 
@@ -57,13 +52,13 @@ describe('Insights Screen', () => {
     jest
       .mocked(useInsightsData)
       .mockReturnValue({ status: 'error', error: err });
-    renderWithHeroUI(<InsightsScreen />);
+    render(<InsightsScreen />);
     expect(screen.getByText(/Failed to load/i)).toBeTruthy();
   });
 
   it('should render empty state', () => {
     jest.mocked(useInsightsData).mockReturnValue({ status: 'empty' });
-    renderWithHeroUI(<InsightsScreen />);
+    render(<InsightsScreen />);
     expect(screen.getByText(/Complete onboarding to see/i)).toBeTruthy();
   });
 
@@ -75,7 +70,7 @@ describe('Insights Screen', () => {
       latestSnapshot: snapshot,
       history: [snapshot],
     });
-    renderWithHeroUI(<InsightsScreen />);
+    render(<InsightsScreen />);
     expect(screen.getAllByText('INTJ').length).toBeGreaterThan(0);
     expect(screen.getByText('First result')).toBeTruthy();
     expect(
@@ -92,7 +87,7 @@ describe('Insights Screen', () => {
       latestSnapshot: snapshot2,
       history: [snapshot1, snapshot2],
     });
-    renderWithHeroUI(<InsightsScreen />);
+    render(<InsightsScreen />);
     expect(screen.getAllByText('INTJ').length).toBeGreaterThan(0);
     expect(screen.getByText('Type History')).toBeTruthy();
     expect(screen.getByText('2 snapshots recorded')).toBeTruthy();
@@ -126,7 +121,7 @@ describe('Insights Screen', () => {
       history: [poleADominantSnapshot],
     });
 
-    renderWithHeroUI(<InsightsScreen />);
+    render(<InsightsScreen />);
     expect(screen.getByText(/Thinking.*\(100%\)/)).toBeTruthy();
     expect(screen.getByText(/Extraversion.*\(33%\)/)).toBeTruthy();
     expect(screen.getByTestId('axis-fill-t-f')).toBeTruthy();
@@ -161,7 +156,7 @@ describe('Insights Screen', () => {
       history: [poleBDominantSnapshot],
     });
 
-    renderWithHeroUI(<InsightsScreen />);
+    render(<InsightsScreen />);
     expect(screen.getByText(/Intuition.*\(33%\)/)).toBeTruthy();
     expect(screen.getByText(/Feeling.*\(100%\)/)).toBeTruthy();
     expect(screen.getByTestId('axis-fill-t-f')).toBeTruthy();
@@ -196,7 +191,7 @@ describe('Insights Screen', () => {
       history: [tiedSnapshot],
     });
 
-    renderWithHeroUI(<InsightsScreen />);
+    render(<InsightsScreen />);
     expect(screen.getByText('Balanced')).toBeTruthy();
     expect(screen.getByTestId('axis-fill-e-i')).toBeTruthy();
   });

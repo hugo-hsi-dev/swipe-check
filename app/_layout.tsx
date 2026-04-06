@@ -1,7 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Redirect, Stack, useGlobalSearchParams, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { HeroUINativeProvider } from 'heroui-native';
 import 'react-native-reanimated';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInitialRoute } from '@/hooks/use-initial-route';
+import { COLORS, FONT_SIZES, SPACING } from '@/constants/design-system';
 
 import '@/global.css';
 
@@ -26,9 +26,22 @@ export default function RootLayout() {
 
   if (isBootstrapping || isDeterminingRoute) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator />
-        <Text className="mt-3 text-foreground">Loading app...</Text>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: COLORS.cream,
+        }}>
+        <ActivityIndicator color={COLORS.terracotta} />
+        <Text
+          style={{
+            marginTop: SPACING.md,
+            fontSize: FONT_SIZES.base,
+            color: COLORS.softBrown,
+          }}>
+          Loading app...
+        </Text>
       </View>
     );
   }
@@ -49,24 +62,22 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <HeroUINativeProvider config={{ devInfo: { stylingPrinciples: false } }}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="session" options={{ headerShown: false }} />
-            <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-            <Stack.Screen
-              name="journal/[id]"
-              options={{
-                presentation: 'card',
-                headerShown: true,
-              }}
-            />
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </HeroUINativeProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="session" options={{ headerShown: false }} />
+          <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+          <Stack.Screen
+            name="journal/[id]"
+            options={{
+              presentation: 'card',
+              headerShown: true,
+            }}
+          />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

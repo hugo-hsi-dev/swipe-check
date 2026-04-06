@@ -1,6 +1,5 @@
 import { waitFor, render, fireEvent } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import { HeroUINativeProvider } from 'heroui-native';
 
 import JournalScreen from '@/app/(tabs)/journal';
 
@@ -49,11 +48,7 @@ describe('Journal Screen UI States', () => {
         error: null,
       });
 
-      const { getByText } = render(
-        <HeroUINativeProvider>
-          <JournalScreen />
-        </HeroUINativeProvider>
-      );
+      const { getByText } = render(<JournalScreen />);
 
       await waitFor(() => {
         expect(getByText('Your Journal is Empty')).toBeTruthy();
@@ -102,11 +97,7 @@ describe('Journal Screen UI States', () => {
         error: null,
       });
 
-      const { getByText } = render(
-        <HeroUINativeProvider>
-          <JournalScreen />
-        </HeroUINativeProvider>
-      );
+      const { getByText } = render(<JournalScreen />);
 
       await waitFor(() => {
         expect(getByText('Baseline')).toBeTruthy();
@@ -181,11 +172,7 @@ describe('Journal Screen UI States', () => {
         error: null,
       });
 
-      const { getByText } = render(
-        <HeroUINativeProvider>
-          <JournalScreen />
-        </HeroUINativeProvider>
-      );
+      const { getByText } = render(<JournalScreen />);
 
       await waitFor(() => {
         expect(getByText('Baseline')).toBeTruthy();
@@ -236,11 +223,7 @@ describe('Journal Screen UI States', () => {
         error: null,
       });
 
-      const { getByText } = render(
-        <HeroUINativeProvider>
-          <JournalScreen />
-        </HeroUINativeProvider>
-      );
+      const { getByText } = render(<JournalScreen />);
 
       await waitFor(() => {
         expect(getByText('Today')).toBeTruthy();
@@ -288,11 +271,7 @@ describe('Journal Screen UI States', () => {
         error: null,
       });
 
-      const { getByText } = render(
-        <HeroUINativeProvider>
-          <JournalScreen />
-        </HeroUINativeProvider>
-      );
+      const { getByText } = render(<JournalScreen />);
 
       await waitFor(() => {
         expect(getByText('Tue, Apr 2')).toBeTruthy();

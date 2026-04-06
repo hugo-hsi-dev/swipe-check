@@ -1,10 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { ScrollView, View } from 'react-native';
-import { Avatar, Card, Chip, Skeleton, Separator, useThemeColor } from 'heroui-native';
+import { ScrollView, Text, View } from 'react-native';
 
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { Badge, BadgeLabel } from '@/components/ui/badge';
+import { Avatar } from '@/components/ui/icon-container';
 import { useJournalEntryDetail } from '@/hooks/use-journal-data';
 import type { PersistedSessionAnswer } from '@/lib/local-data/session-lifecycle';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -35,28 +38,60 @@ function getAnswerIconName(answer: PersistedSessionAnswer['answer']): string {
 export default function JournalEntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { detail, isLoading, error } = useJournalEntryDetail(id ?? null);
-  const [foreground, success, danger] = useThemeColor(['foreground', 'success', 'danger']);
 
   if (isLoading) {
     return (
       <>
         <Stack.Screen options={{ title: 'Loading...' }} />
         <ScrollView
-          className="flex-1 bg-background"
-          contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+          style={{ flex: 1, backgroundColor: COLORS.cream }}
+          contentContainerStyle={{
+            gap: SPACING.lg,
+            padding: SPACING.xl,
+            paddingTop: SPACING['3xl'],
+            paddingBottom: SPACING['2xl'],
+          }}>
           <Card>
-            <Card.Body className="gap-4">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-4 w-32" />
-            </Card.Body>
+            <CardBody gap="md">
+              <View
+                style={{
+                  width: 150,
+                  height: 32,
+                  backgroundColor: COLORS.sageLight,
+                  borderRadius: 4,
+                }}
+              />
+              <View
+                style={{
+                  width: 100,
+                  height: 16,
+                  backgroundColor: COLORS.sageLight,
+                  borderRadius: 4,
+                }}
+              />
+            </CardBody>
           </Card>
-          <View className="gap-3">
+          <View style={{ gap: SPACING.md }}>
             {[1, 2, 3].map((i) => (
               <Card key={i}>
-                <Card.Body className="gap-3">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-3 w-20" />
-                </Card.Body>
+                <CardBody gap="md">
+                  <View
+                    style={{
+                      width: '100%',
+                      height: 16,
+                      backgroundColor: COLORS.sageLight,
+                      borderRadius: 4,
+                    }}
+                  />
+                  <View
+                    style={{
+                      width: 60,
+                      height: 12,
+                      backgroundColor: COLORS.sageLight,
+                      borderRadius: 4,
+                    }}
+                  />
+                </CardBody>
               </Card>
             ))}
           </View>
@@ -70,15 +105,27 @@ export default function JournalEntryDetailScreen() {
       <>
         <Stack.Screen options={{ title: 'Error' }} />
         <ScrollView
-          className="flex-1 bg-background"
-          contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+          style={{ flex: 1, backgroundColor: COLORS.cream }}
+          contentContainerStyle={{
+            gap: SPACING.lg,
+            padding: SPACING.xl,
+            paddingTop: SPACING['3xl'],
+            paddingBottom: SPACING['2xl'],
+          }}>
           <Card>
-            <Card.Body className="gap-2">
-              <Card.Title className="text-danger">Unable to Load Entry</Card.Title>
-              <Card.Description>
+            <CardBody gap="sm">
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.lg,
+                  fontWeight: FONT_WEIGHTS.semibold,
+                  color: COLORS.danger,
+                }}>
+                Unable to Load Entry
+              </Text>
+              <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>
                 {error.message ?? 'An unexpected error occurred while loading this entry.'}
-              </Card.Description>
-            </Card.Body>
+              </Text>
+            </CardBody>
           </Card>
         </ScrollView>
       </>
@@ -90,15 +137,27 @@ export default function JournalEntryDetailScreen() {
       <>
         <Stack.Screen options={{ title: 'Not Found' }} />
         <ScrollView
-          className="flex-1 bg-background"
-          contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+          style={{ flex: 1, backgroundColor: COLORS.cream }}
+          contentContainerStyle={{
+            gap: SPACING.lg,
+            padding: SPACING.xl,
+            paddingTop: SPACING['3xl'],
+            paddingBottom: SPACING['2xl'],
+          }}>
           <Card>
-            <Card.Body className="gap-2">
-              <Card.Title className="text-danger">Entry Not Found</Card.Title>
-              <Card.Description>
+            <CardBody gap="sm">
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.lg,
+                  fontWeight: FONT_WEIGHTS.semibold,
+                  color: COLORS.danger,
+                }}>
+                Entry Not Found
+              </Text>
+              <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>
                 This entry may have been deleted or does not exist.
-              </Card.Description>
-            </Card.Body>
+              </Text>
+            </CardBody>
           </Card>
         </ScrollView>
       </>
@@ -115,116 +174,159 @@ export default function JournalEntryDetailScreen() {
           title: completedAt ? formatDate(completedAt) : 'In Progress',
         }}
       />
-<ScrollView
-          className="flex-1 bg-background"
-          contentContainerStyle={{ gap: 16, padding: 16, paddingTop: 24, paddingBottom: 24 }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
+        contentContainerStyle={{
+          gap: SPACING.lg,
+          padding: SPACING.xl,
+          paddingTop: SPACING['3xl'],
+          paddingBottom: SPACING['2xl'],
+        }}>
         {/* Header Card */}
         <Card>
-          <Card.Body className="gap-4">
-            <View className="flex-row items-center gap-4">
+          <CardBody gap="lg">
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.lg }}>
               <Avatar
-                alt={getEntryTypeLabel(session.type)}
-                color={session.type === 'onboarding' ? 'accent' : 'success'}
                 size="lg"
-                variant="soft">
-                <Avatar.Fallback>
+                variant={session.type === 'onboarding' ? 'terracotta' : 'sage'}>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.lg,
+                    fontWeight: FONT_WEIGHTS.semibold,
+                    color:
+                      session.type === 'onboarding' ? COLORS.terracotta : COLORS.sage,
+                  }}>
                   {snapshot?.currentType ?? (session.type === 'onboarding' ? 'ON' : 'DY')}
-                </Avatar.Fallback>
+                </Text>
               </Avatar>
-              <View className="flex-1 gap-1">
-                <View className="flex-row items-center gap-2">
-                  <Card.Title>
+              <View style={{ flex: 1, gap: SPACING.xs }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.lg,
+                      fontWeight: FONT_WEIGHTS.semibold,
+                      color: COLORS.softBrown,
+                    }}>
                     {getEntryTypeLabel(session.type)}
-                  </Card.Title>
-                  <Chip size="sm" variant="secondary">
-                    <Chip.Label>Read-Only</Chip.Label>
-                  </Chip>
+                  </Text>
+                  <Badge variant="default" size="sm">
+                    <BadgeLabel>Read-Only</BadgeLabel>
+                  </Badge>
                 </View>
                 {completedAt && (
-                  <Card.Description>
+                  <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
                     Completed at {formatTime(completedAt)}
-                  </Card.Description>
+                  </Text>
                 )}
                 {session.localDayKey && (
-                  <Chip size="sm" variant="secondary">
-                    <Chip.Label>{session.localDayKey}</Chip.Label>
-                  </Chip>
+                  <Badge variant="default" size="sm">
+                    <BadgeLabel>{session.localDayKey}</BadgeLabel>
+                  </Badge>
                 )}
               </View>
             </View>
 
             {snapshot && (
               <>
-                <Separator />
-                <View className="gap-2">
-                  <Card.Description>Type Snapshot</Card.Description>
-                  <View className="flex-row flex-wrap gap-2">
-                    <Chip color="accent" variant="soft">
-                      <Chip.Label>{snapshot.currentType}</Chip.Label>
-                    </Chip>
-                    <Chip variant="secondary">
-                      <Chip.Label>{snapshot.questionCount} questions</Chip.Label>
-                    </Chip>
+                <View style={{ height: 1, backgroundColor: COLORS.border }} />
+                <View style={{ gap: SPACING.sm }}>
+                  <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+                    Type Snapshot
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm }}>
+                    <Badge variant="sage" size="sm">
+                      <BadgeLabel>{snapshot.currentType}</BadgeLabel>
+                    </Badge>
+                    <Badge variant="default" size="sm">
+                      <BadgeLabel>{snapshot.questionCount} questions</BadgeLabel>
+                    </Badge>
                   </View>
                 </View>
               </>
             )}
-          </Card.Body>
+          </CardBody>
         </Card>
 
         {/* Answers Section */}
         {answers.length > 0 && (
           <Card>
-            <Card.Header>
-              <Card.Title>Responses</Card.Title>
-              <Card.Description>
+            <CardHeader>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.xl,
+                  fontWeight: FONT_WEIGHTS.semibold,
+                  color: COLORS.softBrown,
+                }}>
+                Responses
+              </Text>
+              <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
                 {answers.length} question{answers.length !== 1 ? 's' : ''} answered
-              </Card.Description>
-            </Card.Header>
-            <Card.Body className="gap-0">
+              </Text>
+            </CardHeader>
+            <CardBody gap="md">
               {answers.map((answer, index) => {
                 const iconName = getAnswerIconName(answer.answer);
-                const iconColor = answer.answer === 'agree' ? success : danger;
+                const iconColor = answer.answer === 'agree' ? COLORS.sage : COLORS.danger;
                 const isLast = index === answers.length - 1;
 
                 return (
                   <View key={answer.questionId}>
-                    <View className="flex-row items-start gap-3 py-3">
-                      <View className="mt-0.5">
-                        <Ionicons
-                          name={iconName as any}
-                          size={20}
-                          color={iconColor}
-                        />
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'flex-start',
+                        gap: SPACING.md,
+                        paddingVertical: SPACING.sm,
+                      }}>
+                      <View style={{ marginTop: 2 }}>
+                        <Ionicons name={iconName as never} size={20} color={iconColor} />
                       </View>
-                      <View className="flex-1 gap-1">
-                        <Card.Title className="text-sm font-normal leading-5">
+                      <View style={{ flex: 1, gap: SPACING.xs }}>
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.sm,
+                            color: COLORS.softBrown,
+                            lineHeight: FONT_SIZES.sm * 1.5,
+                          }}>
                           {answer.questionText}
-                        </Card.Title>
-                        <Card.Description className="text-xs capitalize">
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.xs,
+                            color: COLORS.warmGray,
+                            textTransform: 'capitalize',
+                          }}>
                           {answer.answer} · {formatTime(answer.answeredAt)}
-                        </Card.Description>
+                        </Text>
                       </View>
                     </View>
-                    {!isLast && <Separator />}
+                    {!isLast && <View style={{ height: 1, backgroundColor: COLORS.border }} />}
                   </View>
                 );
               })}
-            </Card.Body>
+            </CardBody>
           </Card>
         )}
 
         {/* Empty State */}
         {answers.length === 0 && (
           <Card>
-            <Card.Body className="items-center gap-3 py-8">
-              <View className="size-12 items-center justify-center rounded-full bg-surface-secondary">
-                <Ionicons name="help-circle-outline" size={24} color={foreground} />
+            <CardBody style={{ alignItems: 'center', gap: SPACING.lg, paddingVertical: SPACING['3xl'] }}>
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  backgroundColor: COLORS.cream,
+                  borderRadius: 9999,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Ionicons name="help-circle-outline" size={24} color={COLORS.softBrown} />
               </View>
-              <Card.Description className="text-center">
+              <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray, textAlign: 'center' }}>
                 No responses recorded for this session.
-              </Card.Description>
-            </Card.Body>
+              </Text>
+            </CardBody>
           </Card>
         )}
       </ScrollView>

@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 
-import { Card } from 'heroui-native';
+import { Card, CardBody } from '@/components/ui/card';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 
 export type TypeTrendSectionProps = {
@@ -50,22 +51,47 @@ function formatDate(date: Date): string {
 
 function StatusIndicator({ status }: { status: SnapshotStatus }) {
   if (status === 'new') {
-    return <Text className="text-xs text-accent font-medium">First result</Text>;
+    return (
+      <Text
+        style={{
+          fontSize: FONT_SIZES.xs,
+          fontWeight: FONT_WEIGHTS.medium,
+          color: COLORS.terracotta,
+        }}>
+        First result
+      </Text>
+    );
   }
   if (status === 'stable') {
-    return <Text className="text-xs text-text-secondary">Same as before</Text>;
+    return (
+      <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray }}>Same as before</Text>
+    );
   }
-  return <Text className="text-xs text-warning font-medium">Type shifted</Text>;
+  return (
+    <Text
+      style={{
+        fontSize: FONT_SIZES.xs,
+        fontWeight: FONT_WEIGHTS.medium,
+        color: COLORS.coral,
+      }}>
+      Type shifted
+    </Text>
+  );
 }
 
 function EmptyHistory() {
   return (
     <Card>
-      <Card.Body className="items-center gap-2 py-6">
-        <Text className="text-sm text-text-secondary text-center">
+      <CardBody style={{ alignItems: 'center', gap: SPACING.sm, paddingVertical: SPACING.xl }}>
+        <Text
+          style={{
+            fontSize: FONT_SIZES.sm,
+            color: COLORS.warmGray,
+            textAlign: 'center',
+          }}>
           No trend data yet. Check back after your next assessment.
         </Text>
-      </Card.Body>
+      </CardBody>
     </Card>
   );
 }
@@ -73,16 +99,25 @@ function EmptyHistory() {
 function SingleSnapshot({ latestType, snapshot }: { latestType: string; snapshot: TypeSnapshot }) {
   return (
     <Card>
-      <Card.Body className="gap-3">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-lg font-semibold">{latestType}</Text>
-          <Text className="text-xs text-text-secondary">{formatDate(snapshot.createdAt)}</Text>
+      <CardBody gap="md">
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.lg,
+              fontWeight: FONT_WEIGHTS.semibold,
+              color: COLORS.softBrown,
+            }}>
+            {latestType}
+          </Text>
+          <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray }}>
+            {formatDate(snapshot.createdAt)}
+          </Text>
         </View>
         <StatusIndicator status="new" />
-        <Text className="text-sm text-text-secondary">
+        <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
           This is your first recorded personality type.
         </Text>
-      </Card.Body>
+      </CardBody>
     </Card>
   );
 }
@@ -100,19 +135,43 @@ function SnapshotRow({
 
   return (
     <View
-      className={`flex-row items-center justify-between py-2 ${index < total - 1 ? 'border-b border-surface-secondary' : ''}`}
-    >
-      <View className="flex-row items-center gap-3">
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: SPACING.sm,
+        borderBottomWidth: index < total - 1 ? 1 : 0,
+        borderBottomColor: COLORS.border,
+      }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
         <View
-          className={`w-10 h-10 items-center justify-center rounded-full ${isLatest ? 'bg-accent-soft' : 'bg-surface-secondary'}`}
-        >
-          <Text className={`text-sm font-semibold ${isLatest ? 'text-accent' : 'text-text-secondary'}`}>
+          style={{
+            width: 40,
+            height: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 9999,
+            backgroundColor: isLatest ? COLORS.terracottaLight : COLORS.cream,
+          }}>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.sm,
+              fontWeight: FONT_WEIGHTS.semibold,
+              color: isLatest ? COLORS.terracotta : COLORS.warmGray,
+            }}>
             {snapshot.currentType}
           </Text>
         </View>
         <View>
-          <Text className="text-sm font-medium">{formatDate(snapshot.createdAt)}</Text>
-          <Text className="text-xs text-text-secondary">
+          <Text
+            style={{
+              fontSize: FONT_SIZES.sm,
+              fontWeight: FONT_WEIGHTS.medium,
+              color: COLORS.softBrown,
+            }}>
+            {formatDate(snapshot.createdAt)}
+          </Text>
+          <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray }}>
             {snapshot.source.type === 'onboarding'
               ? 'Onboarding'
               : snapshot.source.type === 'daily'
@@ -137,24 +196,43 @@ function TrendHistory({ history }: { history: TypeSnapshot[] }) {
 
   return (
     <Card>
-      <Card.Body className="gap-4">
+      <CardBody gap="lg">
         <View>
-          <Text className="text-base font-semibold">Type History</Text>
-          <Text className="text-xs text-text-secondary mt-0.5">
+          <Text
+            style={{
+              fontSize: FONT_SIZES.base,
+              fontWeight: FONT_WEIGHTS.semibold,
+              color: COLORS.softBrown,
+            }}>
+            Type History
+          </Text>
+          <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray, marginTop: SPACING.xs }}>
             {history.length} snapshot{history.length !== 1 ? 's' : ''} recorded
           </Text>
         </View>
 
         {typeChanged && previous && (
-          <View className="bg-warning-soft rounded-lg p-3">
-            <Text className="text-sm text-warning font-medium">Type changed</Text>
-            <Text className="text-xs text-text-secondary mt-1">
+          <View
+            style={{
+              backgroundColor: COLORS.peach,
+              borderRadius: RADIUS.md,
+              padding: SPACING.md,
+            }}>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.sm,
+                fontWeight: FONT_WEIGHTS.medium,
+                color: COLORS.coral,
+              }}>
+              Type changed
+            </Text>
+            <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray, marginTop: SPACING.xs }}>
               You went from {previous.currentType} to {latest?.currentType}
             </Text>
           </View>
         )}
 
-        <View className="gap-1">
+        <View style={{ gap: SPACING.xs }}>
           {sortedHistory.slice(0, 5).map((snapshot, index) => (
             <SnapshotRow
               key={snapshot.id}
@@ -164,19 +242,24 @@ function TrendHistory({ history }: { history: TypeSnapshot[] }) {
             />
           ))}
           {latest && sortedHistory.length > 0 && (
-            <View className="flex-row items-center justify-end py-2">
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingVertical: SPACING.sm }}>
               <StatusIndicator status={latestStatus} />
             </View>
           )}
         </View>
 
         {sortedHistory.length > 5 && (
-          <Text className="text-xs text-text-secondary text-center">
+          <Text
+            style={{
+              fontSize: FONT_SIZES.xs,
+              color: COLORS.warmGray,
+              textAlign: 'center',
+            }}>
             +{sortedHistory.length - 5} more earlier snapshot
             {sortedHistory.length - 5 !== 1 ? 's' : ''}
           </Text>
         )}
-      </Card.Body>
+      </CardBody>
     </Card>
   );
 }
