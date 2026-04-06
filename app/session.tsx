@@ -521,6 +521,7 @@ export default function SessionScreen() {
           {/* Question card with swipe */}
           {currentQuestion ? (
             <SwipeableQuestionCard
+              key={currentQuestion.question.id}
               prompt={currentQuestion.question.prompt}
               accent={accent}
               translateX={translateX}
