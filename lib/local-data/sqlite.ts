@@ -105,3 +105,102 @@ export async function clearSQLiteData(dbName = 'swipe-check.db'): Promise<ClearR
 
   return result;
 }
+
+export type ExportedUserData = {
+  exportedAt: string;
+  version: number;
+  sessions: Array<{
+    id: string;
+    type: string;
+    status: string;
+    localDayKey: string | null;
+    startedAt: string;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  sessionAnswers: Array<{
+    sessionId: string;
+    questionId: string;
+    questionText: string;
+    answer: string;
+    answeredAt: string;
+  }>;
+  typeSnapshots: Array<{
+    id: string;
+    currentType: string;
+    axisScores: Record<string, number>;
+    axisStrengths: Record<string, number>;
+    sourceType: string;
+    sourceSessionId: string | null;
+    questionCount: number;
+    createdAt: string;
+  }>;
+};
+
+export async function exportUserData(dbName = 'swipe-check.db'): Promise<ExportedUserData> {
+  const db = await getBootstrappedSQLiteDatabase(dbName);
+  const adapter = new ExpoSQLiteAdapter(db);
+
+  const sessionRows = await adapter.getAllAsync<{
+    id: string;
+    session_type: string;
+    status: string;
+    local_day_key: string | null;
+    started_at: string;
+    completed_at: string | null;
+    created_at: string;
+    updated_at: string;
+  }>('SELECT * FROM sessions ORDER BY created_at ASC;');
+
+  const answerRows = await adapter.getAllAsync<{
+    session_id: string;
+    question_id: string;
+    question_text: string;
+    answer: string;
+    answered_at: string;
+  }>('SELECT * FROM session_answers ORDER BY answered_at ASC;');
+
+  const snapshotRows = await adapter.getAllAsync<{
+    id: string;
+    current_type: string;
+    axis_scores_json: string;
+    axis_strengths_json: string;
+    source_type: string;
+    source_session_id: string | null;
+    question_count: number;
+    created_at: string;
+  }>('SELECT * FROM type_snapshots ORDER BY created_at ASC;');
+
+  return {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    sessions: sessionRows.map((row) => ({
+      id: row.id,
+      type: row.session_type,
+      status: row.status,
+      localDayKey: row.local_day_key,
+      startedAt: row.started_at,
+      completedAt: row.completed_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    })),
+    sessionAnswers: answerRows.map((row) => ({
+      sessionId: row.session_id,
+      questionId: row.question_id,
+      questionText: row.question_text,
+      answer: row.answer,
+      answeredAt: row.answered_at,
+    })),
+    typeSnapshots: snapshotRows.map((row) => ({
+      id: row.id,
+      currentType: row.current_type,
+      axisScores: JSON.parse(row.axis_scores_json),
+      axisStrengths: JSON.parse(row.axis_strengths_json),
+      sourceType: row.source_type,
+      sourceSessionId: row.source_session_id,
+      questionCount: row.question_count,
+      createdAt: row.created_at,
+    })),
+  };
+}
