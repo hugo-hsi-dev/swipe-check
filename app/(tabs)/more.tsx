@@ -2,13 +2,19 @@ import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 import { Button, ButtonIcon, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 export default function MoreScreen() {
+  const buildNumber =
+    Constants.expoConfig?.ios?.buildNumber ??
+    (Constants.expoConfig?.android?.versionCode != null
+      ? String(Constants.expoConfig.android.versionCode)
+      : 'Unknown');
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: COLORS.cream }}
@@ -103,13 +109,26 @@ export default function MoreScreen() {
             }}>
             Swipe Check
           </Text>
-          <Text
+          <View
             style={{
-              fontSize: FONT_SIZES.sm,
-              color: COLORS.warmGray,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}>
-            Version {Constants.expoConfig?.version ?? 'Unknown'}
-          </Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Version</Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>
+              {Constants.expoConfig?.version ?? 'Unknown'}
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Build</Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>{buildNumber}</Text>
+          </View>
         </CardBody>
       </Card>
     </ScrollView>
