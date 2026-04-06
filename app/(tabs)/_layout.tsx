@@ -3,12 +3,10 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { TabBarIcon } from '@/components/tab-bar-icon';
-import { useNavVariant } from '@/contexts/NavVariantContext';
-import { NAV_VARIANTS } from '@/constants/nav-variants';
+import { getNavVariant } from '@/constants/nav-variants';
 
 export default function TabLayout() {
-  const { activeVariant } = useNavVariant();
-  const variant = NAV_VARIANTS[activeVariant];
+  const variant = getNavVariant();
 
   return (
     <Tabs
@@ -26,7 +24,7 @@ export default function TabLayout() {
         options={{
           title: 'Today',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="checkmark.circle.fill" color={color} focused={focused} variant={variant} />
+            <TabBarIcon name="checkmark.circle.fill" color={color} focused={focused} />
           ),
         }}
       />
@@ -35,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Insights',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="chart.bar.fill" color={color} focused={focused} variant={variant} />
+            <TabBarIcon name="chart.bar.fill" color={color} focused={focused} />
           ),
         }}
       />
@@ -44,7 +42,7 @@ export default function TabLayout() {
         options={{
           title: 'More',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="ellipsis.circle.fill" color={color} focused={focused} variant={variant} />
+            <TabBarIcon name="ellipsis.circle.fill" color={color} focused={focused} />
           ),
         }}
       />
