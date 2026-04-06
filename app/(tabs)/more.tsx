@@ -9,6 +9,12 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 export default function MoreScreen() {
+  const buildNumber =
+    Constants.expoConfig?.ios?.buildNumber ??
+    (Constants.expoConfig?.android?.versionCode != null
+      ? String(Constants.expoConfig.android.versionCode)
+      : 'Unknown');
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: COLORS.cream }}
@@ -121,7 +127,7 @@ export default function MoreScreen() {
               justifyContent: 'space-between',
             }}>
             <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Build</Text>
-            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>100</Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>{buildNumber}</Text>
           </View>
         </CardBody>
       </Card>
