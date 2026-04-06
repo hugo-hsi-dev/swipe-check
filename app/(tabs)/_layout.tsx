@@ -1,23 +1,48 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { TabBarIcon } from '@/components/tab-bar-icon';
-import { NAV_VARIANTS } from '@/constants/nav-variants';
-import { useNavVariant } from '@/contexts/NavVariantContext';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
+
+const MINIMAL_TAB_BAR_STYLE = StyleSheet.create({
+  root: {
+    backgroundColor: COLORS.cream,
+    borderTopColor: COLORS.borderLight,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: SPACING.md,
+    paddingBottom: 28,
+    paddingHorizontal: SPACING.lg,
+  },
+}).root;
+
+const MINIMAL_TAB_BAR_ITEM_STYLE = StyleSheet.create({
+  root: {
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.sm,
+  },
+}).root;
+
+const MINIMAL_TAB_BAR_LABEL_STYLE = StyleSheet.create({
+  root: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: FONT_WEIGHTS.medium,
+    letterSpacing: 0,
+    textTransform: 'none',
+    marginTop: SPACING.sm,
+  },
+}).root;
 
 export default function TabLayout() {
-  const { activeVariant } = useNavVariant();
-  const variant = NAV_VARIANTS[activeVariant];
-
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarStyle: variant.tabBarStyle,
-        tabBarItemStyle: variant.tabBarItemStyle,
-        tabBarLabelStyle: variant.tabBarLabelStyle,
+        tabBarStyle: MINIMAL_TAB_BAR_STYLE,
+        tabBarItemStyle: MINIMAL_TAB_BAR_ITEM_STYLE,
+        tabBarLabelStyle: MINIMAL_TAB_BAR_LABEL_STYLE,
       }}>
       <Tabs.Screen
         name="today"

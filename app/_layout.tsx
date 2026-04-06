@@ -8,7 +8,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
 import { useInitialRoute } from '@/hooks/use-initial-route';
 import { COLORS, FONT_SIZES, SPACING } from '@/constants/design-system';
-import { NavVariantProvider } from '@/contexts/NavVariantContext';
 
 import '@/global.css';
 
@@ -75,22 +74,20 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={ORGANIC_THEME}>
-        <NavVariantProvider>
-          <Stack>
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="session" options={{ headerShown: false }} />
-            <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-            <Stack.Screen
-              name="journal/[id]"
-              options={{
-                presentation: 'card',
-                headerShown: true,
-              }}
-            />
-          </Stack>
-          <StatusBar style="dark" />
-        </NavVariantProvider>
+        <Stack>
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="session" options={{ headerShown: false }} />
+          <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+          <Stack.Screen
+            name="journal/[id]"
+            options={{
+              presentation: 'card',
+              headerShown: true,
+            }}
+          />
+        </Stack>
+        <StatusBar style="dark" />
       </ThemeProvider>
     </GestureHandlerRootView>
   );
