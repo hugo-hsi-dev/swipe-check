@@ -280,7 +280,7 @@ export default function SessionScreen() {
     const response: QuestionResponse = direction === 'right' ? 'agree' : 'disagree';
     try {
       await submitAnswer(response);
-    } catch {
+    } catch (_error: unknown) {
       // Reset card on error
       translateX.value = withSpring(0);
       rotateZ.value = withSpring(0);

@@ -31,7 +31,7 @@ export default function SettingsScreen() {
       if (isMounted.current) {
         router.replace('/onboarding');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       if (isMounted.current) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         setWipeError(message);

@@ -128,7 +128,7 @@ export default function OnboardingScreen() {
     setLastAnswer(response);
     try {
       await submitAnswer(currentQuestion.question.id, response);
-    } catch {
+    } catch (_error: unknown) {
       setLastAnswer(null);
     }
   }

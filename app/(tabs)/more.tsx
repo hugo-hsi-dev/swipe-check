@@ -38,7 +38,7 @@ export default function MoreScreen() {
         `Your data has been exported (${jsonString.length} characters). In a production app, this would be saved to a file or shared.`,
         [{ text: 'OK' }]
       );
-    } catch {
+    } catch (_error: unknown) {
       Alert.alert('Export Failed', 'Unable to export data. Please try again.');
     } finally {
       if (isMounted.current) {
@@ -54,7 +54,7 @@ export default function MoreScreen() {
       if (isMounted.current) {
         router.replace('/onboarding');
       }
-    } catch {
+    } catch (_error: unknown) {
       if (isMounted.current) {
         Alert.alert('Reset Failed', 'Unable to reset data. Please try again.');
         setIsResetting(false);

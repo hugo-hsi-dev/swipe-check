@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 
-import { Button, ButtonLabel } from '@/components/ui/button';
+
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { AnswerItem } from '@/components/today/answer-item';
 import { StatusCard } from '@/components/today/status-card';

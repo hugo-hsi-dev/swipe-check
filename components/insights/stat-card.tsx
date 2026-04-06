@@ -45,7 +45,7 @@ export function StatRow({ stats }: StatRowProps) {
   return (
     <View style={{ flexDirection: 'row', gap: SPACING.md }}>
       {stats.map((stat, index) => (
-        <View key={index} style={{ flex: 1 }}>
+        <View key={`${stat.label}-${index}`} style={{ flex: 1 }}>
           <StatCard
             value={stat.value}
             label={stat.label}
