@@ -1,5 +1,7 @@
 import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
 
+import type { QuestionResponse } from '@/constants/question-contract';
+import type { TypeSnapshot } from '@/constants/scoring-contract';
 import {
   bootstrapLocalData,
   clearLocalData,
@@ -7,6 +9,10 @@ import {
   type ClearResult,
   type LocalDatabaseAdapter,
 } from '@/lib/local-data/bootstrap';
+import type {
+  PersistedSessionStatus,
+  PersistedSessionType,
+} from '@/lib/local-data/session-lifecycle';
 
 class ExpoSQLiteAdapter implements LocalDatabaseAdapter {
   constructor(private readonly db: SQLiteDatabase) {}
@@ -111,8 +117,8 @@ export type ExportedUserData = {
   version: number;
   sessions: Array<{
     id: string;
-    type: string;
-    status: string;
+    type: PersistedSessionType;
+    status: PersistedSessionStatus;
     localDayKey: string | null;
     startedAt: string;
     completedAt: string | null;
@@ -123,7 +129,7 @@ export type ExportedUserData = {
     sessionId: string;
     questionId: string;
     questionText: string;
-    answer: string;
+    answer: QuestionResponse;
     answeredAt: string;
   }>;
   typeSnapshots: Array<{
@@ -144,33 +150,39 @@ export async function exportUserData(dbName = 'swipe-check.db'): Promise<Exporte
 
   const sessionRows = await adapter.getAllAsync<{
     id: string;
-    session_type: string;
-    status: string;
+    session_type: PersistedSessionType;
+    status: PersistedSessionStatus;
     local_day_key: string | null;
     started_at: string;
     completed_at: string | null;
     created_at: string;
     updated_at: string;
-  }>('SELECT * FROM sessions ORDER BY created_at ASC;');
+  }>(
+    'SELECT id, session_type, status, local_day_key, started_at, completed_at, created_at, updated_at FROM sessions ORDER BY created_at ASC;'
+  );
 
   const answerRows = await adapter.getAllAsync<{
     session_id: string;
     question_id: string;
     question_text: string;
-    answer: string;
+    answer: QuestionResponse;
     answered_at: string;
-  }>('SELECT * FROM session_answers ORDER BY answered_at ASC;');
+  }>(
+    'SELECT session_id, question_id, question_text, answer, answered_at FROM session_answers ORDER BY answered_at ASC;'
+  );
 
   const snapshotRows = await adapter.getAllAsync<{
     id: string;
     current_type: string;
     axis_scores_json: string;
     axis_strengths_json: string;
-    source_type: string;
+    source_type: TypeSnapshot['source']['type'];
     source_session_id: string | null;
     question_count: number;
     created_at: string;
-  }>('SELECT * FROM type_snapshots ORDER BY created_at ASC;');
+  }>(
+    'SELECT id, session_id, current_type, axis_scores_json, axis_strengths_json, source_type, source_session_id, question_count, created_at FROM type_snapshots ORDER BY created_at ASC;'
+  );
 
   return {
     exportedAt: new Date().toISOString(),
