@@ -4,7 +4,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconSymbolName =
+export type IconSymbolName =
   | 'house.fill'
   | 'calendar'
   | 'checkmark.circle.fill'

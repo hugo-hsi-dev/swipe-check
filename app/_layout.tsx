@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Redirect, Stack, useGlobalSearchParams, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
@@ -6,18 +6,30 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInitialRoute } from '@/hooks/use-initial-route';
 import { COLORS, FONT_SIZES, SPACING } from '@/constants/design-system';
+import { NavVariantProvider } from '@/contexts/NavVariantContext';
 
 import '@/global.css';
+
+const ORGANIC_THEME = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: COLORS.cream,
+    border: COLORS.borderLight,
+    card: COLORS.warmWhite,
+    notification: COLORS.sage,
+    primary: COLORS.terracotta,
+    text: COLORS.softBrown,
+  },
+};
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const pathname = usePathname();
   const { bootstrapError, isBootstrapping } = useAppBootstrap(pathname);
   const { preview } = useGlobalSearchParams<{ preview?: string }>();
@@ -62,21 +74,23 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="session" options={{ headerShown: false }} />
-          <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-          <Stack.Screen
-            name="journal/[id]"
-            options={{
-              presentation: 'card',
-              headerShown: true,
-            }}
-          />
-        </Stack>
-        <StatusBar style="auto" />
+      <ThemeProvider value={ORGANIC_THEME}>
+        <NavVariantProvider>
+          <Stack>
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="session" options={{ headerShown: false }} />
+            <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+            <Stack.Screen
+              name="journal/[id]"
+              options={{
+                presentation: 'card',
+                headerShown: true,
+              }}
+            />
+          </Stack>
+          <StatusBar style="dark" />
+        </NavVariantProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
