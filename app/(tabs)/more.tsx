@@ -2,7 +2,7 @@ import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 import { Button, ButtonIcon, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -103,13 +103,26 @@ export default function MoreScreen() {
             }}>
             Swipe Check
           </Text>
-          <Text
+          <View
             style={{
-              fontSize: FONT_SIZES.sm,
-              color: COLORS.warmGray,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}>
-            Version {Constants.expoConfig?.version ?? 'Unknown'}
-          </Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Version</Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>
+              {Constants.expoConfig?.version ?? 'Unknown'}
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Build</Text>
+            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>100</Text>
+          </View>
         </CardBody>
       </Card>
     </ScrollView>
