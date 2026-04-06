@@ -5,14 +5,9 @@
  */
 
 import { render, screen } from '@testing-library/react-native';
-import { HeroUINativeProvider } from 'heroui-native';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 
 import { TypeTrendSection } from '@/components/insights/type-trend-section';
-
-function renderWithHeroUI(ui: React.ReactElement) {
-  return render(<HeroUINativeProvider>{ui}</HeroUINativeProvider>);
-}
 
 function createMockSnapshot({
   id,
@@ -42,13 +37,13 @@ function createMockSnapshot({
 describe('TypeTrendSection', () => {
   describe('Empty History State', () => {
     it('should render empty state when history is not provided', () => {
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[]} />);
 
       expect(screen.getByText(/No trend data yet/i)).toBeTruthy();
     });
 
     it('should render empty state when history is undefined', () => {
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={undefined as unknown as []} />);
+      render(<TypeTrendSection latestType="INTJ" history={undefined as unknown as []} />);
 
       expect(screen.getByText(/No trend data yet/i)).toBeTruthy();
     });
@@ -57,7 +52,7 @@ describe('TypeTrendSection', () => {
   describe('Sparse History State (Single Snapshot)', () => {
     it('should render single snapshot state with first result indicator', () => {
       const snapshot = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 0 });
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
 
       expect(screen.getByText('INTJ')).toBeTruthy();
       expect(screen.getByText(/First result/i)).toBeTruthy();
@@ -66,21 +61,21 @@ describe('TypeTrendSection', () => {
 
     it('should render Today for snapshot created today', () => {
       const snapshot = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 0 });
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
 
       expect(screen.getByText('Today')).toBeTruthy();
     });
 
     it('should render Yesterday for snapshot created yesterday', () => {
       const snapshot = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 1 });
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
 
       expect(screen.getByText('Yesterday')).toBeTruthy();
     });
 
     it('should render days ago for recent snapshots', () => {
       const snapshot = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 5 });
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
 
       expect(screen.getByText('5 days ago')).toBeTruthy();
     });
@@ -98,7 +93,7 @@ describe('TypeTrendSection', () => {
       });
       snapshot.createdAt = yesterdayEvening;
 
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[snapshot]} />);
 
       expect(screen.getByText('Yesterday')).toBeTruthy();
     });
@@ -108,7 +103,7 @@ describe('TypeTrendSection', () => {
     it('should render trend history with type changes', () => {
       const snapshot1 = createMockSnapshot({ id: 'snap-2', currentType: 'ENTJ', daysAgo: 0 });
       const snapshot2 = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 7 });
-      renderWithHeroUI(<TypeTrendSection latestType="ENTJ" history={[snapshot1, snapshot2]} />);
+      render(<TypeTrendSection latestType="ENTJ" history={[snapshot1, snapshot2]} />);
 
       expect(screen.getByText('Type History')).toBeTruthy();
       expect(screen.getByText(/2 snapshots recorded/i)).toBeTruthy();
@@ -117,7 +112,7 @@ describe('TypeTrendSection', () => {
     it('should render type changed notice when type differs from previous', () => {
       const oldest = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 7 });
       const newest = createMockSnapshot({ id: 'snap-2', currentType: 'ENTJ', daysAgo: 0 });
-      renderWithHeroUI(<TypeTrendSection latestType="ENTJ" history={[oldest, newest]} />);
+      render(<TypeTrendSection latestType="ENTJ" history={[oldest, newest]} />);
 
       expect(screen.getByText(/Type changed/i)).toBeTruthy();
       expect(screen.getByText(/You went from INTJ to ENTJ/i)).toBeTruthy();
@@ -126,7 +121,7 @@ describe('TypeTrendSection', () => {
     it('should not render type changed notice when type is same', () => {
       const oldest = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 7 });
       const newest = createMockSnapshot({ id: 'snap-2', currentType: 'INTJ', daysAgo: 0 });
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[oldest, newest]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[oldest, newest]} />);
 
       expect(screen.queryByText(/Type changed/i)).toBeNull();
     });
@@ -135,7 +130,7 @@ describe('TypeTrendSection', () => {
       const snapshots = Array.from({ length: 7 }, (_, i) =>
         createMockSnapshot({ id: `snap-${i}`, currentType: 'INTJ', daysAgo: i * 7 })
       );
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={snapshots} />);
+      render(<TypeTrendSection latestType="INTJ" history={snapshots} />);
 
       expect(screen.getByText('+2 more earlier snapshots')).toBeTruthy();
     });
@@ -153,7 +148,7 @@ describe('TypeTrendSection', () => {
         daysAgo: 0,
         sourceType: 'daily',
       });
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[oldest, newest]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[oldest, newest]} />);
 
       expect(screen.getByText('Daily check-in')).toBeTruthy();
       expect(screen.getByText('Onboarding')).toBeTruthy();
@@ -162,7 +157,7 @@ describe('TypeTrendSection', () => {
     it('should render Type shifted for latest row when type changed', () => {
       const oldest = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 7 });
       const newest = createMockSnapshot({ id: 'snap-2', currentType: 'ENTJ', daysAgo: 0 });
-      renderWithHeroUI(<TypeTrendSection latestType="ENTJ" history={[oldest, newest]} />);
+      render(<TypeTrendSection latestType="ENTJ" history={[oldest, newest]} />);
 
       expect(screen.getByText('Type shifted')).toBeTruthy();
     });
@@ -170,7 +165,7 @@ describe('TypeTrendSection', () => {
     it('should render Same as before for latest row when type stable', () => {
       const oldest = createMockSnapshot({ id: 'snap-1', currentType: 'INTJ', daysAgo: 7 });
       const newest = createMockSnapshot({ id: 'snap-2', currentType: 'INTJ', daysAgo: 0 });
-      renderWithHeroUI(<TypeTrendSection latestType="INTJ" history={[oldest, newest]} />);
+      render(<TypeTrendSection latestType="INTJ" history={[oldest, newest]} />);
 
       expect(screen.getByText('Same as before')).toBeTruthy();
     });
@@ -182,7 +177,7 @@ describe('TypeTrendSection', () => {
       a.createdAt = now;
       b.createdAt = now;
 
-      renderWithHeroUI(<TypeTrendSection latestType="ENTJ" history={[a, b]} />);
+      render(<TypeTrendSection latestType="ENTJ" history={[a, b]} />);
 
       expect(screen.getByText(/Type changed/i)).toBeTruthy();
       expect(screen.getByText(/You went from INTJ to ENTJ/i)).toBeTruthy();

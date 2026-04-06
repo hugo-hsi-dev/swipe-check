@@ -7,8 +7,8 @@ import {
   StyleSheet,
   Text,
   View,
+  Pressable,
 } from 'react-native';
-import { Button, Card, Chip, useThemeColor } from 'heroui-native';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -26,9 +26,16 @@ import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 
+import { Card, CardBody } from '@/components/ui/card';
+import { Button, ButtonLabel } from '@/components/ui/button';
+import { Badge, BadgeLabel } from '@/components/ui/badge';
+import { ProgressBar } from '@/components/session/progress-bar';
+import { QuestionCard } from '@/components/session/question-card';
+import { AnswerButtonGroup } from '@/components/session/answer-button';
 import type { QuestionResponse } from '@/constants/question-contract';
 import { AXES } from '@/constants/questions';
 import { useDailySessionFlow } from '@/hooks/use-daily-session-flow';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
@@ -48,7 +55,6 @@ function SwipeIndicator({
     opacity: opacity.value,
     transform: [{ scale: scale.value }],
   }));
-  const [accentForeground] = useThemeColor(['accent-foreground']);
 
   const isRight = direction === 'right';
 
@@ -58,29 +64,24 @@ function SwipeIndicator({
         styles.swipeIndicator,
         {
           [isRight ? 'right' : 'left']: 20,
-          backgroundColor: isRight ? accent : 'rgba(239, 68, 68, 0.9)', // red for disagree
+          backgroundColor: isRight ? accent : COLORS.danger,
         },
         animatedStyle,
       ]}>
-      <Ionicons
-        name={isRight ? 'checkmark' : 'close'}
-        size={32}
-        color={accentForeground}
-      />
-      <Text style={styles.swipeIndicatorText}>
-        {isRight ? 'Agree' : 'Disagree'}
-      </Text>
+      <Ionicons name={isRight ? 'checkmark' : 'close'} size={32} color="#FFFFFF" />
+      <Text style={styles.swipeIndicatorText}>{isRight ? 'Agree' : 'Disagree'}</Text>
     </Animated.View>
   );
 }
 
-function QuestionCard({
+function SwipeableQuestionCard({
   prompt,
   accent,
   translateX,
   rotateZ,
   onSwipeComplete,
   isSubmitting,
+  categoryLabel,
 }: {
   prompt: string;
   accent: string;
@@ -88,12 +89,12 @@ function QuestionCard({
   rotateZ: SharedValue<number>;
   onSwipeComplete: (direction: 'left' | 'right') => void;
   isSubmitting: boolean;
+  categoryLabel?: string;
 }) {
   const leftOpacity = useSharedValue(0);
   const leftScale = useSharedValue(0.5);
   const rightOpacity = useSharedValue(0);
   const rightScale = useSharedValue(0.5);
-  const [accentForeground] = useThemeColor(['accent-foreground']);
 
   const gesture = Gesture.Pan()
     .onUpdate((event) => {
@@ -182,46 +183,33 @@ function QuestionCard({
       {/* Swipeable card */}
       <GestureDetector gesture={gesture}>
         <Animated.View style={[styles.card, animatedCardStyle]}>
-          <Card variant="secondary" className="overflow-hidden w-full">
-            <View
-              className="h-1 w-full"
-              style={{ backgroundColor: accent, opacity: 0.3 }}
-            />
-            <Card.Body className="p-8 min-h-[200px] justify-center">
-              <Text className="text-2xl font-semibold leading-relaxed text-foreground text-center">
-                {prompt}
-              </Text>
-            </Card.Body>
-          </Card>
+          <QuestionCard prompt={prompt} categoryLabel={categoryLabel} />
         </Animated.View>
       </GestureDetector>
 
       {/* Button controls for accessibility */}
-      <Animated.View entering={FadeInDown.delay(100).duration(300)} className="gap-3 mt-6">
-        <Button
-          onPress={handleAgreePress}
+      <Animated.View entering={FadeInDown.delay(100).duration(300)} style={{ gap: SPACING.md, marginTop: SPACING.xl }}>
+        <AnswerButtonGroup
+          onAgree={handleAgreePress}
+          onDisagree={handleDisagreePress}
           isDisabled={isSubmitting}
-          size="lg"
-          className="w-full">
-          <Ionicons name="checkmark" size={22} color={accentForeground} />
-          <Button.Label className="text-lg font-semibold">Agree</Button.Label>
-        </Button>
-
-        <Button
-          variant="outline"
-          onPress={handleDisagreePress}
-          isDisabled={isSubmitting}
-          size="lg"
-          className="w-full">
-          <Ionicons name="close" size={22} />
-          <Button.Label className="text-lg font-semibold">Disagree</Button.Label>
-        </Button>
+        />
       </Animated.View>
 
       {/* Hint text */}
-      <View className="flex-row items-center justify-center gap-2 mt-4 opacity-60">
-        <Ionicons name="swap-horizontal-outline" size={16} />
-        <Text className="text-sm text-muted">Swipe or tap to answer</Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: SPACING.sm,
+          marginTop: SPACING.lg,
+          opacity: 0.6,
+        }}>
+        <Ionicons name="swap-horizontal-outline" size={16} color={COLORS.warmGray} />
+        <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+          Swipe or tap to answer
+        </Text>
       </View>
     </View>
   );
@@ -276,13 +264,7 @@ export default function SessionScreen() {
     submitAnswer,
   } = useDailySessionFlow();
 
-  const [accent, accentForeground, foreground, success, danger] = useThemeColor([
-    'accent',
-    'accent-foreground',
-    'foreground',
-    'success',
-    'danger',
-  ]);
+  const accent = COLORS.terracotta;
 
   // Animation values for card
   const translateX = useSharedValue(0);
@@ -325,19 +307,37 @@ export default function SessionScreen() {
   if (phase === 'loading') {
     return (
       <ScrollView
-        className="flex-1 bg-background"
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
         contentContainerStyle={styles.centeredContainer}
         bounces={false}
         overScrollMode="never">
-        <View className="items-center gap-6">
+        <View style={{ alignItems: 'center', gap: SPACING.xl }}>
           <View
-            className="size-16 items-center justify-center rounded-3xl"
-            style={{ backgroundColor: `${accent}15` }}>
+            style={{
+              width: 64,
+              height: 64,
+              backgroundColor: `${accent}15`,
+              borderRadius: RADIUS.xl,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
             <Ionicons name="hourglass-outline" size={32} color={accent} />
           </View>
-          <View className="gap-2 items-center">
-            <Text className="text-2xl font-bold text-foreground">Loading...</Text>
-            <Text className="text-center text-base text-muted">
+          <View style={{ gap: SPACING.sm, alignItems: 'center' }}>
+            <Text
+              style={{
+                fontSize: FONT_SIZES['2xl'],
+                fontWeight: FONT_WEIGHTS.bold,
+                color: COLORS.softBrown,
+              }}>
+              Loading...
+            </Text>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.base,
+                color: COLORS.warmGray,
+                textAlign: 'center',
+              }}>
               Preparing your daily check-in
             </Text>
           </View>
@@ -350,31 +350,51 @@ export default function SessionScreen() {
   if (phase === 'error') {
     return (
       <ScrollView
-        className="flex-1 bg-background"
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
         contentContainerStyle={styles.centeredContainer}
         bounces={false}
         overScrollMode="never">
-        <DecorativeOrb color="#EF4444" size={300} top={-100} left={-100} opacity={0.1} />
+        <DecorativeOrb color={COLORS.danger} size={300} top={-100} left={-100} opacity={0.1} />
 
-        <Animated.View entering={FadeInUp.duration(400)} className="items-center gap-6 w-full max-w-[340px]">
+        <Animated.View
+          entering={FadeInUp.duration(400)}
+          style={{ alignItems: 'center', gap: SPACING.xl, width: '100%', maxWidth: 340 }}>
           <View
-            className="size-20 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)' }}>
-            <Ionicons name="alert-circle" size={40} color={danger} />
+            style={{
+              width: 80,
+              height: 80,
+              backgroundColor: `${COLORS.danger}15`,
+              borderRadius: 9999,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Ionicons name="alert-circle" size={40} color={COLORS.danger} />
           </View>
 
-          <View className="gap-3 items-center">
-            <Text className="text-2xl font-bold text-foreground text-center">
+          <View style={{ gap: SPACING.md, alignItems: 'center' }}>
+            <Text
+              style={{
+                fontSize: FONT_SIZES['2xl'],
+                fontWeight: FONT_WEIGHTS.bold,
+                color: COLORS.softBrown,
+                textAlign: 'center',
+              }}>
               Something went wrong
             </Text>
-            <Text className="text-center text-base leading-6 text-muted">
+            <Text
+              style={{
+                textAlign: 'center',
+                fontSize: FONT_SIZES.base,
+                lineHeight: FONT_SIZES.base * 1.5,
+                color: COLORS.warmGray,
+              }}>
               {error ?? 'Failed to load your session'}
             </Text>
           </View>
 
-          <Button onPress={handleGoBack} size="lg" className="w-full">
-            <Ionicons name="arrow-back" size={18} color={accentForeground} />
-            <Button.Label className="text-lg font-semibold">Go Back</Button.Label>
+          <Button onPress={handleGoBack}>
+            <Ionicons name="arrow-back" size={18} color="#FFFFFF" />
+            <ButtonLabel>Go Back</ButtonLabel>
           </Button>
         </Animated.View>
       </ScrollView>
@@ -385,32 +405,52 @@ export default function SessionScreen() {
   if (phase === 'completed') {
     return (
       <ScrollView
-        className="flex-1 bg-background"
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
         contentContainerStyle={styles.centeredContainer}
         bounces={false}
         overScrollMode="never">
-        <DecorativeOrb color={success} size={300} top={-100} left={-100} opacity={0.1} />
+        <DecorativeOrb color={COLORS.sage} size={300} top={-100} left={-100} opacity={0.1} />
         <DecorativeOrb color={accent} size={200} top={150} right={-80} opacity={0.08} />
 
-        <Animated.View entering={FadeInUp.duration(400)} className="items-center gap-8 w-full max-w-[340px]">
+        <Animated.View
+          entering={FadeInUp.duration(400)}
+          style={{ alignItems: 'center', gap: SPACING['3xl'], width: '100%', maxWidth: 340 }}>
           <View
-            className="size-24 items-center justify-center rounded-full"
-            style={{ backgroundColor: `${success}15` }}>
-            <Ionicons name="checkmark-circle" size={48} color={success} />
+            style={{
+              width: 96,
+              height: 96,
+              backgroundColor: `${COLORS.sage}15`,
+              borderRadius: 9999,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Ionicons name="checkmark-circle" size={48} color={COLORS.sage} />
           </View>
 
-          <View className="gap-3 items-center">
-            <Text className="text-3xl font-bold text-foreground text-center">
+          <View style={{ gap: SPACING.md, alignItems: 'center' }}>
+            <Text
+              style={{
+                fontSize: FONT_SIZES['3xl'],
+                fontWeight: FONT_WEIGHTS.bold,
+                color: COLORS.softBrown,
+                textAlign: 'center',
+              }}>
               All done
             </Text>
-            <Text className="text-center text-base leading-6 text-muted">
+            <Text
+              style={{
+                textAlign: 'center',
+                fontSize: FONT_SIZES.base,
+                lineHeight: FONT_SIZES.base * 1.5,
+                color: COLORS.warmGray,
+              }}>
               You have completed today&apos;s check-in. Come back tomorrow for more insights.
             </Text>
           </View>
 
-          <Button onPress={handleGoToToday} size="lg" className="w-full">
-            <Button.Label className="text-lg font-semibold">Back to Today</Button.Label>
-            <Ionicons name="arrow-forward" size={18} color={accentForeground} />
+          <Button onPress={handleGoToToday}>
+            <ButtonLabel>Back to Today</ButtonLabel>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
           </Button>
         </Animated.View>
       </ScrollView>
@@ -421,71 +461,97 @@ export default function SessionScreen() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <ScrollView
-        className="flex-1 bg-background"
+        style={{ flex: 1, backgroundColor: COLORS.cream }}
         contentContainerStyle={styles.questionContainer}
         bounces={false}
         overScrollMode="never">
         <DecorativeOrb color={accent} size={250} top={-80} left={-80} opacity={0.1} />
 
-        <Animated.View entering={FadeInUp.duration(350)} className="gap-6 w-full">
+        <Animated.View entering={FadeInUp.duration(350)} style={{ gap: SPACING.xl, width: '100%' }}>
           {/* Header with back button */}
-          <View className="flex-row items-center justify-between">
-            <Button variant="ghost" onPress={handleGoBack} className="p-2 -ml-2">
-              <Ionicons name="arrow-back" size={24} color={foreground} />
-            </Button>
-            <Text className="text-lg font-semibold text-foreground">Daily Check-in</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <Pressable onPress={handleGoBack} style={{ padding: SPACING.sm, marginLeft: -SPACING.sm }}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.softBrown} />
+            </Pressable>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.lg,
+                fontWeight: FONT_WEIGHTS.semibold,
+                color: COLORS.softBrown,
+              }}>
+              Daily Check-in
+            </Text>
             {/* Spacer for alignment */}
-            <View className="w-10" />
+            <View style={{ width: 40 }} />
           </View>
 
           {/* Progress header */}
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
               <Ionicons name="help-circle-outline" size={20} color={accent} />
-              <Text className="text-sm font-medium text-muted">
+              <Text style={{ fontSize: FONT_SIZES.sm, fontWeight: FONT_WEIGHTS.medium, color: COLORS.warmGray }}>
                 {answeredCount + 1} / {totalCount}
               </Text>
             </View>
             {currentAxis && (
-              <Chip variant="soft" color="accent" size="sm">
-                <Chip.Label>{currentAxis.name}</Chip.Label>
-              </Chip>
+              <Badge variant="terracotta" size="sm">
+                <BadgeLabel>{currentAxis.name}</BadgeLabel>
+              </Badge>
             )}
           </View>
 
           {/* Progress bar */}
-          <View className="h-2 overflow-hidden rounded-full bg-surface-secondary">
-            <View
-              className="h-full rounded-full"
-              style={{ width: `${progressPercentage}%`, backgroundColor: accent }}
-            />
-          </View>
+          <ProgressBar
+            progressPercentage={progressPercentage}
+            currentStep={answeredCount + 1}
+            totalSteps={totalCount}
+            accentColor={accent}
+          />
 
           {/* Question card with swipe */}
           {currentQuestion ? (
-            <QuestionCard
+            <SwipeableQuestionCard
               prompt={currentQuestion.question.prompt}
               accent={accent}
               translateX={translateX}
               rotateZ={rotateZ}
               onSwipeComplete={handleSwipeComplete}
               isSubmitting={isSubmitting}
+              categoryLabel={currentAxis?.name}
             />
           ) : (
-            <Card variant="secondary">
-              <Card.Body className="p-8 items-center">
-                <Text className="text-muted">No more questions</Text>
-              </Card.Body>
+            <Card variant="default">
+              <CardBody style={{ alignItems: 'center', padding: SPACING['3xl'] }}>
+                <Text style={{ color: COLORS.warmGray }}>No more questions</Text>
+              </CardBody>
             </Card>
           )}
 
           {isSubmitting && (
             <Animated.View entering={FadeIn.duration(150)}>
-              <Card variant="tertiary">
-                <Card.Body className="flex-row items-center gap-3 p-4 justify-center">
+              <Card variant="default">
+                <CardBody
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: SPACING.md,
+                    justifyContent: 'center',
+                  }}>
                   <Ionicons name="time-outline" size={20} color={accent} />
-                  <Text className="text-sm text-muted">Saving your answer...</Text>
-                </Card.Body>
+                  <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+                    Saving your answer...
+                  </Text>
+                </CardBody>
               </Card>
             </Animated.View>
           )}
@@ -503,13 +569,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: SPACING.xl,
     paddingTop: 48,
     paddingBottom: 32,
   },
   questionContainer: {
     flexGrow: 1,
-    padding: 24,
+    padding: SPACING.xl,
     paddingTop: 48,
     paddingBottom: 32,
   },
@@ -526,17 +592,17 @@ const styles = StyleSheet.create({
   swipeIndicator: {
     position: 'absolute',
     top: '30%',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 24,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.pill,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING.sm,
     zIndex: 10,
   },
   swipeIndicatorText: {
     color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.base,
+    fontWeight: FONT_WEIGHTS.semibold,
   },
 });
