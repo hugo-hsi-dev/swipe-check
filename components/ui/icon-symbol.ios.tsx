@@ -12,7 +12,8 @@ type IconSymbolName =
   | 'book.fill'
   | 'paperplane.fill'
   | 'chevron.left.forwardslash.chevron.right'
-  | 'chevron.right';
+  | 'chevron.right'
+  | 'ellipsis.circle.fill';
 
 type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['name']>;
 
@@ -27,6 +28,7 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'ellipsis.circle.fill': 'more-horiz',
 } as IconMapping;
 
 export function IconSymbol({
