@@ -1,13 +1,13 @@
-import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import React from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 
 import { Button, ButtonIcon, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
-import { clearSQLiteData, exportUserData } from '@/lib/local-data/sqlite';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
+import { clearSQLiteData, exportUserData } from '@/lib/local-data/sqlite';
 
 export default function MoreScreen() {
   const buildNumber =
@@ -65,27 +65,27 @@ export default function MoreScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: COLORS.cream }}
       contentContainerStyle={{
         gap: SPACING.lg,
         padding: SPACING.xl,
-        paddingTop: SPACING['3xl'],
         paddingBottom: SPACING['2xl'],
-      }}>
+        paddingTop: SPACING['3xl'],
+      }}
+      style={{ backgroundColor: COLORS.cream, flex: 1 }}>
       <Card>
         <CardBody gap="sm">
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES['2xl'],
               fontWeight: FONT_WEIGHTS.bold,
-              color: COLORS.softBrown,
             }}>
             More
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
               color: COLORS.warmGray,
+              fontSize: FONT_SIZES.base,
               lineHeight: FONT_SIZES.base * 1.5,
             }}>
             App information and additional features
@@ -97,39 +97,39 @@ export default function MoreScreen() {
         <CardHeader>
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES.xl,
               fontWeight: FONT_WEIGHTS.semibold,
-              color: COLORS.softBrown,
             }}>
             Secondary Screens
           </Text>
         </CardHeader>
         <CardBody gap="sm">
-          <Button variant="secondary" onPress={() => router.push('/journal')} style={{ alignSelf: 'stretch' }}>
+          <Button onPress={() => router.push('/journal')} style={{ alignSelf: 'stretch' }} variant="secondary">
             <ButtonIcon>
-              <Ionicons name="book" size={20} color={COLORS.terracotta} />
+              <Ionicons color={COLORS.terracotta} name="book" size={20} />
             </ButtonIcon>
             <ButtonLabel variant="secondary">Journal</ButtonLabel>
           </Button>
           <Text
             style={{
-              fontSize: FONT_SIZES.sm,
               color: COLORS.warmGray,
+              fontSize: FONT_SIZES.sm,
               lineHeight: FONT_SIZES.sm * 1.5,
             }}>
             View your history and past entries
           </Text>
 
-          <Button variant="secondary" onPress={() => router.push('/settings')} style={{ alignSelf: 'stretch' }}>
+          <Button onPress={() => router.push('/settings')} style={{ alignSelf: 'stretch' }} variant="secondary">
             <ButtonIcon>
-              <Ionicons name="settings" size={20} color={COLORS.terracotta} />
+              <Ionicons color={COLORS.terracotta} name="settings" size={20} />
             </ButtonIcon>
             <ButtonLabel variant="secondary">Settings</ButtonLabel>
           </Button>
           <Text
             style={{
-              fontSize: FONT_SIZES.sm,
               color: COLORS.warmGray,
+              fontSize: FONT_SIZES.sm,
               lineHeight: FONT_SIZES.sm * 1.5,
             }}>
             App information and local data controls
@@ -141,9 +141,9 @@ export default function MoreScreen() {
         <CardHeader>
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES.xl,
               fontWeight: FONT_WEIGHTS.semibold,
-              color: COLORS.softBrown,
             }}>
             Data Management
           </Text>
@@ -152,38 +152,38 @@ export default function MoreScreen() {
           {!showResetConfirmation ? (
             <>
               <Button
-                variant="secondary"
-                onPress={handleExportData}
                 isDisabled={isExporting}
-                style={{ alignSelf: 'stretch' }}>
+                onPress={handleExportData}
+                style={{ alignSelf: 'stretch' }}
+                variant="secondary">
                 <ButtonIcon>
-                  <Ionicons name="download-outline" size={20} color={COLORS.terracotta} />
+                  <Ionicons color={COLORS.terracotta} name="download-outline" size={20} />
                 </ButtonIcon>
                 <ButtonLabel variant="secondary">{isExporting ? 'Exporting...' : 'Export My Data'}</ButtonLabel>
               </Button>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
                   color: COLORS.warmGray,
+                  fontSize: FONT_SIZES.sm,
                   lineHeight: FONT_SIZES.sm * 1.5,
                 }}>
                 Download a copy of all your app data
               </Text>
 
               <Button
-                variant="danger"
-                onPress={() => setShowResetConfirmation(true)}
                 isDisabled={isResetting}
-                style={{ alignSelf: 'stretch', marginTop: SPACING.sm }}>
+                onPress={() => setShowResetConfirmation(true)}
+                style={{ alignSelf: 'stretch', marginTop: SPACING.sm }}
+                variant="danger">
                 <ButtonIcon>
-                  <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                  <Ionicons color="#FFFFFF" name="trash-outline" size={18} />
                 </ButtonIcon>
                 <ButtonLabel variant="danger">Reset All Data</ButtonLabel>
               </Button>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
                   color: COLORS.warmGray,
+                  fontSize: FONT_SIZES.sm,
                   lineHeight: FONT_SIZES.sm * 1.5,
                 }}>
                 Permanently delete all data and start fresh
@@ -194,46 +194,46 @@ export default function MoreScreen() {
               <View style={{ alignItems: 'center', gap: SPACING.md, paddingBottom: SPACING.sm }}>
                 <View
                   style={{
-                    width: 64,
-                    height: 64,
+                    alignItems: 'center',
                     backgroundColor: COLORS.cream,
                     borderRadius: 9999,
-                    alignItems: 'center',
+                    height: 64,
                     justifyContent: 'center',
+                    width: 64,
                   }}>
-                  <Ionicons name="warning-outline" size={28} color={COLORS.danger} />
+                  <Ionicons color={COLORS.danger} name="warning-outline" size={28} />
                 </View>
                 <Text
                   style={{
+                    color: COLORS.danger,
                     fontSize: FONT_SIZES.lg,
                     fontWeight: FONT_WEIGHTS.semibold,
                     textAlign: 'center',
-                    color: COLORS.danger,
                   }}>
                   Are you sure?
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
                     color: COLORS.warmGray,
-                    textAlign: 'center',
+                    fontSize: FONT_SIZES.sm,
                     lineHeight: FONT_SIZES.sm * 1.5,
+                    textAlign: 'center',
                   }}>
                   This will permanently delete all your local data. The app will return to its first-launch state.
                 </Text>
               </View>
-              <Button variant="danger" onPress={handleResetData} isDisabled={isResetting}>
-                <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+              <Button isDisabled={isResetting} onPress={handleResetData} variant="danger">
+                <Ionicons color="#FFFFFF" name="trash-outline" size={18} />
                 <ButtonLabel variant="danger">
                   {isResetting ? 'Deleting...' : 'Yes, Delete All Data'}
                 </ButtonLabel>
               </Button>
               <Button
-                variant="secondary"
+                isDisabled={isResetting}
                 onPress={() => {
                   setShowResetConfirmation(false);
                 }}
-                isDisabled={isResetting}>
+                variant="secondary">
                 <ButtonLabel variant="secondary">Cancel</ButtonLabel>
               </Button>
             </>
@@ -245,9 +245,9 @@ export default function MoreScreen() {
         <CardHeader>
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES.xl,
               fontWeight: FONT_WEIGHTS.semibold,
-              color: COLORS.softBrown,
             }}>
             About
           </Text>
@@ -255,31 +255,31 @@ export default function MoreScreen() {
         <CardBody gap="sm">
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
               color: COLORS.warmGray,
+              fontSize: FONT_SIZES.base,
               lineHeight: FONT_SIZES.base * 1.5,
             }}>
             Swipe Check
           </Text>
           <View
             style={{
-              flexDirection: 'row',
               alignItems: 'center',
+              flexDirection: 'row',
               justifyContent: 'space-between',
             }}>
-            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Version</Text>
-            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>
+            <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.base }}>Version</Text>
+            <Text style={{ color: COLORS.softBrown, fontSize: FONT_SIZES.base }}>
               {Constants.expoConfig?.version ?? 'Unknown'}
             </Text>
           </View>
           <View
             style={{
-              flexDirection: 'row',
               alignItems: 'center',
+              flexDirection: 'row',
               justifyContent: 'space-between',
             }}>
-            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>Build</Text>
-            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.softBrown }}>{buildNumber}</Text>
+            <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.base }}>Build</Text>
+            <Text style={{ color: COLORS.softBrown, fontSize: FONT_SIZES.base }}>{buildNumber}</Text>
           </View>
         </CardBody>
       </Card>

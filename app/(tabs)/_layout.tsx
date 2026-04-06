@@ -12,38 +12,38 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarButton: HapticTab,
         tabBarActiveTintColor: variant.activeTintColor,
+        tabBarButton: HapticTab,
         tabBarInactiveTintColor: variant.inactiveTintColor,
-        tabBarStyle: variant.tabBarStyle,
         tabBarItemStyle: variant.tabBarItemStyle,
         tabBarLabelStyle: variant.tabBarLabelStyle,
+        tabBarStyle: variant.tabBarStyle,
       }}>
       <Tabs.Screen
         name="today"
         options={{
-          title: 'Today',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="checkmark.circle.fill" color={color} focused={focused} />
+            <TabBarIcon color={color} focused={focused} name="checkmark.circle.fill" />
           ),
+          title: 'Today',
         }}
       />
       <Tabs.Screen
         name="insights"
         options={{
-          title: 'Insights',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="chart.bar.fill" color={color} focused={focused} />
+            <TabBarIcon color={color} focused={focused} name="chart.bar.fill" />
           ),
+          title: 'Insights',
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
-          title: 'More',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="ellipsis.circle.fill" color={color} focused={focused} />
+            <TabBarIcon color={color} focused={focused} name="ellipsis.circle.fill" />
           ),
+          title: 'More',
         }}
       />
       <Tabs.Screen

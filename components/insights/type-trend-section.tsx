@@ -1,21 +1,44 @@
 import { Text, View } from 'react-native';
 
-import { Card, CardBody } from '@/components/ui/card';
-import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 
+import { Card, CardBody } from '@/components/ui/card';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
+
 export type TypeTrendSectionProps = {
-  latestType: string;
   history: TypeSnapshot[];
+  latestType: string;
 };
 
-type SnapshotStatus = 'new' | 'stable' | 'shifted';
+type SnapshotStatus = 'new' | 'shifted' | 'stable';
 
-function getLatestSnapshotStatus(sortedHistory: TypeSnapshot[]): SnapshotStatus {
-  const latest = sortedHistory[0];
-  const previous = sortedHistory[1];
-  if (!latest || !previous) return 'new';
-  return latest.currentType === previous.currentType ? 'stable' : 'shifted';
+export function TypeTrendSection({ history, latestType }: TypeTrendSectionProps) {
+  if (!history || history.length === 0) {
+    return <EmptyHistory />;
+  }
+
+  if (history.length === 1) {
+    return <SingleSnapshot latestType={latestType} snapshot={history[0]} />;
+  }
+
+  return <TrendHistory history={history} />;
+}
+
+function EmptyHistory() {
+  return (
+    <Card>
+      <CardBody style={{ alignItems: 'center', gap: SPACING.sm, paddingVertical: SPACING.xl }}>
+        <Text
+          style={{
+            color: COLORS.warmGray,
+            fontSize: FONT_SIZES.sm,
+            textAlign: 'center',
+          }}>
+          No trend data yet. Check back after your next assessment.
+        </Text>
+      </CardBody>
+    </Card>
+  );
 }
 
 function formatDate(date: Date): string {
@@ -46,75 +69,35 @@ function formatDate(date: Date): string {
     const weeks = Math.floor(diffDays / 7);
     return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
   }
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
 
-function StatusIndicator({ status }: { status: SnapshotStatus }) {
-  if (status === 'new') {
-    return (
-      <Text
-        style={{
-          fontSize: FONT_SIZES.xs,
-          fontWeight: FONT_WEIGHTS.medium,
-          color: COLORS.terracotta,
-        }}>
-        First result
-      </Text>
-    );
-  }
-  if (status === 'stable') {
-    return (
-      <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray }}>Same as before</Text>
-    );
-  }
-  return (
-    <Text
-      style={{
-        fontSize: FONT_SIZES.xs,
-        fontWeight: FONT_WEIGHTS.medium,
-        color: COLORS.coral,
-      }}>
-      Type shifted
-    </Text>
-  );
-}
-
-function EmptyHistory() {
-  return (
-    <Card>
-      <CardBody style={{ alignItems: 'center', gap: SPACING.sm, paddingVertical: SPACING.xl }}>
-        <Text
-          style={{
-            fontSize: FONT_SIZES.sm,
-            color: COLORS.warmGray,
-            textAlign: 'center',
-          }}>
-          No trend data yet. Check back after your next assessment.
-        </Text>
-      </CardBody>
-    </Card>
-  );
+function getLatestSnapshotStatus(sortedHistory: TypeSnapshot[]): SnapshotStatus {
+  const latest = sortedHistory[0];
+  const previous = sortedHistory[1];
+  if (!latest || !previous) return 'new';
+  return latest.currentType === previous.currentType ? 'stable' : 'shifted';
 }
 
 function SingleSnapshot({ latestType, snapshot }: { latestType: string; snapshot: TypeSnapshot }) {
   return (
     <Card>
       <CardBody gap="md">
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES.lg,
               fontWeight: FONT_WEIGHTS.semibold,
-              color: COLORS.softBrown,
             }}>
             {latestType}
           </Text>
-          <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray }}>
+          <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.xs }}>
             {formatDate(snapshot.createdAt)}
           </Text>
         </View>
         <StatusIndicator status="new" />
-        <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+        <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
           This is your first recorded personality type.
         </Text>
       </CardBody>
@@ -123,12 +106,12 @@ function SingleSnapshot({ latestType, snapshot }: { latestType: string; snapshot
 }
 
 function SnapshotRow({
-  snapshot,
   index,
+  snapshot,
   total,
 }: {
-  snapshot: TypeSnapshot;
   index: number;
+  snapshot: TypeSnapshot;
   total: number;
 }) {
   const isLatest = index === 0;
@@ -136,28 +119,28 @@ function SnapshotRow({
   return (
     <View
       style={{
-        flexDirection: 'row',
         alignItems: 'center',
+        borderBottomColor: COLORS.border,
+        borderBottomWidth: index < total - 1 ? 1 : 0,
+        flexDirection: 'row',
         justifyContent: 'space-between',
         paddingVertical: SPACING.sm,
-        borderBottomWidth: index < total - 1 ? 1 : 0,
-        borderBottomColor: COLORS.border,
       }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.md }}>
         <View
           style={{
-            width: 40,
-            height: 40,
             alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 9999,
             backgroundColor: isLatest ? COLORS.terracottaLight : COLORS.cream,
+            borderRadius: 9999,
+            height: 40,
+            justifyContent: 'center',
+            width: 40,
           }}>
           <Text
             style={{
+              color: isLatest ? COLORS.terracotta : COLORS.warmGray,
               fontSize: FONT_SIZES.sm,
               fontWeight: FONT_WEIGHTS.semibold,
-              color: isLatest ? COLORS.terracotta : COLORS.warmGray,
             }}>
             {snapshot.currentType}
           </Text>
@@ -165,13 +148,13 @@ function SnapshotRow({
         <View>
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES.sm,
               fontWeight: FONT_WEIGHTS.medium,
-              color: COLORS.softBrown,
             }}>
             {formatDate(snapshot.createdAt)}
           </Text>
-          <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray }}>
+          <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.xs }}>
             {snapshot.source.type === 'onboarding'
               ? 'Onboarding'
               : snapshot.source.type === 'daily'
@@ -181,6 +164,36 @@ function SnapshotRow({
         </View>
       </View>
     </View>
+  );
+}
+
+function StatusIndicator({ status }: { status: SnapshotStatus }) {
+  if (status === 'new') {
+    return (
+      <Text
+        style={{
+          color: COLORS.terracotta,
+          fontSize: FONT_SIZES.xs,
+          fontWeight: FONT_WEIGHTS.medium,
+        }}>
+        First result
+      </Text>
+    );
+  }
+  if (status === 'stable') {
+    return (
+      <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.xs }}>Same as before</Text>
+    );
+  }
+  return (
+    <Text
+      style={{
+        color: COLORS.coral,
+        fontSize: FONT_SIZES.xs,
+        fontWeight: FONT_WEIGHTS.medium,
+      }}>
+      Type shifted
+    </Text>
   );
 }
 
@@ -200,13 +213,13 @@ function TrendHistory({ history }: { history: TypeSnapshot[] }) {
         <View>
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES.base,
               fontWeight: FONT_WEIGHTS.semibold,
-              color: COLORS.softBrown,
             }}>
             Type History
           </Text>
-          <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray, marginTop: SPACING.xs }}>
+          <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.xs, marginTop: SPACING.xs }}>
             {history.length} snapshot{history.length !== 1 ? 's' : ''} recorded
           </Text>
         </View>
@@ -220,13 +233,13 @@ function TrendHistory({ history }: { history: TypeSnapshot[] }) {
             }}>
             <Text
               style={{
+                color: COLORS.coral,
                 fontSize: FONT_SIZES.sm,
                 fontWeight: FONT_WEIGHTS.medium,
-                color: COLORS.coral,
               }}>
               Type changed
             </Text>
-            <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray, marginTop: SPACING.xs }}>
+            <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.xs, marginTop: SPACING.xs }}>
               You went from {previous.currentType} to {latest?.currentType}
             </Text>
           </View>
@@ -235,14 +248,14 @@ function TrendHistory({ history }: { history: TypeSnapshot[] }) {
         <View style={{ gap: SPACING.xs }}>
           {sortedHistory.slice(0, 5).map((snapshot, index) => (
             <SnapshotRow
+              index={index}
               key={snapshot.id}
               snapshot={snapshot}
-              index={index}
               total={Math.min(sortedHistory.length, 5)}
             />
           ))}
           {latest && sortedHistory.length > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingVertical: SPACING.sm }}>
+            <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'flex-end', paddingVertical: SPACING.sm }}>
               <StatusIndicator status={latestStatus} />
             </View>
           )}
@@ -251,8 +264,8 @@ function TrendHistory({ history }: { history: TypeSnapshot[] }) {
         {sortedHistory.length > 5 && (
           <Text
             style={{
-              fontSize: FONT_SIZES.xs,
               color: COLORS.warmGray,
+              fontSize: FONT_SIZES.xs,
               textAlign: 'center',
             }}>
             +{sortedHistory.length - 5} more earlier snapshot
@@ -262,16 +275,4 @@ function TrendHistory({ history }: { history: TypeSnapshot[] }) {
       </CardBody>
     </Card>
   );
-}
-
-export function TypeTrendSection({ latestType, history }: TypeTrendSectionProps) {
-  if (!history || history.length === 0) {
-    return <EmptyHistory />;
-  }
-
-  if (history.length === 1) {
-    return <SingleSnapshot latestType={latestType} snapshot={history[0]} />;
-  }
-
-  return <TrendHistory history={history} />;
 }

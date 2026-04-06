@@ -5,17 +5,17 @@ import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
 export type IconSymbolName =
-  | 'house.fill'
-  | 'calendar'
-  | 'checkmark.circle.fill'
-  | 'chart.bar.fill'
-  | 'clock.fill'
-  | 'gearshape.fill'
   | 'book.fill'
-  | 'paperplane.fill'
+  | 'calendar'
+  | 'chart.bar.fill'
+  | 'checkmark.circle.fill'
   | 'chevron.left.forwardslash.chevron.right'
   | 'chevron.right'
-  | 'ellipsis.circle.fill';
+  | 'clock.fill'
+  | 'ellipsis.circle.fill'
+  | 'gearshape.fill'
+  | 'house.fill'
+  | 'paperplane.fill';
 
 type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['name']>;
 
@@ -25,17 +25,17 @@ type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
 const MAPPING = {
-  'house.fill': 'home',
-  'calendar': 'calendar-today',
-  'checkmark.circle.fill': 'check-circle',
-  'chart.bar.fill': 'bar-chart',
-  'clock.fill': 'history',
-  'gearshape.fill': 'settings',
   'book.fill': 'book',
-  'paperplane.fill': 'send',
+  'calendar': 'calendar-today',
+  'chart.bar.fill': 'bar-chart',
+  'checkmark.circle.fill': 'check-circle',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'clock.fill': 'history',
   'ellipsis.circle.fill': 'more-horiz',
+  'gearshape.fill': 'settings',
+  'house.fill': 'home',
+  'paperplane.fill': 'send',
 } as IconMapping;
 
 /**
@@ -44,15 +44,15 @@ const MAPPING = {
  * Icon `name`s are based on SF Symbols and require manual mapping to Material Icons.
  */
 export function IconSymbol({
+  color,
   name,
   size = 24,
-  color,
   style,
 }: {
+  color: OpaqueColorValue | string;
   name: IconSymbolName;
   size?: number;
-  color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  return <MaterialIcons color={color} name={MAPPING[name]} size={size} style={style} />;
 }

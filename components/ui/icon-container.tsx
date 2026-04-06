@@ -3,16 +3,22 @@ import { View, type ViewProps } from 'react-native';
 
 import { COLORS, RADIUS } from '@/constants/design-system';
 
-type IconContainerVariant = 'default' | 'sage' | 'terracotta' | 'coral' | 'cream';
-type IconContainerSize = 'sm' | 'md' | 'lg';
-
 interface IconContainerProps extends ViewProps {
   children: ReactNode;
-  variant?: IconContainerVariant;
   size?: IconContainerSize;
+  variant?: IconContainerVariant;
 }
+type IconContainerSize = 'lg' | 'md' | 'sm';
+
+type IconContainerVariant = 'coral' | 'cream' | 'default' | 'sage' | 'terracotta';
 
 const variantStyles: Record<IconContainerVariant, { bg: string }> = {
+  coral: {
+    bg: COLORS.coral,
+  },
+  cream: {
+    bg: COLORS.cream,
+  },
   default: {
     bg: COLORS.warmWhite,
   },
@@ -22,37 +28,43 @@ const variantStyles: Record<IconContainerVariant, { bg: string }> = {
   terracotta: {
     bg: COLORS.terracotta,
   },
-  coral: {
-    bg: COLORS.coral,
+};
+
+const sizeStyles: Record<IconContainerSize, { iconSize: number; radius: number; size: number; }> = {
+  lg: {
+    iconSize: 32,
+    radius: RADIUS.xl,
+    size: 64,
   },
-  cream: {
-    bg: COLORS.cream,
+  md: {
+    iconSize: 28,
+    radius: RADIUS.lg,
+    size: 56,
+  },
+  sm: {
+    iconSize: 20,
+    radius: RADIUS.md,
+    size: 40,
   },
 };
 
-const sizeStyles: Record<IconContainerSize, { size: number; iconSize: number; radius: number }> = {
-  sm: {
-    size: 40,
-    iconSize: 20,
-    radius: RADIUS.md,
-  },
-  md: {
-    size: 56,
-    iconSize: 28,
-    radius: RADIUS.lg,
-  },
-  lg: {
-    size: 64,
-    iconSize: 32,
-    radius: RADIUS.xl,
-  },
-};
+// Avatar component for user/profile displays
+interface AvatarProps extends ViewProps {
+  children: ReactNode;
+  size?: 'lg' | 'md' | 'sm';
+  variant?: 'default' | 'sage' | 'terracotta';
+}
+
+// Helper for status icons with background colors
+interface StatusIconProps extends Omit<IconContainerProps, 'variant'> {
+  status: 'completed' | 'empty' | 'error' | 'inProgress' | 'success' | 'warning';
+}
 
 export function IconContainer({
   children,
-  variant = 'default',
   size = 'md',
   style,
+  variant = 'default',
   ...props
 }: IconContainerProps) {
   const variantStyle = variantStyles[variant];
@@ -62,12 +74,12 @@ export function IconContainer({
     <View
       style={[
         {
-          width: sizeValue.size,
-          height: sizeValue.size,
+          alignItems: 'center',
           backgroundColor: variantStyle.bg,
           borderRadius: sizeValue.radius,
-          alignItems: 'center',
+          height: sizeValue.size,
           justifyContent: 'center',
+          width: sizeValue.size,
         },
         style,
       ]}
@@ -77,56 +89,44 @@ export function IconContainer({
   );
 }
 
-// Helper for status icons with background colors
-interface StatusIconProps extends Omit<IconContainerProps, 'variant'> {
-  status: 'completed' | 'inProgress' | 'empty' | 'success' | 'warning' | 'error';
-}
-
 export function StatusIcon({
   children,
-  status,
   size = 'md',
+  status,
   style,
   ...props
 }: StatusIconProps) {
   const statusVariants: Record<StatusIconProps['status'], IconContainerVariant> = {
     completed: 'sage',
-    inProgress: 'terracotta',
     empty: 'default',
+    error: 'default',
+    inProgress: 'terracotta',
     success: 'sage',
     warning: 'coral',
-    error: 'default',
   };
 
   return (
     <IconContainer
-      variant={statusVariants[status]}
       size={size}
       style={style}
+      variant={statusVariants[status]}
       {...props}>
       {children}
     </IconContainer>
   );
 }
 
-// Avatar component for user/profile displays
-interface AvatarProps extends ViewProps {
-  children: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'sage' | 'terracotta';
-}
-
 const avatarSizes: Record<NonNullable<AvatarProps['size']>, number> = {
-  sm: 32,
-  md: 40,
   lg: 56,
+  md: 40,
+  sm: 32,
 };
 
 export function Avatar({
   children,
   size = 'md',
-  variant = 'default',
   style,
+  variant = 'default',
   ...props
 }: AvatarProps) {
   const avatarSize = avatarSizes[size];
@@ -140,12 +140,12 @@ export function Avatar({
     <View
       style={[
         {
-          width: avatarSize,
-          height: avatarSize,
+          alignItems: 'center',
           backgroundColor: bgColor,
           borderRadius: RADIUS.pill,
-          alignItems: 'center',
+          height: avatarSize,
           justifyContent: 'center',
+          width: avatarSize,
         },
         style,
       ]}

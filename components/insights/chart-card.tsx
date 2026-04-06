@@ -5,13 +5,18 @@ import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/d
 
 interface AxisBarProps {
   axisId: string;
+  dominantPoleId: null | string;
   poleA: { id: string; label: string };
   poleB: { id: string; label: string };
   strength: number;
-  dominantPoleId: string | null;
 }
 
-export function AxisBar({ axisId, poleA, poleB, strength, dominantPoleId }: AxisBarProps) {
+interface ChartCardProps {
+  children: React.ReactNode;
+  title: string;
+}
+
+export function AxisBar({ axisId, dominantPoleId, poleA, poleB, strength }: AxisBarProps) {
   const dominancePercent = Math.round(Math.abs(strength) * 100);
   const isTied = dominantPoleId === null;
   const isPoleBDominant = dominantPoleId === poleB.id;
@@ -27,17 +32,17 @@ export function AxisBar({ axisId, poleA, poleB, strength, dominantPoleId }: Axis
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text
           style={{
+            color: COLORS.softBrown,
             fontSize: FONT_SIZES.sm,
             fontWeight: FONT_WEIGHTS.medium,
-            color: COLORS.softBrown,
           }}>
           {poleA.label}
         </Text>
         <Text
           style={{
+            color: COLORS.softBrown,
             fontSize: FONT_SIZES.sm,
             fontWeight: FONT_WEIGHTS.medium,
-            color: COLORS.softBrown,
           }}>
           {poleB.label}
         </Text>
@@ -45,31 +50,31 @@ export function AxisBar({ axisId, poleA, poleB, strength, dominantPoleId }: Axis
 
       <View
         style={{
-          height: 12,
           backgroundColor: COLORS.sageLight,
           borderRadius: RADIUS.pill,
+          height: 12,
           overflow: 'hidden',
         }}
         testID={`axis-bar-${axisId}`}>
         {isTied ? (
           <View
             style={{
-              width: '50%',
-              height: '100%',
+              alignSelf: 'center',
               backgroundColor: COLORS.warmGray,
               borderRadius: RADIUS.pill,
-              alignSelf: 'center',
+              height: '100%',
+              width: '50%',
             }}
             testID={`axis-fill-${axisId}`}
           />
         ) : (
           <View
             style={{
-              width: `${dominancePercent}%`,
-              height: '100%',
+              alignSelf: isPoleBDominant ? 'flex-start' : 'flex-end',
               backgroundColor: COLORS.terracotta,
               borderRadius: RADIUS.pill,
-              alignSelf: isPoleBDominant ? 'flex-start' : 'flex-end',
+              height: '100%',
+              width: `${dominancePercent}%`,
             }}
             testID={`axis-fill-${axisId}`}
           />
@@ -78,8 +83,8 @@ export function AxisBar({ axisId, poleA, poleB, strength, dominantPoleId }: Axis
 
       <Text
         style={{
-          fontSize: FONT_SIZES.sm,
           color: COLORS.warmGray,
+          fontSize: FONT_SIZES.sm,
           textAlign: 'center',
         }}>
         {dominanceText}
@@ -88,20 +93,15 @@ export function AxisBar({ axisId, poleA, poleB, strength, dominantPoleId }: Axis
   );
 }
 
-interface ChartCardProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-export function ChartCard({ title, children }: ChartCardProps) {
+export function ChartCard({ children, title }: ChartCardProps) {
   return (
     <Card>
       <CardHeader>
         <Text
           style={{
+            color: COLORS.softBrown,
             fontSize: FONT_SIZES.xl,
             fontWeight: FONT_WEIGHTS.semibold,
-            color: COLORS.softBrown,
           }}>
           {title}
         </Text>

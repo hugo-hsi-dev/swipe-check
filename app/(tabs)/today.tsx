@@ -2,26 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 
-
-import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { AnswerItem } from '@/components/today/answer-item';
 import { StatusCard } from '@/components/today/status-card';
 import { TypeCard } from '@/components/today/type-card';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
+import { QUESTIONS } from '@/constants/questions';
 import { useCurrentTypeSnapshot } from '@/hooks/use-current-type-snapshot';
 import { useDailySession } from '@/hooks/use-daily-session';
 import { useTodaysSessionDetail } from '@/hooks/use-todays-session-detail';
-import { QUESTIONS } from '@/constants/questions';
-import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
-
-/**
- * Get the question text for a given question ID
- */
-function getQuestionText(questionId: string): string {
-  const question = QUESTIONS.find((q) => q.id === questionId);
-  return question?.prompt ?? questionId;
-}
-
-
 
 export default function TodayScreen() {
   const { startTodaysSession } = useDailySession();
@@ -55,10 +44,10 @@ export default function TodayScreen() {
     return (
       <View
         style={{
-          flex: 1,
           alignItems: 'center',
-          justifyContent: 'center',
           backgroundColor: COLORS.cream,
+          flex: 1,
+          justifyContent: 'center',
         }}>
         <Text style={{ color: COLORS.softBrown }}>Loading...</Text>
       </View>
@@ -67,36 +56,36 @@ export default function TodayScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: COLORS.cream }}
       contentContainerStyle={{
-        padding: SPACING.xl,
-        paddingTop: SPACING['3xl'],
-        paddingBottom: SPACING['2xl'],
         gap: SPACING.lg,
+        padding: SPACING.xl,
+        paddingBottom: SPACING['2xl'],
+        paddingTop: SPACING['3xl'],
       }}
+      style={{ backgroundColor: COLORS.cream, flex: 1 }}
       testID="today-scroll-view">
       {/* Date - subtle, non-header placement */}
       <Text
         style={{
-          fontSize: FONT_SIZES.base,
           color: COLORS.warmGray,
+          fontSize: FONT_SIZES.base,
         }}
         testID="today-date">
         {new Date().toLocaleDateString(undefined, {
+          day: 'numeric',
+          month: 'long',
           weekday: 'long',
           year: 'numeric',
-          month: 'long',
-          day: 'numeric',
         })}
       </Text>
 
       {/* Status Card - Summary comes first */}
       <StatusCard
-        status={isCompleted ? 'completed' : isInProgress ? 'inProgress' : 'empty'}
         answersCount={answers.length}
         currentType={snapshot?.currentType}
-        onStartSession={handleStartSession}
         onResumeSession={handleResumeSession}
+        onStartSession={handleStartSession}
+        status={isCompleted ? 'completed' : isInProgress ? 'inProgress' : 'empty'}
       />
 
       {/* Type Card - Only show when we have a type */}
@@ -108,13 +97,13 @@ export default function TodayScreen() {
       {isCompleted && answers.length > 0 && (
         <Card testID="today-answers-card">
           <CardHeader>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
-              <Ionicons name="document-text-outline" size={20} color={COLORS.softBrown} />
+            <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
+              <Ionicons color={COLORS.softBrown} name="document-text-outline" size={20} />
               <Text
                 style={{
+                  color: COLORS.softBrown,
                   fontSize: FONT_SIZES.xl,
                   fontWeight: FONT_WEIGHTS.semibold,
-                  color: COLORS.softBrown,
                 }}>
                 Today&apos;s Reflections
               </Text>
@@ -123,10 +112,10 @@ export default function TodayScreen() {
           <CardBody gap="md">
             {answers.map((answer, index) => (
               <AnswerItem
-                key={answer.questionId}
-                questionText={getQuestionText(answer.questionId)}
                 answer={answer.answer}
                 isLast={index === answers.length - 1}
+                key={answer.questionId}
+                questionText={getQuestionText(answer.questionId)}
               />
             ))}
           </CardBody>
@@ -137,13 +126,13 @@ export default function TodayScreen() {
       {isEmpty && (
         <Card testID="daily-habit-card">
           <CardHeader>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
-              <Ionicons name="calendar-outline" size={20} color={COLORS.softBrown} />
+            <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
+              <Ionicons color={COLORS.softBrown} name="calendar-outline" size={20} />
               <Text
                 style={{
+                  color: COLORS.softBrown,
                   fontSize: FONT_SIZES.xl,
                   fontWeight: FONT_WEIGHTS.semibold,
-                  color: COLORS.softBrown,
                 }}>
                 Daily Habit
               </Text>
@@ -152,22 +141,22 @@ export default function TodayScreen() {
           <CardBody gap="md">
             <Text
               style={{
-                fontSize: FONT_SIZES.base,
                 color: COLORS.warmGray,
+                fontSize: FONT_SIZES.base,
                 lineHeight: FONT_SIZES.base * 1.5,
               }}>
               Build self-awareness through daily check-ins. Each session takes just a
               minute and helps you track your patterns over time.
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
-              <Ionicons name="time-outline" size={16} color={COLORS.warmGray} />
-              <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+            <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
+              <Ionicons color={COLORS.warmGray} name="time-outline" size={16} />
+              <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                 About 1 minute
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
-              <Ionicons name="list-outline" size={16} color={COLORS.warmGray} />
-              <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+            <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
+              <Ionicons color={COLORS.warmGray} name="list-outline" size={16} />
+              <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                 3 quick questions
               </Text>
             </View>
@@ -180,9 +169,9 @@ export default function TodayScreen() {
         <CardHeader>
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES.xl,
               fontWeight: FONT_WEIGHTS.semibold,
-              color: COLORS.softBrown,
             }}>
             Recent Activity
           </Text>
@@ -190,20 +179,20 @@ export default function TodayScreen() {
         <CardBody>
           {isCompleted ? (
             <View style={{ gap: SPACING.sm }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
-                <Ionicons name="checkmark-circle" size={16} color={COLORS.sage} />
-                <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+              <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
+                <Ionicons color={COLORS.sage} name="checkmark-circle" size={16} />
+                <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                   Daily check-in completed today
                 </Text>
               </View>
               {snapshot && (
-                <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.warmGray }}>
+                <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.xs }}>
                   Type updated to {snapshot.currentType}
                 </Text>
               )}
             </View>
           ) : (
-            <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>
+            <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.base }}>
               Your journal entries and insights will appear here.
             </Text>
           )}
@@ -211,4 +200,14 @@ export default function TodayScreen() {
       </Card>
     </ScrollView>
   );
+}
+
+
+
+/**
+ * Get the question text for a given question ID
+ */
+function getQuestionText(questionId: string): string {
+  const question = QUESTIONS.find((q) => q.id === questionId);
+  return question?.prompt ?? questionId;
 }

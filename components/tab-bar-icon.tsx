@@ -1,24 +1,24 @@
 import React from 'react';
-import { View, type OpaqueColorValue } from 'react-native';
+import { type OpaqueColorValue, View } from 'react-native';
 
 import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { getNavVariant } from '@/constants/nav-variants';
 
 type TabBarIconProps = {
-  name: IconSymbolName;
   color: string;
-  size?: number;
   focused: boolean;
+  name: IconSymbolName;
+  size?: number;
 };
 
-export function TabBarIcon({ name, color, size = 28, focused }: TabBarIconProps) {
+export function TabBarIcon({ color, focused, name, size = 28 }: TabBarIconProps) {
   const variant = getNavVariant();
-  const iconColor: string | OpaqueColorValue = focused ? variant.focusedIconColor : color;
+  const iconColor: OpaqueColorValue | string = focused ? variant.focusedIconColor : color;
   const shellStyle = [variant.iconShellStyle, focused ? variant.iconShellFocusedStyle : variant.iconShellIdleStyle];
 
   return (
     <View style={shellStyle}>
-      <IconSymbol name={name} size={size} color={iconColor} />
+      <IconSymbol color={iconColor} name={name} size={size} />
     </View>
   );
 }

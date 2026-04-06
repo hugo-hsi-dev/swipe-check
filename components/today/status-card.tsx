@@ -1,25 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
-import { Card, CardBody } from '@/components/ui/card';
 import { Button, ButtonLabel } from '@/components/ui/button';
+import { Card, CardBody } from '@/components/ui/card';
 import { IconContainer } from '@/components/ui/icon-container';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 interface StatusCardProps {
-  status: 'completed' | 'inProgress' | 'empty';
   answersCount: number;
-  currentType?: string | null;
-  onStartSession: () => void;
+  currentType?: null | string;
   onResumeSession: () => void;
+  onStartSession: () => void;
+  status: 'completed' | 'empty' | 'inProgress';
 }
 
 export function StatusCard({
-  status,
   answersCount,
   currentType,
-  onStartSession,
   onResumeSession,
+  onStartSession,
+  status,
 }: StatusCardProps) {
   const isCompleted = status === 'completed';
   const isInProgress = status === 'inProgress';
@@ -27,28 +27,28 @@ export function StatusCard({
 
   const statusConfig = {
     completed: {
+      cardVariant: 'sage' as const,
+      containerVariant: 'sage' as const,
+      description: 'Great job completing your daily reflection.',
       icon: 'checkmark-circle' as const,
       iconColor: '#FFFFFF',
-      containerVariant: 'sage' as const,
       title: 'Daily Check-in Complete',
-      description: 'Great job completing your daily reflection.',
-      cardVariant: 'sage' as const,
-    },
-    inProgress: {
-      icon: 'play-circle' as const,
-      iconColor: '#FFFFFF',
-      containerVariant: 'terracotta' as const,
-      title: 'Check-in In Progress',
-      description: 'Continue where you left off.',
-      cardVariant: 'terracotta' as const,
     },
     empty: {
+      cardVariant: 'terracotta' as const,
+      containerVariant: 'default' as const,
+      description: 'Take a moment to check in with yourself.',
       icon: 'sunny-outline' as const,
       iconColor: COLORS.softBrown,
-      containerVariant: 'default' as const,
       title: 'Start Your Day',
-      description: 'Take a moment to check in with yourself.',
+    },
+    inProgress: {
       cardVariant: 'terracotta' as const,
+      containerVariant: 'terracotta' as const,
+      description: 'Continue where you left off.',
+      icon: 'play-circle' as const,
+      iconColor: '#FFFFFF',
+      title: 'Check-in In Progress',
     },
   };
 
@@ -57,24 +57,24 @@ export function StatusCard({
   return (
     <Card variant={config.cardVariant}>
       <CardBody gap="lg">
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
-          <IconContainer variant={config.containerVariant} size="lg">
-            <Ionicons name={config.icon} size={28} color={config.iconColor} />
+        <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.md }}>
+          <IconContainer size="lg" variant={config.containerVariant}>
+            <Ionicons color={config.iconColor} name={config.icon} size={28} />
           </IconContainer>
 
           <View style={{ flex: 1 }}>
             <Text
               style={{
+                color: COLORS.softBrown,
                 fontSize: FONT_SIZES.lg,
                 fontWeight: FONT_WEIGHTS.semibold,
-                color: COLORS.softBrown,
               }}>
               {config.title}
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.base,
                 color: COLORS.warmGray,
+                fontSize: FONT_SIZES.base,
               }}>
               {config.description}
             </Text>
@@ -84,7 +84,7 @@ export function StatusCard({
         {/* Empty State */}
         {isEmpty && (
           <Button onPress={onStartSession}>
-            <Ionicons name="play-outline" size={18} color="#FFFFFF" />
+            <Ionicons color="#FFFFFF" name="play-outline" size={18} />
             <ButtonLabel>Start Daily Check-in</ButtonLabel>
           </Button>
         )}
@@ -93,14 +93,14 @@ export function StatusCard({
         {isInProgress && (
           <View style={{ gap: SPACING.sm }}>
             <Button onPress={onResumeSession}>
-              <Ionicons name="refresh-outline" size={18} color="#FFFFFF" />
+              <Ionicons color="#FFFFFF" name="refresh-outline" size={18} />
               <ButtonLabel>Continue Check-in</ButtonLabel>
             </Button>
             <Text
               style={{
-                textAlign: 'center',
-                fontSize: FONT_SIZES.sm,
                 color: COLORS.warmGray,
+                fontSize: FONT_SIZES.sm,
+                textAlign: 'center',
               }}>
               {answersCount > 0
                 ? `${answersCount} question${answersCount === 1 ? '' : 's'} answered`
@@ -114,16 +114,16 @@ export function StatusCard({
           <View style={{ gap: SPACING.sm }}>
             <View
               style={{
-                flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: 'row',
                 gap: SPACING.sm,
+                justifyContent: 'center',
               }}>
-              <Ionicons name="checkmark-circle" size={16} color={COLORS.sage} />
+              <Ionicons color={COLORS.sage} name="checkmark-circle" size={16} />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
                   color: COLORS.sage,
+                  fontSize: FONT_SIZES.sm,
                   fontWeight: FONT_WEIGHTS.medium,
                 }}>
                 Completed today
@@ -133,16 +133,16 @@ export function StatusCard({
               <View style={{ alignItems: 'center', gap: SPACING.xs, paddingTop: SPACING.sm }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
                     color: COLORS.warmGray,
+                    fontSize: FONT_SIZES.sm,
                   }}>
                   Current Type
                 </Text>
                 <Text
                   style={{
+                    color: COLORS.sage,
                     fontSize: FONT_SIZES['2xl'],
                     fontWeight: FONT_WEIGHTS.bold,
-                    color: COLORS.sage,
                   }}>
                   {currentType}
                 </Text>

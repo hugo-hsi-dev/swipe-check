@@ -1,18 +1,22 @@
 import { type ReactNode } from 'react';
-import { Text, View, type TextProps, type ViewProps } from 'react-native';
+import { Text, type TextProps, View, type ViewProps } from 'react-native';
 
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
-type BadgeVariant = 'default' | 'sage' | 'terracotta' | 'coral';
-type BadgeSize = 'sm' | 'md';
-
 interface BadgeProps extends ViewProps {
   children: ReactNode;
-  variant?: BadgeVariant;
   size?: BadgeSize;
+  variant?: BadgeVariant;
 }
+type BadgeSize = 'md' | 'sm';
+
+type BadgeVariant = 'coral' | 'default' | 'sage' | 'terracotta';
 
 const variantStyles: Record<BadgeVariant, { bg: string; text: string }> = {
+  coral: {
+    bg: 'rgba(212, 165, 116, 0.15)',
+    text: COLORS.coral,
+  },
   default: {
     bg: 'rgba(74, 66, 56, 0.08)',
     text: COLORS.softBrown,
@@ -25,41 +29,43 @@ const variantStyles: Record<BadgeVariant, { bg: string; text: string }> = {
     bg: 'rgba(196, 164, 132, 0.15)',
     text: COLORS.terracotta,
   },
-  coral: {
-    bg: 'rgba(212, 165, 116, 0.15)',
-    text: COLORS.coral,
+};
+
+const sizeStyles: Record<BadgeSize, { fontSize: number; paddingHorizontal: number; paddingVertical: number; }> = {
+  md: {
+    fontSize: FONT_SIZES.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+  },
+  sm: {
+    fontSize: FONT_SIZES.xs,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
   },
 };
 
-const sizeStyles: Record<BadgeSize, { paddingHorizontal: number; paddingVertical: number; fontSize: number }> = {
-  sm: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    fontSize: FONT_SIZES.xs,
-  },
-  md: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    fontSize: FONT_SIZES.sm,
-  },
-};
+interface BadgeLabelProps extends TextProps {
+  children: ReactNode;
+  size?: BadgeSize;
+  variant?: BadgeVariant;
+}
 
 export function Badge({
   children,
-  variant = 'default',
   size = 'md',
   style,
+  variant = 'default',
   ...props
 }: BadgeProps) {
   return (
     <View
       style={[
         {
+          alignSelf: 'flex-start',
           backgroundColor: variantStyles[variant].bg,
           borderRadius: RADIUS.pill,
           paddingHorizontal: sizeStyles[size].paddingHorizontal,
           paddingVertical: sizeStyles[size].paddingVertical,
-          alignSelf: 'flex-start',
         },
         style,
       ]}
@@ -69,17 +75,11 @@ export function Badge({
   );
 }
 
-interface BadgeLabelProps extends TextProps {
-  children: ReactNode;
-  variant?: BadgeVariant;
-  size?: BadgeSize;
-}
-
 export function BadgeLabel({
   children,
-  variant = 'default',
   size = 'md',
   style,
+  variant = 'default',
   ...props
 }: BadgeLabelProps) {
   return (

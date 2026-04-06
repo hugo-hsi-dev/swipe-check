@@ -1,11 +1,11 @@
 import { type ReactNode } from 'react';
 import {
   Pressable,
-  Text,
-  View,
   type PressableStateCallbackType,
   type StyleProp,
+  Text,
   type TextProps,
+  View,
   type ViewProps,
   type ViewStyle,
 } from 'react-native';
@@ -18,20 +18,28 @@ import {
   SPACING,
 } from '@/constants/design-system';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type ButtonSize = 'sm' | 'md' | 'lg';
-
 interface ButtonProps {
   children: ReactNode;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
   isDisabled?: boolean;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
+  size?: ButtonSize;
+  style?: ((state: PressableStateCallbackType) => StyleProp<ViewStyle>) | StyleProp<ViewStyle>;
   testID?: string;
+  variant?: ButtonVariant;
 }
+type ButtonSize = 'lg' | 'md' | 'sm';
+
+type ButtonVariant = 'danger' | 'ghost' | 'primary' | 'secondary';
 
 const variantStyles: Record<ButtonVariant, { bg: string; border?: string; text: string }> = {
+  danger: {
+    bg: COLORS.danger,
+    text: '#FFFFFF',
+  },
+  ghost: {
+    bg: 'transparent',
+    text: COLORS.softBrown,
+  },
   primary: {
     bg: COLORS.terracotta,
     text: '#FFFFFF',
@@ -41,42 +49,44 @@ const variantStyles: Record<ButtonVariant, { bg: string; border?: string; text: 
     border: COLORS.terracottaLight,
     text: COLORS.terracotta,
   },
-  ghost: {
-    bg: 'transparent',
-    text: COLORS.softBrown,
+};
+
+const sizeStyles: Record<ButtonSize, { fontSize: number; paddingHorizontal: number; paddingVertical: number; }> = {
+  lg: {
+    fontSize: FONT_SIZES.lg,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
   },
-  danger: {
-    bg: COLORS.danger,
-    text: '#FFFFFF',
+  md: {
+    fontSize: FONT_SIZES.base,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  sm: {
+    fontSize: FONT_SIZES.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
 };
 
-const sizeStyles: Record<ButtonSize, { paddingVertical: number; paddingHorizontal: number; fontSize: number }> = {
-  sm: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    fontSize: FONT_SIZES.sm,
-  },
-  md: {
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    fontSize: FONT_SIZES.base,
-  },
-  lg: {
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.xl,
-    fontSize: FONT_SIZES.lg,
-  },
-};
+interface ButtonIconProps extends ViewProps {
+  children: ReactNode;
+}
+
+interface ButtonLabelProps extends TextProps {
+  children: ReactNode;
+  size?: ButtonSize;
+  variant?: ButtonVariant;
+}
 
 export function Button({
   children,
-  variant = 'primary',
-  size = 'md',
   isDisabled = false,
   onPress,
+  size = 'md',
   style,
   testID,
+  variant = 'primary',
 }: ButtonProps) {
   const variantStyle = variantStyles[variant];
   const sizeStyle = sizeStyles[size];
@@ -87,17 +97,17 @@ export function Button({
       onPress={onPress}
       style={(state) => {
         const baseStyle: ViewStyle = {
-          backgroundColor: isDisabled ? COLORS.warmGray : variantStyle.bg,
-          borderRadius: RADIUS.md,
-          paddingVertical: sizeStyle.paddingVertical,
-          paddingHorizontal: sizeStyle.paddingHorizontal,
-          borderWidth: variantStyle.border ? 1 : 0,
-          borderColor: variantStyle.border,
-          flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
+          backgroundColor: isDisabled ? COLORS.warmGray : variantStyle.bg,
+          borderColor: variantStyle.border,
+          borderRadius: RADIUS.md,
+          borderWidth: variantStyle.border ? 1 : 0,
+          flexDirection: 'row',
           gap: SPACING.sm,
+          justifyContent: 'center',
           opacity: isDisabled ? 0.5 : 1,
+          paddingHorizontal: sizeStyle.paddingHorizontal,
+          paddingVertical: sizeStyle.paddingVertical,
         };
         if (typeof style === 'function') {
           const userStyle = style(state);
@@ -111,17 +121,19 @@ export function Button({
   );
 }
 
-interface ButtonLabelProps extends TextProps {
-  children: ReactNode;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+export function ButtonIcon({ children, style, ...props }: ButtonIconProps) {
+  return (
+    <View style={style} {...props}>
+      {children}
+    </View>
+  );
 }
 
 export function ButtonLabel({
   children,
-  variant = 'primary',
   size = 'md',
   style,
+  variant = 'primary',
   ...props
 }: ButtonLabelProps) {
   const variantStyle = variantStyles[variant];
@@ -140,17 +152,5 @@ export function ButtonLabel({
       {...props}>
       {children}
     </Text>
-  );
-}
-
-interface ButtonIconProps extends ViewProps {
-  children: ReactNode;
-}
-
-export function ButtonIcon({ children, style, ...props }: ButtonIconProps) {
-  return (
-    <View style={style} {...props}>
-      {children}
-    </View>
   );
 }

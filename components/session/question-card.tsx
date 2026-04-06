@@ -4,11 +4,11 @@ import { Card, CardBody } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 interface QuestionCardProps {
-  prompt: string;
   categoryLabel?: string;
+  prompt: string;
 }
 
-export function QuestionCard({ prompt, categoryLabel }: QuestionCardProps) {
+export function QuestionCard({ categoryLabel, prompt }: QuestionCardProps) {
   return (
     <Card variant="default">
       <CardBody gap="lg">
@@ -17,17 +17,17 @@ export function QuestionCard({ prompt, categoryLabel }: QuestionCardProps) {
             style={{
               alignSelf: 'flex-start',
               backgroundColor: COLORS.terracottaLight,
+              borderRadius: 9999,
               paddingHorizontal: SPACING.md,
               paddingVertical: SPACING.xs,
-              borderRadius: 9999,
             }}>
             <Text
               style={{
+                color: COLORS.terracotta,
                 fontSize: FONT_SIZES.xs,
                 fontWeight: FONT_WEIGHTS.semibold,
-                color: COLORS.terracotta,
-                textTransform: 'uppercase',
                 letterSpacing: 0.5,
+                textTransform: 'uppercase',
               }}>
               {categoryLabel}
             </Text>
@@ -35,9 +35,9 @@ export function QuestionCard({ prompt, categoryLabel }: QuestionCardProps) {
         )}
         <Text
           style={{
+            color: COLORS.softBrown,
             fontSize: FONT_SIZES['2xl'],
             fontWeight: FONT_WEIGHTS.semibold,
-            color: COLORS.softBrown,
             lineHeight: FONT_SIZES['2xl'] * 1.4,
             textAlign: 'center',
           }}>

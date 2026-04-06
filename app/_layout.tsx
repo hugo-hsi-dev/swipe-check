@@ -5,11 +5,10 @@ import 'react-native-reanimated';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
-import { useInitialRoute } from '@/hooks/use-initial-route';
 import { COLORS, FONT_SIZES, SPACING } from '@/constants/design-system';
-
+import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInitialRoute } from '@/hooks/use-initial-route';
 import '@/global.css';
 
 const ORGANIC_LIGHT_THEME = {
@@ -42,17 +41,17 @@ export default function RootLayout() {
     return (
       <View
         style={{
-          flex: 1,
           alignItems: 'center',
-          justifyContent: 'center',
           backgroundColor: COLORS.cream,
+          flex: 1,
+          justifyContent: 'center',
         }}>
         <ActivityIndicator color={COLORS.terracotta} />
         <Text
           style={{
-            marginTop: SPACING.md,
-            fontSize: FONT_SIZES.base,
             color: COLORS.softBrown,
+            fontSize: FONT_SIZES.base,
+            marginTop: SPACING.md,
           }}>
           Loading app...
         </Text>
@@ -85,8 +84,8 @@ export default function RootLayout() {
           <Stack.Screen
             name="journal/[id]"
             options={{
-              presentation: 'card',
               headerShown: true,
+              presentation: 'card',
             }}
           />
         </Stack>

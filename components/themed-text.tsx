@@ -2,20 +2,20 @@ import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { useThemeColor } from '@/hooks/use-theme-color';
 
-export type ThemedTextProps = TextProps & {
-  lightColor?: string;
+export type ThemedTextProps = {
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
-};
+  lightColor?: string;
+  type?: 'default' | 'defaultSemiBold' | 'link' | 'subtitle' | 'title';
+} & TextProps;
 
 export function ThemedText({
-  style,
-  lightColor,
   darkColor,
+  lightColor,
+  style,
   type = 'default',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor({ dark: darkColor, light: lightColor }, 'text');
 
   return (
     <Text
@@ -40,21 +40,21 @@ const styles = StyleSheet.create({
   },
   defaultSemiBold: {
     fontSize: 16,
-    lineHeight: 24,
     fontWeight: '600',
+    lineHeight: 24,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
+  link: {
+    color: '#0a7ea4',
+    fontSize: 16,
+    lineHeight: 30,
   },
   subtitle: {
     fontSize: 20,
     fontWeight: 'bold',
   },
-  link: {
-    lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    lineHeight: 32,
   },
 });

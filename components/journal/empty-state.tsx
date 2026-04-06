@@ -5,44 +5,44 @@ import { Card, CardBody } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
 interface EmptyStateProps {
+  description: string;
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
-  description: string;
 }
 
-export function EmptyState({ icon, title, description }: EmptyStateProps) {
+export function EmptyState({ description, icon, title }: EmptyStateProps) {
   return (
     <Card>
       <CardBody>
         <View style={{ alignItems: 'center', gap: SPACING.lg, paddingVertical: SPACING['3xl'] }}>
           <View
             style={{
-              width: 64,
-              height: 64,
+              alignItems: 'center',
               backgroundColor: COLORS.cream,
               borderRadius: RADIUS.xl,
-              alignItems: 'center',
+              height: 64,
               justifyContent: 'center',
+              width: 64,
             }}>
-            <Ionicons name={icon} size={28} color={COLORS.softBrown} />
+            <Ionicons color={COLORS.softBrown} name={icon} size={28} />
           </View>
           <View style={{ alignItems: 'center', gap: SPACING.sm }}>
             <Text
               style={{
+                color: COLORS.softBrown,
                 fontSize: FONT_SIZES.xl,
                 fontWeight: FONT_WEIGHTS.semibold,
-                color: COLORS.softBrown,
                 textAlign: 'center',
               }}>
               {title}
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.base,
                 color: COLORS.warmGray,
-                textAlign: 'center',
-                maxWidth: 280,
+                fontSize: FONT_SIZES.base,
                 lineHeight: FONT_SIZES.base * 1.5,
+                maxWidth: 280,
+                textAlign: 'center',
               }}>
               {description}
             </Text>

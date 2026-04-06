@@ -1,37 +1,43 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View, Pressable, type PressableProps } from 'react-native';
+import { Pressable, type PressableProps, Text, View } from 'react-native';
 
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
-type AnswerType = 'agree' | 'disagree';
+interface AnswerButtonGroupProps {
+  isDisabled?: boolean;
+  onAgree: () => void;
+  onDisagree: () => void;
+}
 
 interface AnswerButtonProps extends Omit<PressableProps, 'onPress'> {
   answer: AnswerType;
-  onAnswer: (answer: AnswerType) => void;
   isDisabled?: boolean;
+  onAnswer: (answer: AnswerType) => void;
 }
+
+type AnswerType = 'agree' | 'disagree';
 
 export function AnswerButton({
   answer,
-  onAnswer,
   isDisabled = false,
+  onAnswer,
   ...props
 }: AnswerButtonProps) {
 
   const config = {
     agree: {
+      bgColor: COLORS.sage,
+      borderColor: undefined as string | undefined,
       icon: 'checkmark' as const,
       label: 'Agree',
-      bgColor: COLORS.sage,
       textColor: '#FFFFFF',
-      borderColor: undefined as string | undefined,
     },
     disagree: {
+      bgColor: COLORS.warmWhite,
+      borderColor: COLORS.border,
       icon: 'close' as const,
       label: 'Disagree',
-      bgColor: COLORS.warmWhite,
       textColor: COLORS.softBrown,
-      borderColor: COLORS.border,
     },
   };
 
@@ -42,25 +48,25 @@ export function AnswerButton({
       disabled={isDisabled}
       onPress={() => onAnswer(answer)}
       style={({ pressed }) => ({
-        backgroundColor: style.bgColor,
-        borderRadius: RADIUS.lg,
-        paddingVertical: SPACING.lg,
-        paddingHorizontal: SPACING.xl,
-        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: SPACING.md,
-        borderWidth: style.borderColor ? 1 : 0,
+        backgroundColor: style.bgColor,
         borderColor: style.borderColor,
+        borderRadius: RADIUS.lg,
+        borderWidth: style.borderColor ? 1 : 0,
+        flexDirection: 'row',
+        gap: SPACING.md,
+        justifyContent: 'center',
         opacity: isDisabled ? 0.5 : pressed ? 0.9 : 1,
+        paddingHorizontal: SPACING.xl,
+        paddingVertical: SPACING.lg,
       })}
       {...props}>
-      <Ionicons name={style.icon} size={24} color={style.textColor} />
+      <Ionicons color={style.textColor} name={style.icon} size={24} />
       <Text
         style={{
+          color: style.textColor,
           fontSize: FONT_SIZES.lg,
           fontWeight: FONT_WEIGHTS.semibold,
-          color: style.textColor,
         }}>
         {style.label}
       </Text>
@@ -68,21 +74,15 @@ export function AnswerButton({
   );
 }
 
-interface AnswerButtonGroupProps {
-  onAgree: () => void;
-  onDisagree: () => void;
-  isDisabled?: boolean;
-}
-
 export function AnswerButtonGroup({
+  isDisabled = false,
   onAgree,
   onDisagree,
-  isDisabled = false,
 }: AnswerButtonGroupProps) {
   return (
     <View style={{ gap: SPACING.md }}>
-      <AnswerButton answer="agree" onAnswer={onAgree} isDisabled={isDisabled} />
-      <AnswerButton answer="disagree" onAnswer={onDisagree} isDisabled={isDisabled} />
+      <AnswerButton answer="agree" isDisabled={isDisabled} onAnswer={onAgree} />
+      <AnswerButton answer="disagree" isDisabled={isDisabled} onAnswer={onDisagree} />
     </View>
   );
 }

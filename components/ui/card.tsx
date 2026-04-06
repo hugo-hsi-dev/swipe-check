@@ -3,17 +3,27 @@ import { View, type ViewProps, type ViewStyle } from 'react-native';
 
 import { COLORS, RADIUS, SPACING } from '@/constants/design-system';
 
-type CardVariant = 'default' | 'sage' | 'terracotta' | 'peach' | 'header';
-
 interface CardProps extends ViewProps {
   children: ReactNode;
-  variant?: CardVariant;
   padding?: keyof typeof SPACING;
+  variant?: CardVariant;
 }
+
+type CardVariant = 'default' | 'header' | 'peach' | 'sage' | 'terracotta';
 
 const variantStyles: Record<CardVariant, ViewStyle> = {
   default: {
     backgroundColor: COLORS.warmWhite,
+    borderRadius: RADIUS.xl,
+  },
+  header: {
+    backgroundColor: COLORS.warmWhite,
+    borderBottomLeftRadius: RADIUS['2xl'],
+    borderBottomRightRadius: RADIUS['2xl'],
+    borderRadius: RADIUS['2xl'],
+  },
+  peach: {
+    backgroundColor: COLORS.peach,
     borderRadius: RADIUS.xl,
   },
   sage: {
@@ -24,23 +34,30 @@ const variantStyles: Record<CardVariant, ViewStyle> = {
     backgroundColor: COLORS.terracottaLight,
     borderRadius: RADIUS.xl,
   },
-  peach: {
-    backgroundColor: COLORS.peach,
-    borderRadius: RADIUS.xl,
-  },
-  header: {
-    backgroundColor: COLORS.warmWhite,
-    borderRadius: RADIUS['2xl'],
-    borderBottomLeftRadius: RADIUS['2xl'],
-    borderBottomRightRadius: RADIUS['2xl'],
-  },
 };
+
+interface CardBodyProps extends ViewProps {
+  children: ReactNode;
+  gap?: keyof typeof SPACING;
+}
+
+interface CardFooterProps extends ViewProps {
+  children: ReactNode;
+}
+
+interface CardHeaderProps extends ViewProps {
+  children: ReactNode;
+}
+
+interface CardTitleProps extends ViewProps {
+  children: ReactNode;
+}
 
 export function Card({
   children,
-  variant = 'default',
   padding = '2xl',
   style,
+  variant = 'default',
   ...props
 }: CardProps) {
   return (
@@ -56,8 +73,20 @@ export function Card({
   );
 }
 
-interface CardHeaderProps extends ViewProps {
-  children: ReactNode;
+export function CardBody({ children, gap = 'md', style, ...props }: CardBodyProps) {
+  return (
+    <View style={[{ gap: SPACING[gap] }, style]} {...props}>
+      {children}
+    </View>
+  );
+}
+
+export function CardFooter({ children, style, ...props }: CardFooterProps) {
+  return (
+    <View style={[{ marginTop: SPACING.md }, style]} {...props}>
+      {children}
+    </View>
+  );
 }
 
 export function CardHeader({ children, style, ...props }: CardHeaderProps) {
@@ -68,38 +97,9 @@ export function CardHeader({ children, style, ...props }: CardHeaderProps) {
   );
 }
 
-interface CardTitleProps extends ViewProps {
-  children: ReactNode;
-}
-
 export function CardTitle({ children, style, ...props }: CardTitleProps) {
   return (
     <View style={style} {...props}>
-      {children}
-    </View>
-  );
-}
-
-interface CardBodyProps extends ViewProps {
-  children: ReactNode;
-  gap?: keyof typeof SPACING;
-}
-
-export function CardBody({ children, gap = 'md', style, ...props }: CardBodyProps) {
-  return (
-    <View style={[{ gap: SPACING[gap] }, style]} {...props}>
-      {children}
-    </View>
-  );
-}
-
-interface CardFooterProps extends ViewProps {
-  children: ReactNode;
-}
-
-export function CardFooter({ children, style, ...props }: CardFooterProps) {
-  return (
-    <View style={[{ marginTop: SPACING.md }, style]} {...props}>
       {children}
     </View>
   );

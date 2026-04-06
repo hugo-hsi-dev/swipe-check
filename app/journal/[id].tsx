@@ -1,72 +1,47 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 
-import { Card, CardBody, CardHeader } from '@/components/ui/card';
-import { Badge, BadgeLabel } from '@/components/ui/badge';
-import { Avatar } from '@/components/ui/icon-container';
-import { useJournalEntryDetail } from '@/hooks/use-journal-data';
 import type { PersistedSessionAnswer } from '@/lib/local-data/session-lifecycle';
+
+import { Badge, BadgeLabel } from '@/components/ui/badge';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { Avatar } from '@/components/ui/icon-container';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
-function formatTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-function getEntryTypeLabel(type: string): string {
-  return type === 'onboarding' ? 'Baseline (Onboarding)' : 'Daily Check-in';
-}
-
-function getAnswerIconName(answer: PersistedSessionAnswer['answer']): string {
-  return answer === 'agree' ? 'checkmark-circle' : 'close-circle';
-}
+import { useJournalEntryDetail } from '@/hooks/use-journal-data';
 
 export default function JournalEntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { detail, isLoading, error } = useJournalEntryDetail(id ?? null);
+  const { detail, error, isLoading } = useJournalEntryDetail(id ?? null);
 
   if (isLoading) {
     return (
       <>
         <Stack.Screen options={{ title: 'Loading...' }} />
         <ScrollView
-          style={{ flex: 1, backgroundColor: COLORS.cream }}
           contentContainerStyle={{
             gap: SPACING.lg,
             padding: SPACING.xl,
-            paddingTop: SPACING['3xl'],
             paddingBottom: SPACING['2xl'],
-          }}>
+            paddingTop: SPACING['3xl'],
+          }}
+          style={{ backgroundColor: COLORS.cream, flex: 1 }}>
           <Card>
             <CardBody gap="md">
               <View
                 style={{
-                  width: 150,
-                  height: 32,
                   backgroundColor: COLORS.sageLight,
                   borderRadius: 4,
+                  height: 32,
+                  width: 150,
                 }}
               />
               <View
                 style={{
-                  width: 100,
-                  height: 16,
                   backgroundColor: COLORS.sageLight,
                   borderRadius: 4,
+                  height: 16,
+                  width: 100,
                 }}
               />
             </CardBody>
@@ -77,18 +52,18 @@ export default function JournalEntryDetailScreen() {
                 <CardBody gap="md">
                   <View
                     style={{
-                      width: '100%',
-                      height: 16,
                       backgroundColor: COLORS.sageLight,
                       borderRadius: 4,
+                      height: 16,
+                      width: '100%',
                     }}
                   />
                   <View
                     style={{
-                      width: 60,
-                      height: 12,
                       backgroundColor: COLORS.sageLight,
                       borderRadius: 4,
+                      height: 12,
+                      width: 60,
                     }}
                   />
                 </CardBody>
@@ -105,24 +80,24 @@ export default function JournalEntryDetailScreen() {
       <>
         <Stack.Screen options={{ title: 'Error' }} />
         <ScrollView
-          style={{ flex: 1, backgroundColor: COLORS.cream }}
           contentContainerStyle={{
             gap: SPACING.lg,
             padding: SPACING.xl,
-            paddingTop: SPACING['3xl'],
             paddingBottom: SPACING['2xl'],
-          }}>
+            paddingTop: SPACING['3xl'],
+          }}
+          style={{ backgroundColor: COLORS.cream, flex: 1 }}>
           <Card>
             <CardBody gap="sm">
               <Text
                 style={{
+                  color: COLORS.danger,
                   fontSize: FONT_SIZES.lg,
                   fontWeight: FONT_WEIGHTS.semibold,
-                  color: COLORS.danger,
                 }}>
                 Unable to Load Entry
               </Text>
-              <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>
+              <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.base }}>
                 {error.message ?? 'An unexpected error occurred while loading this entry.'}
               </Text>
             </CardBody>
@@ -137,24 +112,24 @@ export default function JournalEntryDetailScreen() {
       <>
         <Stack.Screen options={{ title: 'Not Found' }} />
         <ScrollView
-          style={{ flex: 1, backgroundColor: COLORS.cream }}
           contentContainerStyle={{
             gap: SPACING.lg,
             padding: SPACING.xl,
-            paddingTop: SPACING['3xl'],
             paddingBottom: SPACING['2xl'],
-          }}>
+            paddingTop: SPACING['3xl'],
+          }}
+          style={{ backgroundColor: COLORS.cream, flex: 1 }}>
           <Card>
             <CardBody gap="sm">
               <Text
                 style={{
+                  color: COLORS.danger,
                   fontSize: FONT_SIZES.lg,
                   fontWeight: FONT_WEIGHTS.semibold,
-                  color: COLORS.danger,
                 }}>
                 Entry Not Found
               </Text>
-              <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray }}>
+              <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.base }}>
                 This entry may have been deleted or does not exist.
               </Text>
             </CardBody>
@@ -164,7 +139,7 @@ export default function JournalEntryDetailScreen() {
     );
   }
 
-  const { session, answers, snapshot } = detail;
+  const { answers, session, snapshot } = detail;
   const completedAt = session.completedAt;
 
   return (
@@ -175,51 +150,51 @@ export default function JournalEntryDetailScreen() {
         }}
       />
       <ScrollView
-        style={{ flex: 1, backgroundColor: COLORS.cream }}
         contentContainerStyle={{
           gap: SPACING.lg,
           padding: SPACING.xl,
-          paddingTop: SPACING['3xl'],
           paddingBottom: SPACING['2xl'],
-        }}>
+          paddingTop: SPACING['3xl'],
+        }}
+        style={{ backgroundColor: COLORS.cream, flex: 1 }}>
         {/* Header Card */}
         <Card>
           <CardBody gap="lg">
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.lg }}>
+            <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.lg }}>
               <Avatar
                 size="lg"
                 variant={session.type === 'onboarding' ? 'terracotta' : 'sage'}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
-                    fontWeight: FONT_WEIGHTS.semibold,
                     color:
                       session.type === 'onboarding' ? COLORS.terracotta : COLORS.sage,
+                    fontSize: FONT_SIZES.lg,
+                    fontWeight: FONT_WEIGHTS.semibold,
                   }}>
                   {snapshot?.currentType ?? (session.type === 'onboarding' ? 'ON' : 'DY')}
                 </Text>
               </Avatar>
               <View style={{ flex: 1, gap: SPACING.xs }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
+                <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
                   <Text
                     style={{
+                      color: COLORS.softBrown,
                       fontSize: FONT_SIZES.lg,
                       fontWeight: FONT_WEIGHTS.semibold,
-                      color: COLORS.softBrown,
                     }}>
                     {getEntryTypeLabel(session.type)}
                   </Text>
-                  <Badge variant="default" size="sm">
+                  <Badge size="sm" variant="default">
                     <BadgeLabel>Read-Only</BadgeLabel>
                   </Badge>
                 </View>
                 {completedAt && (
-                  <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+                  <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                     Completed at {formatTime(completedAt)}
                   </Text>
                 )}
                 {session.localDayKey && (
-                  <Badge variant="default" size="sm">
+                  <Badge size="sm" variant="default">
                     <BadgeLabel>{session.localDayKey}</BadgeLabel>
                   </Badge>
                 )}
@@ -228,16 +203,16 @@ export default function JournalEntryDetailScreen() {
 
             {snapshot && (
               <>
-                <View style={{ height: 1, backgroundColor: COLORS.border }} />
+                <View style={{ backgroundColor: COLORS.border, height: 1 }} />
                 <View style={{ gap: SPACING.sm }}>
-                  <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+                  <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                     Type Snapshot
                   </Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm }}>
-                    <Badge variant="sage" size="sm">
+                    <Badge size="sm" variant="sage">
                       <BadgeLabel>{snapshot.currentType}</BadgeLabel>
                     </Badge>
-                    <Badge variant="default" size="sm">
+                    <Badge size="sm" variant="default">
                       <BadgeLabel>{snapshot.questionCount} questions</BadgeLabel>
                     </Badge>
                   </View>
@@ -253,13 +228,13 @@ export default function JournalEntryDetailScreen() {
             <CardHeader>
               <Text
                 style={{
+                  color: COLORS.softBrown,
                   fontSize: FONT_SIZES.xl,
                   fontWeight: FONT_WEIGHTS.semibold,
-                  color: COLORS.softBrown,
                 }}>
                 Responses
               </Text>
-              <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>
+              <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                 {answers.length} question{answers.length !== 1 ? 's' : ''} answered
               </Text>
             </CardHeader>
@@ -273,34 +248,34 @@ export default function JournalEntryDetailScreen() {
                   <View key={answer.questionId}>
                     <View
                       style={{
-                        flexDirection: 'row',
                         alignItems: 'flex-start',
+                        flexDirection: 'row',
                         gap: SPACING.md,
                         paddingVertical: SPACING.sm,
                       }}>
                       <View style={{ marginTop: 2 }}>
-                        <Ionicons name={iconName as never} size={20} color={iconColor} />
+                        <Ionicons color={iconColor} name={iconName as never} size={20} />
                       </View>
                       <View style={{ flex: 1, gap: SPACING.xs }}>
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.sm,
                             color: COLORS.softBrown,
+                            fontSize: FONT_SIZES.sm,
                             lineHeight: FONT_SIZES.sm * 1.5,
                           }}>
                           {answer.questionText}
                         </Text>
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.xs,
                             color: COLORS.warmGray,
+                            fontSize: FONT_SIZES.xs,
                             textTransform: 'capitalize',
                           }}>
                           {answer.answer} · {formatTime(answer.answeredAt)}
                         </Text>
                       </View>
                     </View>
-                    {!isLast && <View style={{ height: 1, backgroundColor: COLORS.border }} />}
+                    {!isLast && <View style={{ backgroundColor: COLORS.border, height: 1 }} />}
                   </View>
                 );
               })}
@@ -314,16 +289,16 @@ export default function JournalEntryDetailScreen() {
             <CardBody style={{ alignItems: 'center', gap: SPACING.lg, paddingVertical: SPACING['3xl'] }}>
               <View
                 style={{
-                  width: 48,
-                  height: 48,
+                  alignItems: 'center',
                   backgroundColor: COLORS.cream,
                   borderRadius: 9999,
-                  alignItems: 'center',
+                  height: 48,
                   justifyContent: 'center',
+                  width: 48,
                 }}>
-                <Ionicons name="help-circle-outline" size={24} color={COLORS.softBrown} />
+                <Ionicons color={COLORS.softBrown} name="help-circle-outline" size={24} />
               </View>
-              <Text style={{ fontSize: FONT_SIZES.base, color: COLORS.warmGray, textAlign: 'center' }}>
+              <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.base, textAlign: 'center' }}>
                 No responses recorded for this session.
               </Text>
             </CardBody>
@@ -332,4 +307,30 @@ export default function JournalEntryDetailScreen() {
       </ScrollView>
     </>
   );
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'long',
+    weekday: 'long',
+    year: 'numeric',
+  });
+}
+
+function formatTime(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function getAnswerIconName(answer: PersistedSessionAnswer['answer']): string {
+  return answer === 'agree' ? 'checkmark-circle' : 'close-circle';
+}
+
+function getEntryTypeLabel(type: string): string {
+  return type === 'onboarding' ? 'Baseline (Onboarding)' : 'Daily Check-in';
 }

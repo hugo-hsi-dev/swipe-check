@@ -9,100 +9,65 @@ import Animated, {
   FadeOut,
 } from 'react-native-reanimated';
 
-import { Card, CardBody } from '@/components/ui/card';
-import { Button, ButtonLabel } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import type { QuestionResponse } from '@/constants/question-contract';
+
+import { AnswerButtonGroup } from '@/components/session/answer-button';
 import { ProgressBar } from '@/components/session/progress-bar';
 import { QuestionCard } from '@/components/session/question-card';
-import { AnswerButtonGroup } from '@/components/session/answer-button';
-import type { QuestionResponse } from '@/constants/question-contract';
+import { Badge } from '@/components/ui/badge';
+import { Button, ButtonLabel } from '@/components/ui/button';
+import { Card, CardBody } from '@/components/ui/card';
+import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 import { AXES } from '@/constants/questions';
 import { useOnboardingSession } from '@/hooks/use-onboarding-session';
-import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
-type OnboardingPhase = 'intro' | 'questions' | 'complete';
+type OnboardingPhase = 'complete' | 'intro' | 'questions';
 
 const INTRO_STEPS = [
   {
-    icon: 'sparkles-outline' as const,
-    title: 'Welcome to Swipe Check',
-    subtitle: 'Your personal pattern journal',
     description: 'Track how you think, feel, and act over time. Not a personality test—just a daily practice of noticing.',
+    icon: 'sparkles-outline' as const,
+    subtitle: 'Your personal pattern journal',
+    title: 'Welcome to Swipe Check',
   },
   {
-    icon: 'time-outline' as const,
-    title: '12 questions. 2 minutes.',
-    subtitle: 'Quick baseline setup',
     description: 'First, we will ask 12 questions to understand your starting point. No right answers. Just be honest.',
+    icon: 'time-outline' as const,
+    subtitle: 'Quick baseline setup',
+    title: '12 questions. 2 minutes.',
   },
   {
-    icon: 'flash-outline' as const,
-    title: 'Trust your gut',
-    subtitle: 'Go with your first instinct',
     description: 'Agree or Disagree. Do not overthink it. Your immediate response is usually the most accurate.',
+    icon: 'flash-outline' as const,
+    subtitle: 'Go with your first instinct',
+    title: 'Trust your gut',
   },
   {
-    icon: 'calendar-outline' as const,
-    title: 'Then, 3 questions a day',
-    subtitle: 'Build the habit',
     description: 'After setup, short daily check-ins help you spot patterns and see how you change over time.',
+    icon: 'calendar-outline' as const,
+    subtitle: 'Build the habit',
+    title: 'Then, 3 questions a day',
   },
 ] as const;
-
-function DecorativeOrb({
-  color,
-  size,
-  top,
-  left,
-  right,
-  bottom,
-  opacity = 0.15,
-}: {
-  color: string;
-  size: number;
-  top?: number;
-  left?: number;
-  right?: number;
-  bottom?: number;
-  opacity?: number;
-}) {
-  return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: 'absolute',
-        top,
-        left,
-        right,
-        bottom,
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: color,
-        opacity,
-      }}
-    />
-  );
-}
 
 export default function OnboardingScreen() {
   const {
     answeredCount,
+    canComplete,
+    completeOnboarding,
     currentQuestionIndex,
     isLoading,
     isSubmitting,
     questions,
-    completeOnboarding,
     submitAnswer,
     totalCount,
-    canComplete,
   } = useOnboardingSession();
 
   const accent = COLORS.terracotta;
 
   const [introStep, setIntroStep] = useState(0);
   const [phase, setPhase] = useState<OnboardingPhase>('intro');
-  const [lastAnswer, setLastAnswer] = useState<QuestionResponse | null>(null);
+  const [lastAnswer, setLastAnswer] = useState<null | QuestionResponse>(null);
 
   useEffect(() => {
     if (!isLoading && answeredCount > 0 && phase === 'intro') {
@@ -160,35 +125,35 @@ export default function OnboardingScreen() {
   if (isLoading) {
     return (
       <ScrollView
-        style={{ flex: 1, backgroundColor: COLORS.cream }}
-        contentContainerStyle={styles.centeredContainer}
         bounces={false}
-        overScrollMode="never">
+        contentContainerStyle={styles.centeredContainer}
+        overScrollMode="never"
+        style={{ backgroundColor: COLORS.cream, flex: 1 }}>
         <View style={{ alignItems: 'center', gap: SPACING.xl }}>
           <View
             style={{
-              width: 64,
-              height: 64,
+              alignItems: 'center',
               backgroundColor: `${accent}15`,
               borderRadius: RADIUS.xl,
-              alignItems: 'center',
+              height: 64,
               justifyContent: 'center',
+              width: 64,
             }}>
-            <Ionicons name="hourglass-outline" size={32} color={accent} />
+            <Ionicons color={accent} name="hourglass-outline" size={32} />
           </View>
-          <View style={{ gap: SPACING.sm, alignItems: 'center' }}>
+          <View style={{ alignItems: 'center', gap: SPACING.sm }}>
             <Text
               style={{
+                color: COLORS.softBrown,
                 fontSize: FONT_SIZES['2xl'],
                 fontWeight: FONT_WEIGHTS.bold,
-                color: COLORS.softBrown,
               }}>
               Preparing...
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.base,
                 color: COLORS.warmGray,
+                fontSize: FONT_SIZES.base,
                 textAlign: 'center',
               }}>
               One moment
@@ -202,52 +167,52 @@ export default function OnboardingScreen() {
   if (phase === 'complete') {
     return (
       <ScrollView
-        style={{ flex: 1, backgroundColor: COLORS.cream }}
-        contentContainerStyle={styles.centeredContainer}
         bounces={false}
-        overScrollMode="never">
-        <DecorativeOrb color={COLORS.sage} size={300} top={-100} left={-100} opacity={0.1} />
-        <DecorativeOrb color={accent} size={200} top={150} right={-80} opacity={0.08} />
+        contentContainerStyle={styles.centeredContainer}
+        overScrollMode="never"
+        style={{ backgroundColor: COLORS.cream, flex: 1 }}>
+        <DecorativeOrb color={COLORS.sage} left={-100} opacity={0.1} size={300} top={-100} />
+        <DecorativeOrb color={accent} opacity={0.08} right={-80} size={200} top={150} />
 
         <Animated.View
           entering={FadeInUp.duration(400)}
-          style={{ alignItems: 'center', gap: SPACING['3xl'], width: '100%', maxWidth: 340 }}>
+          style={{ alignItems: 'center', gap: SPACING['3xl'], maxWidth: 340, width: '100%' }}>
           <View
             style={{
-              width: 96,
-              height: 96,
+              alignItems: 'center',
               backgroundColor: `${COLORS.sage}15`,
               borderRadius: 9999,
-              alignItems: 'center',
+              height: 96,
               justifyContent: 'center',
+              width: 96,
             }}>
-            <Ionicons name="checkmark-circle" size={48} color={COLORS.sage} />
+            <Ionicons color={COLORS.sage} name="checkmark-circle" size={48} />
           </View>
 
-          <View style={{ gap: SPACING.md, alignItems: 'center' }}>
+          <View style={{ alignItems: 'center', gap: SPACING.md }}>
             <Text
               style={{
+                color: COLORS.softBrown,
                 fontSize: FONT_SIZES['3xl'],
                 fontWeight: FONT_WEIGHTS.bold,
-                color: COLORS.softBrown,
                 textAlign: 'center',
               }}>
               All set
             </Text>
             <Text
               style={{
-                textAlign: 'center',
+                color: COLORS.warmGray,
                 fontSize: FONT_SIZES.base,
                 lineHeight: FONT_SIZES.base * 1.5,
-                color: COLORS.warmGray,
+                textAlign: 'center',
               }}>
               Your baseline is saved. Come back tomorrow for your first daily check-in.
             </Text>
           </View>
 
-          <Button onPress={() => void handleComplete()} isDisabled={isSubmitting}>
+          <Button isDisabled={isSubmitting} onPress={() => void handleComplete()}>
             <ButtonLabel>Start tracking</ButtonLabel>
-            {!isSubmitting && <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
+            {!isSubmitting && <Ionicons color="#FFFFFF" name="arrow-forward" size={18} />}
           </Button>
         </Animated.View>
       </ScrollView>
@@ -257,38 +222,38 @@ export default function OnboardingScreen() {
   if (phase === 'questions') {
     return (
       <ScrollView
-        style={{ flex: 1, backgroundColor: COLORS.cream }}
-        contentContainerStyle={styles.questionContainer}
         bounces={false}
-        overScrollMode="never">
-        <DecorativeOrb color={accent} size={250} top={-80} left={-80} opacity={0.1} />
+        contentContainerStyle={styles.questionContainer}
+        overScrollMode="never"
+        style={{ backgroundColor: COLORS.cream, flex: 1 }}>
+        <DecorativeOrb color={accent} left={-80} opacity={0.1} size={250} top={-80} />
 
         <Animated.View entering={FadeInUp.duration(350)} style={{ gap: SPACING.xl, width: '100%' }}>
           {/* Progress header */}
           <View
             style={{
-              flexDirection: 'row',
               alignItems: 'center',
+              flexDirection: 'row',
               justifyContent: 'space-between',
             }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
-              <Ionicons name="help-circle-outline" size={20} color={accent} />
+            <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
+              <Ionicons color={accent} name="help-circle-outline" size={20} />
               <Text
                 style={{
+                  color: COLORS.warmGray,
                   fontSize: FONT_SIZES.sm,
                   fontWeight: FONT_WEIGHTS.medium,
-                  color: COLORS.warmGray,
                 }}>
                 {answeredCount + 1} / {totalCount}
               </Text>
             </View>
             {currentAxis && (
-              <Badge variant="terracotta" size="sm">
+              <Badge size="sm" variant="terracotta">
                 <Text
                   style={{
+                    color: COLORS.terracotta,
                     fontSize: FONT_SIZES.xs,
                     fontWeight: FONT_WEIGHTS.semibold,
-                    color: COLORS.terracotta,
                   }}>
                   {currentAxis.name}
                 </Text>
@@ -298,24 +263,24 @@ export default function OnboardingScreen() {
 
           {/* Progress bar */}
           <ProgressBar
-            progressPercentage={progressPercentage}
-            currentStep={answeredCount + 1}
-            totalSteps={totalCount}
             accentColor={accent}
+            currentStep={answeredCount + 1}
+            progressPercentage={progressPercentage}
+            totalSteps={totalCount}
           />
 
           {/* Question card */}
           <QuestionCard
-            prompt={currentQuestion?.question.prompt ?? 'Loading...'}
             categoryLabel={currentAxis?.name}
+            prompt={currentQuestion?.question.prompt ?? 'Loading...'}
           />
 
           {/* Answer buttons */}
           <Animated.View entering={FadeInDown.delay(100).duration(300)} style={{ gap: SPACING.md }}>
             <AnswerButtonGroup
+              isDisabled={isSubmitting || !currentQuestion}
               onAgree={() => void handleAnswer('agree')}
               onDisagree={() => void handleAnswer('disagree')}
-              isDisabled={isSubmitting || !currentQuestion}
             />
           </Animated.View>
 
@@ -324,17 +289,17 @@ export default function OnboardingScreen() {
               <Card variant="default">
                 <CardBody
                   style={{
-                    flexDirection: 'row',
                     alignItems: 'center',
+                    flexDirection: 'row',
                     gap: SPACING.md,
                     padding: SPACING.lg,
                   }}>
                   <Ionicons
+                    color={accent}
                     name={lastAnswer === 'agree' ? 'checkmark' : 'close'}
                     size={20}
-                    color={accent}
                   />
-                  <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.warmGray }}>Saving...</Text>
+                  <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>Saving...</Text>
                 </CardBody>
               </Card>
             </Animated.View>
@@ -347,63 +312,63 @@ export default function OnboardingScreen() {
   // Intro phase
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: COLORS.cream }}
-      contentContainerStyle={styles.centeredContainer}
       bounces={false}
-      overScrollMode="never">
-      <DecorativeOrb color={accent} size={300} top={-100} left={-100} opacity={0.1} />
-      <DecorativeOrb color="#8B5CF6" size={180} top={200} right={-60} opacity={0.06} />
+      contentContainerStyle={styles.centeredContainer}
+      overScrollMode="never"
+      style={{ backgroundColor: COLORS.cream, flex: 1 }}>
+      <DecorativeOrb color={accent} left={-100} opacity={0.1} size={300} top={-100} />
+      <DecorativeOrb color="#8B5CF6" opacity={0.06} right={-60} size={180} top={200} />
 
       <Animated.View
-        key={introStep}
         entering={FadeInUp.duration(350)}
         exiting={FadeOut.duration(150)}
-        style={{ alignItems: 'center', gap: SPACING['3xl'], width: '100%', maxWidth: 340 }}>
+        key={introStep}
+        style={{ alignItems: 'center', gap: SPACING['3xl'], maxWidth: 340, width: '100%' }}>
         {/* Icon */}
         <View
           style={{
-            width: 80,
-            height: 80,
+            alignItems: 'center',
             backgroundColor: `${accent}12`,
             borderRadius: RADIUS.xl,
-            alignItems: 'center',
+            height: 80,
             justifyContent: 'center',
+            width: 80,
           }}>
-          <Ionicons name={currentIntroStep.icon} size={36} color={accent} />
+          <Ionicons color={accent} name={currentIntroStep.icon} size={36} />
         </View>
 
         {/* Step indicator dots */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
+        <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
           {INTRO_STEPS.map((_, i) => (
             <View
               key={i}
               style={{
-                height: 8,
-                borderRadius: 9999,
-                width: i === introStep ? 24 : 8,
                 backgroundColor: i <= introStep ? accent : 'rgba(0,0,0,0.08)',
+                borderRadius: 9999,
+                height: 8,
+                width: i === introStep ? 24 : 8,
               }}
             />
           ))}
         </View>
 
         {/* Text content */}
-        <View style={{ gap: SPACING.md, alignItems: 'center' }}>
+        <View style={{ alignItems: 'center', gap: SPACING.md }}>
           <Text
             style={{
+              color: COLORS.softBrown,
               fontSize: FONT_SIZES['3xl'],
               fontWeight: FONT_WEIGHTS.bold,
-              color: COLORS.softBrown,
-              textAlign: 'center',
               lineHeight: FONT_SIZES['3xl'] * 1.2,
+              textAlign: 'center',
             }}>
             {currentIntroStep.title}
           </Text>
 
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
               color: accent,
+              fontSize: FONT_SIZES.base,
               fontWeight: FONT_WEIGHTS.medium,
             }}>
             {currentIntroStep.subtitle}
@@ -411,10 +376,10 @@ export default function OnboardingScreen() {
 
           <Text
             style={{
-              textAlign: 'center',
+              color: COLORS.warmGray,
               fontSize: FONT_SIZES.base,
               lineHeight: FONT_SIZES.base * 1.5,
-              color: COLORS.warmGray,
+              textAlign: 'center',
             }}>
             {currentIntroStep.description}
           </Text>
@@ -426,25 +391,25 @@ export default function OnboardingScreen() {
             <ButtonLabel>
               {introStep === INTRO_STEPS.length - 1 ? 'Start' : 'Next'}
             </ButtonLabel>
-            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+            <Ionicons color="#FFFFFF" name="arrow-forward" size={18} />
           </Button>
 
           {introStep > 0 ? (
-            <Button variant="ghost" onPress={handleBackIntroStep}>
-              <Ionicons name="arrow-back" size={18} color={COLORS.softBrown} />
+            <Button onPress={handleBackIntroStep} variant="ghost">
+              <Ionicons color={COLORS.softBrown} name="arrow-back" size={18} />
               <ButtonLabel variant="ghost">Back</ButtonLabel>
             </Button>
           ) : (
-            <Button variant="ghost" onPress={() => setPhase('questions')}>
-              <ButtonLabel variant="ghost" style={{ color: COLORS.warmGray }}>
+            <Button onPress={() => setPhase('questions')} variant="ghost">
+              <ButtonLabel style={{ color: COLORS.warmGray }} variant="ghost">
                 Skip intro
               </ButtonLabel>
             </Button>
           )}
 
           {answeredCount > 0 && (
-            <Button variant="ghost" onPress={() => setPhase('questions')}>
-              <ButtonLabel variant="ghost" style={{ color: accent }}>
+            <Button onPress={() => setPhase('questions')} variant="ghost">
+              <ButtonLabel style={{ color: accent }} variant="ghost">
                 Resume
               </ButtonLabel>
             </Button>
@@ -455,19 +420,55 @@ export default function OnboardingScreen() {
   );
 }
 
+function DecorativeOrb({
+  bottom,
+  color,
+  left,
+  opacity = 0.15,
+  right,
+  size,
+  top,
+}: {
+  bottom?: number;
+  color: string;
+  left?: number;
+  opacity?: number;
+  right?: number;
+  size: number;
+  top?: number;
+}) {
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        backgroundColor: color,
+        borderRadius: size / 2,
+        bottom,
+        height: size,
+        left,
+        opacity,
+        position: 'absolute',
+        right,
+        top,
+        width: size,
+      }}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   centeredContainer: {
+    alignItems: 'center',
     flexGrow: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     padding: SPACING.xl,
-    paddingTop: 48,
     paddingBottom: 32,
+    paddingTop: 48,
   },
   questionContainer: {
     flexGrow: 1,
     padding: SPACING.xl,
-    paddingTop: 48,
     paddingBottom: 32,
+    paddingTop: 48,
   },
 });
