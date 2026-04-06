@@ -1,56 +1,32 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { TabBarIcon } from '@/components/tab-bar-icon';
-import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
-
-const MINIMAL_TAB_BAR_STYLE = StyleSheet.create({
-  root: {
-    backgroundColor: COLORS.cream,
-    borderTopColor: COLORS.borderLight,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: SPACING.md,
-    paddingBottom: 34,
-    paddingHorizontal: SPACING.lg,
-    height: 90,
-  },
-}).root;
-
-const MINIMAL_TAB_BAR_ITEM_STYLE = StyleSheet.create({
-  root: {
-    paddingTop: SPACING.xs,
-    paddingBottom: 0,
-  },
-}).root;
-
-const MINIMAL_TAB_BAR_LABEL_STYLE = StyleSheet.create({
-  root: {
-    fontSize: FONT_SIZES.xs,
-    fontWeight: FONT_WEIGHTS.medium,
-    letterSpacing: 0,
-    textTransform: 'none',
-    marginTop: SPACING.md,
-  },
-}).root;
+import { useNavVariant } from '@/contexts/NavVariantContext';
+import { NAV_VARIANTS } from '@/constants/nav-variants';
 
 export default function TabLayout() {
+  const { activeVariant } = useNavVariant();
+  const variant = NAV_VARIANTS[activeVariant];
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarStyle: MINIMAL_TAB_BAR_STYLE,
-        tabBarItemStyle: MINIMAL_TAB_BAR_ITEM_STYLE,
-        tabBarLabelStyle: MINIMAL_TAB_BAR_LABEL_STYLE,
+        tabBarActiveTintColor: variant.activeTintColor,
+        tabBarInactiveTintColor: variant.inactiveTintColor,
+        tabBarStyle: variant.tabBarStyle,
+        tabBarItemStyle: variant.tabBarItemStyle,
+        tabBarLabelStyle: variant.tabBarLabelStyle,
       }}>
       <Tabs.Screen
         name="today"
         options={{
           title: 'Today',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="checkmark.circle.fill" color={color} focused={focused} />
+            <TabBarIcon name="checkmark.circle.fill" color={color} focused={focused} variant={variant} />
           ),
         }}
       />
@@ -59,7 +35,7 @@ export default function TabLayout() {
         options={{
           title: 'Insights',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="chart.bar.fill" color={color} focused={focused} />
+            <TabBarIcon name="chart.bar.fill" color={color} focused={focused} variant={variant} />
           ),
         }}
       />
@@ -68,7 +44,7 @@ export default function TabLayout() {
         options={{
           title: 'More',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="ellipsis.circle.fill" color={color} focused={focused} />
+            <TabBarIcon name="ellipsis.circle.fill" color={color} focused={focused} variant={variant} />
           ),
         }}
       />
