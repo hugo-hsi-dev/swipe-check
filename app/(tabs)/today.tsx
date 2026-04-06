@@ -4,7 +4,6 @@ import { ScrollView, Text, View } from 'react-native';
 
 import { Button, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
-import { Badge, BadgeLabel } from '@/components/ui/badge';
 import { AnswerItem } from '@/components/today/answer-item';
 import { StatusCard } from '@/components/today/status-card';
 import { TypeCard } from '@/components/today/type-card';
@@ -76,47 +75,22 @@ export default function TodayScreen() {
         gap: SPACING.lg,
       }}
       testID="today-scroll-view">
-      {/* Header Card */}
-      <Card variant="header">
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <View>
-            <Text
-              style={{
-                fontSize: FONT_SIZES['2xl'],
-                fontWeight: FONT_WEIGHTS.bold,
-                color: COLORS.softBrown,
-              }}>
-              Today
-            </Text>
-            <Text
-              style={{
-                fontSize: FONT_SIZES.base,
-                color: COLORS.warmGray,
-              }}
-              testID="today-date">
-              {new Date().toLocaleDateString(undefined, {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </Text>
-          </View>
-          <View style={{ alignItems: 'flex-end', gap: SPACING.sm }}>
-            {currentType && (
-              <Badge variant="sage" size="md" testID="current-type-chip">
-                <BadgeLabel>{currentType}</BadgeLabel>
-              </Badge>
-            )}
-            <Button variant="secondary" onPress={() => router.push('/settings')}>
-              <Ionicons name="settings-outline" size={18} color={COLORS.terracotta} />
-              <ButtonLabel variant="secondary">Settings</ButtonLabel>
-            </Button>
-          </View>
-        </View>
-      </Card>
+      {/* Date - subtle, non-header placement */}
+      <Text
+        style={{
+          fontSize: FONT_SIZES.base,
+          color: COLORS.warmGray,
+        }}
+        testID="today-date">
+        {new Date().toLocaleDateString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}
+      </Text>
 
-      {/* Status Card */}
+      {/* Status Card - Summary comes first */}
       <StatusCard
         status={isCompleted ? 'completed' : isInProgress ? 'inProgress' : 'empty'}
         answersCount={answers.length}
