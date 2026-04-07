@@ -23,8 +23,7 @@ export function useCurrentTypeSnapshot(): {
         if (isMounted) {
           setSnapshot(latestSnapshot);
         }
-      } catch (error) {
-        console.error('Failed to load type snapshot:', error);
+      } catch (_error) {
       } finally {
         if (isMounted) {
           setIsLoading(false);
