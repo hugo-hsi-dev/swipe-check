@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import * as Font from 'expo-font';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 export type IconFontsState = {
   error: Error | null;
@@ -16,10 +16,7 @@ export function useIconFonts(): IconFontsState {
 
     async function loadFonts() {
       try {
-        await Font.loadAsync({
-          ionicons: require('../assets/fonts/Ionicons.ttf'),
-          material: require('../assets/fonts/MaterialIcons.ttf'),
-        });
+        await Promise.all([Ionicons.loadFont(), MaterialIcons.loadFont()]);
       } catch (caught) {
         if (isMounted) {
           setError(caught instanceof Error ? caught : new Error(String(caught)));
