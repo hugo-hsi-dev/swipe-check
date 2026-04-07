@@ -36,8 +36,8 @@ jest.mock('expo-constants', () => ({
   },
 }));
 
-jest.mock('@expo/vector-icons', () => ({
-  Ionicons: () => null,
+jest.mock('@/components/ui/app-icon', () => ({
+  AppIcon: () => null,
 }));
 
 describe('Settings Screen', () => {

@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
+import { AppIcon } from '@/components/ui/app-icon';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
 interface AnswerItemProps {
@@ -23,7 +23,7 @@ export function AnswerItem({ answer, isLast = false, questionText }: AnswerItemP
   return (
     <View style={{ gap: SPACING.xs, paddingBottom: isLast ? 0 : SPACING.md }}>
       <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: SPACING.sm }}>
-        <Ionicons color={iconColor} name={iconName} size={20} style={{ marginTop: 2 }} />
+        <AppIcon color={iconColor} name={iconName} size={20} style={{ marginTop: 2 }} />
         <View style={{ flex: 1 }}>
           <Text
             style={{

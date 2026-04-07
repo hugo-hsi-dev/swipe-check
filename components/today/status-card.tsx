@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
+import { AppIcon } from '@/components/ui/app-icon';
 import { Button, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { IconContainer } from '@/components/ui/icon-container';
@@ -59,7 +59,7 @@ export function StatusCard({
       <CardBody gap="lg">
         <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.md }}>
           <IconContainer size="lg" variant={config.containerVariant}>
-            <Ionicons color={config.iconColor} name={config.icon} size={28} />
+            <AppIcon color={config.iconColor} name={config.icon} size={28} />
           </IconContainer>
 
           <View style={{ flex: 1 }}>
@@ -84,7 +84,7 @@ export function StatusCard({
         {/* Empty State */}
         {isEmpty && (
           <Button onPress={onStartSession}>
-            <Ionicons color="#FFFFFF" name="play-outline" size={18} />
+            <AppIcon color="#FFFFFF" name="play-outline" size={18} />
             <ButtonLabel>Start Daily Check-in</ButtonLabel>
           </Button>
         )}
@@ -93,7 +93,7 @@ export function StatusCard({
         {isInProgress && (
           <View style={{ gap: SPACING.sm }}>
             <Button onPress={onResumeSession}>
-              <Ionicons color="#FFFFFF" name="refresh-outline" size={18} />
+              <AppIcon color="#FFFFFF" name="refresh-outline" size={18} />
               <ButtonLabel>Continue Check-in</ButtonLabel>
             </Button>
             <Text
@@ -119,7 +119,7 @@ export function StatusCard({
                 gap: SPACING.sm,
                 justifyContent: 'center',
               }}>
-              <Ionicons color={COLORS.sage} name="checkmark-circle" size={16} />
+              <AppIcon color={COLORS.sage} name="checkmark-circle" size={16} />
               <Text
                 style={{
                   color: COLORS.sage,

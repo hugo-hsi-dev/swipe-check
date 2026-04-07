@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 
 import { EmptyState } from '@/components/journal/empty-state';
 import { JournalListItem } from '@/components/journal/journal-list-item';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Button, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/icon-container';
@@ -195,7 +195,7 @@ export default function JournalScreen() {
           <Card variant="terracotta">
             <CardBody gap="md">
               <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
-                <Ionicons color={COLORS.softBrown} name="star" size={16} />
+                <AppIcon color={COLORS.softBrown} name="star" size={16} />
                 <Text
                   style={{
                     color: COLORS.softBrown,
@@ -233,7 +233,7 @@ export default function JournalScreen() {
                         : ''}
                     </Text>
                   </View>
-                  <Ionicons color={COLORS.warmGray} name="chevron-forward" size={18} />
+                  <AppIcon color={COLORS.warmGray} name="chevron-forward" size={18} />
                 </View>
               </Button>
             </CardBody>

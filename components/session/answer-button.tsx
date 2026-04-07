@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, type PressableProps, Text, View } from 'react-native';
 
+import { AppIcon } from '@/components/ui/app-icon';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
 interface AnswerButtonGroupProps {
@@ -64,7 +64,7 @@ export function AnswerButton({
         paddingVertical: SPACING.lg,
       })}
       {...props}>
-      <Ionicons color={style.textColor} name={style.icon} size={24} />
+      <AppIcon color={style.textColor} name={style.icon} size={24} />
       <Text
         style={{
           color: style.textColor,

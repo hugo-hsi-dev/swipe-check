@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 
 import { AnswerItem } from '@/components/today/answer-item';
 import { StatusCard } from '@/components/today/status-card';
 import { TypeCard } from '@/components/today/type-card';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 import { QUESTIONS } from '@/constants/questions';
@@ -98,7 +98,7 @@ export default function TodayScreen() {
         <Card testID="today-answers-card">
           <CardHeader>
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
-              <Ionicons color={COLORS.softBrown} name="document-text-outline" size={20} />
+              <AppIcon color={COLORS.softBrown} name="document-text-outline" size={20} />
               <Text
                 style={{
                   color: COLORS.softBrown,
@@ -127,7 +127,7 @@ export default function TodayScreen() {
         <Card testID="daily-habit-card">
           <CardHeader>
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
-              <Ionicons color={COLORS.softBrown} name="calendar-outline" size={20} />
+              <AppIcon color={COLORS.softBrown} name="calendar-outline" size={20} />
               <Text
                 style={{
                   color: COLORS.softBrown,
@@ -149,13 +149,13 @@ export default function TodayScreen() {
               minute and helps you track your patterns over time.
             </Text>
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
-              <Ionicons color={COLORS.warmGray} name="time-outline" size={16} />
+              <AppIcon color={COLORS.warmGray} name="time-outline" size={16} />
               <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                 About 1 minute
               </Text>
             </View>
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
-              <Ionicons color={COLORS.warmGray} name="list-outline" size={16} />
+              <AppIcon color={COLORS.warmGray} name="list-outline" size={16} />
               <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                 3 quick questions
               </Text>
@@ -180,7 +180,7 @@ export default function TodayScreen() {
           {isCompleted ? (
             <View style={{ gap: SPACING.sm }}>
               <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
-                <Ionicons color={COLORS.sage} name="checkmark-circle" size={16} />
+                <AppIcon color={COLORS.sage} name="checkmark-circle" size={16} />
                 <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                   Daily check-in completed today
                 </Text>

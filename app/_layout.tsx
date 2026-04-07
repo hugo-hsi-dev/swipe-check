@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { COLORS, FONT_SIZES, SPACING } from '@/constants/design-system';
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useIconFonts } from '@/hooks/use-icon-fonts';
 import { useInitialRoute } from '@/hooks/use-initial-route';
 import '@/global.css';
 
@@ -32,13 +31,12 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const pathname = usePathname();
   const { bootstrapError, isBootstrapping } = useAppBootstrap(pathname);
-  const { error: iconFontsError, isLoading: areIconFontsLoading } = useIconFonts();
   const { preview } = useGlobalSearchParams<{ preview?: string }>();
   const { evaluatedPathname, isDeterminingRoute, routeError, targetRoute } = useInitialRoute(pathname);
   const isOnboardingPreview = preview === '1';
   const isDark = colorScheme === 'dark';
 
-  if (isBootstrapping || isDeterminingRoute || areIconFontsLoading) {
+  if (isBootstrapping || isDeterminingRoute) {
     return (
       <View
         style={{
@@ -60,7 +58,7 @@ export default function RootLayout() {
     );
   }
 
-  if (bootstrapError || routeError || iconFontsError) {
+  if (bootstrapError || routeError) {
     return <Text>Failed to initialize app.</Text>;
   }
 

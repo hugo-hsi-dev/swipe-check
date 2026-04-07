@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import {
   Pressable,
@@ -13,6 +12,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { ProgressBar } from '@/components/session/progress-bar';
 import { SwipeableQuestionCard } from '@/components/session/swipeable-question-card';
 import { Badge, BadgeLabel } from '@/components/ui/badge';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Button, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
@@ -68,7 +68,7 @@ export default function SessionScreen() {
               justifyContent: 'center',
               width: 64,
             }}>
-            <Ionicons color={accent} name="hourglass-outline" size={32} />
+            <AppIcon color={accent} name="hourglass-outline" size={32} />
           </View>
           <View style={{ alignItems: 'center', gap: SPACING.sm }}>
             <Text
@@ -115,7 +115,7 @@ export default function SessionScreen() {
               justifyContent: 'center',
               width: 80,
             }}>
-            <Ionicons color={COLORS.danger} name="alert-circle" size={40} />
+            <AppIcon color={COLORS.danger} name="alert-circle" size={40} />
           </View>
 
           <View style={{ alignItems: 'center', gap: SPACING.md }}>
@@ -140,7 +140,7 @@ export default function SessionScreen() {
           </View>
 
           <Button onPress={handleGoBack}>
-            <Ionicons color="#FFFFFF" name="arrow-back" size={18} />
+            <AppIcon color="#FFFFFF" name="arrow-back" size={18} />
             <ButtonLabel>Go Back</ButtonLabel>
           </Button>
         </Animated.View>
@@ -171,7 +171,7 @@ export default function SessionScreen() {
               justifyContent: 'center',
               width: 96,
             }}>
-            <Ionicons color={COLORS.sage} name="checkmark-circle" size={48} />
+            <AppIcon color={COLORS.sage} name="checkmark-circle" size={48} />
           </View>
 
           <View style={{ alignItems: 'center', gap: SPACING.md }}>
@@ -197,7 +197,7 @@ export default function SessionScreen() {
 
           <Button onPress={handleGoToToday}>
             <ButtonLabel>Back to Today</ButtonLabel>
-            <Ionicons color="#FFFFFF" name="arrow-forward" size={18} />
+            <AppIcon color="#FFFFFF" name="arrow-forward" size={18} />
           </Button>
         </Animated.View>
       </ScrollView>
@@ -223,7 +223,7 @@ export default function SessionScreen() {
               justifyContent: 'space-between',
             }}>
             <Pressable onPress={handleGoBack} style={{ marginLeft: -SPACING.sm, padding: SPACING.sm }}>
-              <Ionicons color={COLORS.softBrown} name="arrow-back" size={24} />
+              <AppIcon color={COLORS.softBrown} name="arrow-back" size={24} />
             </Pressable>
             <Text
               style={{
@@ -245,7 +245,7 @@ export default function SessionScreen() {
               justifyContent: 'space-between',
             }}>
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
-              <Ionicons color={accent} name="help-circle-outline" size={20} />
+              <AppIcon color={accent} name="help-circle-outline" size={20} />
               <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm, fontWeight: FONT_WEIGHTS.medium }}>
                 {answeredCount + 1} / {totalCount}
               </Text>
@@ -293,7 +293,7 @@ export default function SessionScreen() {
                     gap: SPACING.md,
                     justifyContent: 'center',
                   }}>
-                  <Ionicons color={accent} name="time-outline" size={20} />
+                  <AppIcon color={accent} name="time-outline" size={20} />
                   <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
                     Saving your answer...
                   </Text>

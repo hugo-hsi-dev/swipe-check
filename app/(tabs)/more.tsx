@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 
+import { AppIcon } from '@/components/ui/app-icon';
 import { Button, ButtonIcon, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
@@ -107,7 +107,7 @@ export default function MoreScreen() {
         <CardBody gap="sm">
           <Button onPress={() => router.push('/journal')} style={{ alignSelf: 'stretch' }} variant="secondary">
             <ButtonIcon>
-              <Ionicons color={COLORS.terracotta} name="book" size={20} />
+              <AppIcon color={COLORS.terracotta} name="book" size={20} />
             </ButtonIcon>
             <ButtonLabel variant="secondary">Journal</ButtonLabel>
           </Button>
@@ -122,7 +122,7 @@ export default function MoreScreen() {
 
           <Button onPress={() => router.push('/settings')} style={{ alignSelf: 'stretch' }} variant="secondary">
             <ButtonIcon>
-              <Ionicons color={COLORS.terracotta} name="settings" size={20} />
+              <AppIcon color={COLORS.terracotta} name="settings" size={20} />
             </ButtonIcon>
             <ButtonLabel variant="secondary">Settings</ButtonLabel>
           </Button>
@@ -157,7 +157,7 @@ export default function MoreScreen() {
                 style={{ alignSelf: 'stretch' }}
                 variant="secondary">
                 <ButtonIcon>
-                  <Ionicons color={COLORS.terracotta} name="download-outline" size={20} />
+                  <AppIcon color={COLORS.terracotta} name="download-outline" size={20} />
                 </ButtonIcon>
                 <ButtonLabel variant="secondary">{isExporting ? 'Exporting...' : 'Export My Data'}</ButtonLabel>
               </Button>
@@ -176,7 +176,7 @@ export default function MoreScreen() {
                 style={{ alignSelf: 'stretch', marginTop: SPACING.sm }}
                 variant="danger">
                 <ButtonIcon>
-                  <Ionicons color="#FFFFFF" name="trash-outline" size={18} />
+                  <AppIcon color="#FFFFFF" name="trash-outline" size={18} />
                 </ButtonIcon>
                 <ButtonLabel variant="danger">Reset All Data</ButtonLabel>
               </Button>
@@ -201,7 +201,7 @@ export default function MoreScreen() {
                     justifyContent: 'center',
                     width: 64,
                   }}>
-                  <Ionicons color={COLORS.danger} name="warning-outline" size={28} />
+                  <AppIcon color={COLORS.danger} name="warning-outline" size={28} />
                 </View>
                 <Text
                   style={{
@@ -223,7 +223,7 @@ export default function MoreScreen() {
                 </Text>
               </View>
               <Button isDisabled={isResetting} onPress={handleResetData} variant="danger">
-                <Ionicons color="#FFFFFF" name="trash-outline" size={18} />
+                <AppIcon color="#FFFFFF" name="trash-outline" size={18} />
                 <ButtonLabel variant="danger">
                   {isResetting ? 'Deleting...' : 'Yes, Delete All Data'}
                 </ButtonLabel>

@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useEffect } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
@@ -14,6 +13,7 @@ import Animated, {
 
 import { AnswerButtonGroup } from '@/components/session/answer-button';
 import { QuestionCard } from '@/components/session/question-card';
+import { AppIcon } from '@/components/ui/app-icon';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -195,7 +195,7 @@ export function SwipeableQuestionCard({
       {/* Hint text */}
       {showHint && (
         <View style={styles.hintContainer}>
-          <Ionicons color={COLORS.warmGray} name="swap-horizontal-outline" size={16} />
+          <AppIcon color={COLORS.warmGray} name="swap-horizontal-outline" size={16} />
           <Text style={styles.hintText}>{hintText}</Text>
         </View>
       )}
@@ -231,7 +231,7 @@ function SwipeIndicator({
         },
         animatedStyle,
       ]}>
-      <Ionicons color="#FFFFFF" name={isRight ? 'checkmark' : 'close'} size={32} />
+      <AppIcon color="#FFFFFF" name={isRight ? 'checkmark' : 'close'} size={32} />
       <Text style={styles.swipeIndicatorText}>{isRight ? 'Agree' : 'Disagree'}</Text>
     </Animated.View>
   );

@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
 import { Badge, BadgeLabel } from '@/components/ui/badge';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Card, CardBody } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 
@@ -26,7 +26,7 @@ export function MiniStreak({ count }: MiniStreakProps) {
         paddingHorizontal: SPACING.md,
         paddingVertical: SPACING.xs,
       }}>
-      <Ionicons color={COLORS.coral} name="flame" size={14} />
+      <AppIcon color={COLORS.coral} name="flame" size={14} />
       <Text
         style={{
           color: COLORS.coral,
@@ -53,7 +53,7 @@ export function StreakCard({ streakCount, totalReflections }: StreakCardProps) {
               justifyContent: 'center',
               width: 48,
             }}>
-            <Ionicons color={COLORS.coral} name="flame-outline" size={24} />
+            <AppIcon color={COLORS.coral} name="flame-outline" size={24} />
           </View>
 
           <View style={{ flex: 1 }}>
