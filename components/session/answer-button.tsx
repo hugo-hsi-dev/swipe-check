@@ -45,6 +45,9 @@ export function AnswerButton({
 
   return (
     <Pressable
+      accessibilityLabel={style.label}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled }}
       disabled={isDisabled}
       onPress={() => onAnswer(answer)}
       style={({ pressed }) => ({

@@ -332,9 +332,13 @@ export default function OnboardingScreen() {
         </View>
 
         {/* Step indicator dots */}
-        <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
+        <View
+          accessibilityLabel={`Step ${introStep + 1} of ${INTRO_STEPS.length}`}
+          accessibilityRole="progressbar"
+          style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
           {INTRO_STEPS.map((_, i) => (
             <View
+              accessibilityLabel={i === introStep ? 'Current step' : i < introStep ? 'Completed step' : 'Upcoming step'}
               key={i}
               style={{
                 backgroundColor: i <= introStep ? accent : 'rgba(0,0,0,0.08)',
