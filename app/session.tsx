@@ -1,45 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect } from 'react';
 import {
-  Dimensions,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
-  runOnJS,
-  type SharedValue,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
-import type { QuestionResponse } from '@/constants/question-contract';
-
-import { AnswerButtonGroup } from '@/components/session/answer-button';
 import { ProgressBar } from '@/components/session/progress-bar';
-import { QuestionCard } from '@/components/session/question-card';
+import { SwipeableQuestionCard } from '@/components/session/swipeable-question-card';
 import { Badge, BadgeLabel } from '@/components/ui/badge';
 import { Button, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 import { AXES } from '@/constants/questions';
 import { useDailySessionFlow } from '@/hooks/use-daily-session-flow';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
 
 export default function SessionScreen() {
   const {
@@ -55,27 +33,6 @@ export default function SessionScreen() {
   } = useDailySessionFlow();
 
   const accent = COLORS.terracotta;
-
-  // Animation values for card
-  const translateX = useSharedValue(0);
-  const rotateZ = useSharedValue(0);
-
-  // Reset animation when question changes
-  useEffect(() => {
-    translateX.value = 0;
-    rotateZ.value = 0;
-  }, [currentQuestionIndex, translateX, rotateZ]);
-
-  async function handleSwipeComplete(direction: 'left' | 'right') {
-    const response: QuestionResponse = direction === 'right' ? 'agree' : 'disagree';
-    try {
-      await submitAnswer(response);
-    } catch (_error: unknown) {
-      // Reset card on error
-      translateX.value = withSpring(0);
-      rotateZ.value = withSpring(0);
-    }
-  }
 
   function handleGoBack() {
     router.back();
@@ -311,14 +268,12 @@ export default function SessionScreen() {
           {/* Question card with swipe */}
           {currentQuestion ? (
             <SwipeableQuestionCard
-              accent={accent}
+              accentColor={accent}
               categoryLabel={currentAxis?.name}
-              isSubmitting={isSubmitting}
+              isDisabled={isSubmitting}
               key={currentQuestion.question.id}
-              onSwipeComplete={handleSwipeComplete}
+              onAnswer={(response) => void submitAnswer(response)}
               prompt={currentQuestion.question.prompt}
-              rotateZ={rotateZ}
-              translateX={translateX}
             />
           ) : (
             <Card variant="default">
@@ -388,192 +343,7 @@ function DecorativeOrb({
   );
 }
 
-function SwipeableQuestionCard({
-  accent,
-  categoryLabel,
-  isSubmitting,
-  onSwipeComplete,
-  prompt,
-  rotateZ,
-  translateX,
-}: {
-  accent: string;
-  categoryLabel?: string;
-  isSubmitting: boolean;
-  onSwipeComplete: (direction: 'left' | 'right') => void;
-  prompt: string;
-  rotateZ: SharedValue<number>;
-  translateX: SharedValue<number>;
-}) {
-  const leftOpacity = useSharedValue(0);
-  const leftScale = useSharedValue(0.5);
-  const rightOpacity = useSharedValue(0);
-  const rightScale = useSharedValue(0.5);
-
-  const gesture = Gesture.Pan()
-    .onUpdate((event) => {
-      translateX.value = event.translationX;
-      rotateZ.value = event.translationX * 0.05;
-
-      // Update indicator opacity based on swipe direction
-      const progress = Math.abs(event.translationX) / SWIPE_THRESHOLD;
-      const clampedProgress = Math.min(progress, 1);
-
-      if (event.translationX > 0) {
-        // Swiping right (agree)
-        rightOpacity.value = clampedProgress;
-        rightScale.value = 0.5 + clampedProgress * 0.5;
-        leftOpacity.value = 0;
-        leftScale.value = 0.5;
-      } else {
-        // Swiping left (disagree)
-        leftOpacity.value = clampedProgress;
-        leftScale.value = 0.5 + clampedProgress * 0.5;
-        rightOpacity.value = 0;
-        rightScale.value = 0.5;
-      }
-    })
-    .onEnd((event) => {
-      const isRightSwipe = event.translationX > SWIPE_THRESHOLD;
-      const isLeftSwipe = event.translationX < -SWIPE_THRESHOLD;
-
-      if (isRightSwipe) {
-        translateX.value = withSpring(SCREEN_WIDTH, { velocity: event.velocityX });
-        rotateZ.value = withTiming(15);
-        runOnJS(onSwipeComplete)('right');
-      } else if (isLeftSwipe) {
-        translateX.value = withSpring(-SCREEN_WIDTH, { velocity: event.velocityX });
-        rotateZ.value = withTiming(-15);
-        runOnJS(onSwipeComplete)('left');
-      } else {
-        // Reset to center
-        translateX.value = withSpring(0);
-        rotateZ.value = withSpring(0);
-        leftOpacity.value = withTiming(0);
-        leftScale.value = withTiming(0.5);
-        rightOpacity.value = withTiming(0);
-        rightScale.value = withTiming(0.5);
-      }
-    });
-
-  const animatedCardStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { rotateZ: `${rotateZ.value}deg` },
-    ],
-  }));
-
-  // Button handlers for accessibility
-  function handleAgreePress() {
-    if (isSubmitting) return;
-    translateX.value = withSpring(SCREEN_WIDTH);
-    rotateZ.value = withTiming(15);
-    onSwipeComplete('right');
-  }
-
-  function handleDisagreePress() {
-    if (isSubmitting) return;
-    translateX.value = withSpring(-SCREEN_WIDTH);
-    rotateZ.value = withTiming(-15);
-    onSwipeComplete('left');
-  }
-
-  return (
-    <View style={styles.cardContainer}>
-      {/* Swipe indicators */}
-      <SwipeIndicator
-        accent={accent}
-        direction="left"
-        opacity={leftOpacity}
-        scale={leftScale}
-      />
-      <SwipeIndicator
-        accent={accent}
-        direction="right"
-        opacity={rightOpacity}
-        scale={rightScale}
-      />
-
-      {/* Swipeable card */}
-      <GestureDetector gesture={gesture}>
-        <Animated.View style={[styles.card, animatedCardStyle]}>
-          <QuestionCard categoryLabel={categoryLabel} prompt={prompt} />
-        </Animated.View>
-      </GestureDetector>
-
-      {/* Button controls for accessibility */}
-      <Animated.View entering={FadeInDown.delay(100).duration(300)} style={{ gap: SPACING.md, marginTop: SPACING.xl }}>
-        <AnswerButtonGroup
-          isDisabled={isSubmitting}
-          onAgree={handleAgreePress}
-          onDisagree={handleDisagreePress}
-        />
-      </Animated.View>
-
-      {/* Hint text */}
-      <View
-        style={{
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: SPACING.sm,
-          justifyContent: 'center',
-          marginTop: SPACING.lg,
-          opacity: 0.6,
-        }}>
-        <Ionicons color={COLORS.warmGray} name="swap-horizontal-outline" size={16} />
-        <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.sm }}>
-          Swipe or tap to answer
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function SwipeIndicator({
-  accent,
-  direction,
-  opacity,
-  scale,
-}: {
-  accent: string;
-  direction: 'left' | 'right';
-  opacity: SharedValue<number>;
-  scale: SharedValue<number>;
-}) {
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
-
-  const isRight = direction === 'right';
-
-  return (
-    <Animated.View
-      style={[
-        styles.swipeIndicator,
-        {
-          backgroundColor: isRight ? accent : COLORS.danger,
-          [isRight ? 'right' : 'left']: 20,
-        },
-        animatedStyle,
-      ]}>
-      <Ionicons color="#FFFFFF" name={isRight ? 'checkmark' : 'close'} size={32} />
-      <Text style={styles.swipeIndicatorText}>{isRight ? 'Agree' : 'Disagree'}</Text>
-    </Animated.View>
-  );
-}
-
 const styles = StyleSheet.create({
-  card: {
-    maxWidth: SCREEN_WIDTH - 48,
-    width: '100%',
-  },
-  cardContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 300,
-    position: 'relative',
-  },
   centeredContainer: {
     alignItems: 'center',
     flexGrow: 1,
@@ -590,21 +360,5 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
     paddingBottom: 32,
     paddingTop: 48,
-  },
-  swipeIndicator: {
-    alignItems: 'center',
-    borderRadius: RADIUS.pill,
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    position: 'absolute',
-    top: '30%',
-    zIndex: 10,
-  },
-  swipeIndicatorText: {
-    color: 'white',
-    fontSize: FONT_SIZES.base,
-    fontWeight: FONT_WEIGHTS.semibold,
   },
 });
