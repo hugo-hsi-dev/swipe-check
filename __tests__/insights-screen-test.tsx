@@ -7,6 +7,10 @@ jest.mock('@/hooks/use-insights-data', () => ({
   useInsightsData: jest.fn(),
 }));
 
+jest.mock('@expo/vector-icons', () => ({
+  Ionicons: () => null,
+}));
+
 afterEach(() => {
   jest.clearAllMocks();
 });
