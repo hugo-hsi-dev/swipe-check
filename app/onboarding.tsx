@@ -4,16 +4,14 @@ import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
-  FadeInDown,
   FadeInUp,
   FadeOut,
 } from 'react-native-reanimated';
 
 import type { QuestionResponse } from '@/constants/question-contract';
 
-import { AnswerButtonGroup } from '@/components/session/answer-button';
 import { ProgressBar } from '@/components/session/progress-bar';
-import { QuestionCard } from '@/components/session/question-card';
+import { SwipeableQuestionCard } from '@/components/session/swipeable-question-card';
 import { Badge } from '@/components/ui/badge';
 import { Button, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
@@ -269,20 +267,16 @@ export default function OnboardingScreen() {
             totalSteps={totalCount}
           />
 
-          {/* Question card */}
-          <QuestionCard
+          <SwipeableQuestionCard
+            accentColor={accent}
             categoryLabel={currentAxis?.name}
+            hintText="Swipe right for Agree, left for Disagree"
+            isDisabled={isSubmitting || !currentQuestion}
+            key={currentQuestion?.question.id ?? 'loading'}
+            onAnswer={(response) => void handleAnswer(response)}
             prompt={currentQuestion?.question.prompt ?? 'Loading...'}
+            showHint={answeredCount === 0}
           />
-
-          {/* Answer buttons */}
-          <Animated.View entering={FadeInDown.delay(100).duration(300)} style={{ gap: SPACING.md }}>
-            <AnswerButtonGroup
-              isDisabled={isSubmitting || !currentQuestion}
-              onAgree={() => void handleAnswer('agree')}
-              onDisagree={() => void handleAnswer('disagree')}
-            />
-          </Animated.View>
 
           {isSubmitting && (
             <Animated.View entering={FadeIn.duration(150)}>
