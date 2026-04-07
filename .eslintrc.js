@@ -2,4 +2,14 @@
 module.exports = {
   extends: 'expo',
   ignorePatterns: ['/dist/*'],
+  rules: {
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
+  },
 };
