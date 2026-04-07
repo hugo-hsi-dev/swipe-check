@@ -53,7 +53,6 @@ export function useInsightsData(): InsightsDataState {
           history: allSnapshots,
         });
       } catch (caught) {
-        console.error('Failed to load insights data:', caught);
         const err = caught instanceof Error ? caught : new Error(String(caught));
         if (isMounted) {
           setState({ status: 'error', error: err });

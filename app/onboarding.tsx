@@ -1,20 +1,18 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
-  FadeInDown,
   FadeInUp,
   FadeOut,
 } from 'react-native-reanimated';
 
 import type { QuestionResponse } from '@/constants/question-contract';
 
-import { AnswerButtonGroup } from '@/components/session/answer-button';
 import { ProgressBar } from '@/components/session/progress-bar';
-import { QuestionCard } from '@/components/session/question-card';
+import { SwipeableQuestionCard } from '@/components/session/swipeable-question-card';
 import { Badge } from '@/components/ui/badge';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Button, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
@@ -139,7 +137,7 @@ export default function OnboardingScreen() {
               justifyContent: 'center',
               width: 64,
             }}>
-            <Ionicons color={accent} name="hourglass-outline" size={32} />
+            <AppIcon color={accent} name="hourglass-outline" size={32} />
           </View>
           <View style={{ alignItems: 'center', gap: SPACING.sm }}>
             <Text
@@ -186,7 +184,7 @@ export default function OnboardingScreen() {
               justifyContent: 'center',
               width: 96,
             }}>
-            <Ionicons color={COLORS.sage} name="checkmark-circle" size={48} />
+            <AppIcon color={COLORS.sage} name="checkmark-circle" size={48} />
           </View>
 
           <View style={{ alignItems: 'center', gap: SPACING.md }}>
@@ -212,7 +210,7 @@ export default function OnboardingScreen() {
 
           <Button isDisabled={isSubmitting} onPress={() => void handleComplete()}>
             <ButtonLabel>Start tracking</ButtonLabel>
-            {!isSubmitting && <Ionicons color="#FFFFFF" name="arrow-forward" size={18} />}
+            {!isSubmitting && <AppIcon color="#FFFFFF" name="arrow-forward" size={18} />}
           </Button>
         </Animated.View>
       </ScrollView>
@@ -237,7 +235,7 @@ export default function OnboardingScreen() {
               justifyContent: 'space-between',
             }}>
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
-              <Ionicons color={accent} name="help-circle-outline" size={20} />
+              <AppIcon color={accent} name="help-circle-outline" size={20} />
               <Text
                 style={{
                   color: COLORS.warmGray,
@@ -269,20 +267,16 @@ export default function OnboardingScreen() {
             totalSteps={totalCount}
           />
 
-          {/* Question card */}
-          <QuestionCard
+          <SwipeableQuestionCard
+            accentColor={accent}
             categoryLabel={currentAxis?.name}
+            hintText="Swipe right for Agree, left for Disagree"
+            isDisabled={isSubmitting || !currentQuestion}
+            key={currentQuestion?.question.id ?? 'loading'}
+            onAnswer={(response) => void handleAnswer(response)}
             prompt={currentQuestion?.question.prompt ?? 'Loading...'}
+            showHint={answeredCount === 0}
           />
-
-          {/* Answer buttons */}
-          <Animated.View entering={FadeInDown.delay(100).duration(300)} style={{ gap: SPACING.md }}>
-            <AnswerButtonGroup
-              isDisabled={isSubmitting || !currentQuestion}
-              onAgree={() => void handleAnswer('agree')}
-              onDisagree={() => void handleAnswer('disagree')}
-            />
-          </Animated.View>
 
           {isSubmitting && (
             <Animated.View entering={FadeIn.duration(150)}>
@@ -294,7 +288,7 @@ export default function OnboardingScreen() {
                     gap: SPACING.md,
                     padding: SPACING.lg,
                   }}>
-                  <Ionicons
+                  <AppIcon
                     color={accent}
                     name={lastAnswer === 'agree' ? 'checkmark' : 'close'}
                     size={20}
@@ -334,13 +328,17 @@ export default function OnboardingScreen() {
             justifyContent: 'center',
             width: 80,
           }}>
-          <Ionicons color={accent} name={currentIntroStep.icon} size={36} />
+          <AppIcon color={accent} name={currentIntroStep.icon} size={36} />
         </View>
 
         {/* Step indicator dots */}
-        <View style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
+        <View
+          accessibilityLabel={`Step ${introStep + 1} of ${INTRO_STEPS.length}`}
+          accessibilityRole="progressbar"
+          style={{ alignItems: 'center', flexDirection: 'row', gap: SPACING.sm }}>
           {INTRO_STEPS.map((_, i) => (
             <View
+              accessibilityLabel={i === introStep ? 'Current step' : i < introStep ? 'Completed step' : 'Upcoming step'}
               key={i}
               style={{
                 backgroundColor: i <= introStep ? accent : 'rgba(0,0,0,0.08)',
@@ -391,12 +389,12 @@ export default function OnboardingScreen() {
             <ButtonLabel>
               {introStep === INTRO_STEPS.length - 1 ? 'Start' : 'Next'}
             </ButtonLabel>
-            <Ionicons color="#FFFFFF" name="arrow-forward" size={18} />
+            <AppIcon color="#FFFFFF" name="arrow-forward" size={18} />
           </Button>
 
           {introStep > 0 ? (
             <Button onPress={handleBackIntroStep} variant="ghost">
-              <Ionicons color={COLORS.softBrown} name="arrow-back" size={18} />
+              <AppIcon color={COLORS.softBrown} name="arrow-back" size={18} />
               <ButtonLabel variant="ghost">Back</ButtonLabel>
             </Button>
           ) : (

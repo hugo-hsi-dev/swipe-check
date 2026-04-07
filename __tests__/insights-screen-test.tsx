@@ -7,6 +7,10 @@ jest.mock('@/hooks/use-insights-data', () => ({
   useInsightsData: jest.fn(),
 }));
 
+jest.mock('@/components/ui/app-icon', () => ({
+  AppIcon: () => null,
+}));
+
 afterEach(() => {
   jest.clearAllMocks();
 });

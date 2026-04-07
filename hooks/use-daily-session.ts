@@ -40,8 +40,7 @@ export function useDailySession(): DailySessionController {
       const todayKey = toLocalDayKey(new Date());
       const session = await getDailySessionForLocalDay(db, todayKey);
       setTodaysSession(session);
-    } catch (error) {
-      console.error('Failed to load daily session:', error);
+    } catch (_error) {
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +57,6 @@ export function useDailySession(): DailySessionController {
       const session = await getOrCreateDailySessionForLocalDay(db, todayKey);
       setTodaysSession(session);
     } catch (error) {
-      console.error('Failed to start daily session:', error);
       throw error;
     }
   }, []);

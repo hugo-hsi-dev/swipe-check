@@ -22,10 +22,9 @@ export function useOnboardingStatus(): {
           setHasCompletedOnboarding(completed);
         }
       } catch (error) {
-        console.error('Failed to check onboarding status:', error);
         if (isMounted) {
-          setHasCompletedOnboarding(false);
-        }
+        setHasCompletedOnboarding(false);
+      }
       } finally {
         if (isMounted) {
           setIsLoading(false);

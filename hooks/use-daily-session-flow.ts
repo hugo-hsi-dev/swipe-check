@@ -153,7 +153,6 @@ export function useDailySessionFlow(): DailySessionFlowController {
       const message = err instanceof Error ? err.message : 'Failed to load session';
       setError(message);
       setPhase('error');
-      console.error('Failed to initialize daily session:', err);
     }
   }, []);
 

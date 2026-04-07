@@ -12,7 +12,7 @@
  * - The completed state clearly shows today's review data and current type
  */
 
-import { waitFor, renderHook } from '@testing-library/react-native';
+import { act, waitFor, renderHook } from '@testing-library/react-native';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 import type {
   PersistedSession,
@@ -144,6 +144,14 @@ jest.mock('@/lib/local-data/sqlite-runtime', () => ({
   getSQLiteDatabase: jest.fn(() => Promise.resolve(mockDb)),
 }));
 
+async function renderHookSettled<TResult>(callback: () => TResult) {
+  const hook = renderHook(callback);
+  await act(async () => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  });
+  return hook;
+}
+
 // Import hooks after mocks
 import { useDailySession } from '@/hooks/use-daily-session';
 import { useCurrentTypeSnapshot } from '@/hooks/use-current-type-snapshot';
@@ -166,7 +174,7 @@ describe('Today Screen - Daily Session States', () => {
       mockDbState.todaysSession = null;
 
       // Act: Load daily session hook
-      const { result } = renderHook(() => useDailySession());
+      const { result } = await renderHookSettled(() => useDailySession());
 
       // Assert: Session is null
       await waitFor(() => {
@@ -180,7 +188,7 @@ describe('Today Screen - Daily Session States', () => {
       mockDbState.todaysSession = null;
 
       // Act: Load today's session detail hook
-      const { result } = renderHook(() => useTodaysSessionDetail());
+      const { result } = await renderHookSettled(() => useTodaysSessionDetail());
 
       // Assert: Detail is null
       await waitFor(() => {
@@ -213,8 +221,8 @@ describe('Today Screen - Daily Session States', () => {
       };
 
       // Act: Load hooks
-      const { result: sessionResult } = renderHook(() => useDailySession());
-      const { result: typeResult } = renderHook(() => useCurrentTypeSnapshot());
+      const { result: sessionResult } = await renderHookSettled(() => useDailySession());
+      const { result: typeResult } = await renderHookSettled(() => useCurrentTypeSnapshot());
 
       await waitFor(() => {
         expect(sessionResult.current.isLoading).toBe(false);
@@ -245,7 +253,7 @@ describe('Today Screen - Daily Session States', () => {
       mockDbState.todaysAnswers = [];
 
       // Act: Load daily session hook
-      const { result } = renderHook(() => useDailySession());
+      const { result } = await renderHookSettled(() => useDailySession());
 
       // Assert: Returns in-progress session
       await waitFor(() => {
@@ -270,7 +278,7 @@ describe('Today Screen - Daily Session States', () => {
       mockDbState.todaysAnswers = [];
 
       // Act: Load today's session detail hook
-      const { result } = renderHook(() => useTodaysSessionDetail());
+      const { result } = await renderHookSettled(() => useTodaysSessionDetail());
 
       // Assert: Returns detail with empty answers
       await waitFor(() => {
@@ -311,7 +319,7 @@ describe('Today Screen - Daily Session States', () => {
       ];
 
       // Act: Load today's session detail hook
-      const { result } = renderHook(() => useTodaysSessionDetail());
+      const { result } = await renderHookSettled(() => useTodaysSessionDetail());
 
       // Assert: Returns detail with answers
       await waitFor(() => {
@@ -336,7 +344,7 @@ describe('Today Screen - Daily Session States', () => {
       mockDbState.todaysSnapshot = null;
 
       // Act: Load today's session detail hook
-      const { result } = renderHook(() => useTodaysSessionDetail());
+      const { result } = await renderHookSettled(() => useTodaysSessionDetail());
 
       // Assert: Returns detail with null snapshot
       await waitFor(() => {
@@ -361,7 +369,7 @@ describe('Today Screen - Daily Session States', () => {
       };
 
       // Act: Load daily session hook
-      const { result } = renderHook(() => useDailySession());
+      const { result } = await renderHookSettled(() => useDailySession());
 
       // Assert: Returns completed session
       await waitFor(() => {
@@ -407,7 +415,7 @@ describe('Today Screen - Daily Session States', () => {
       ];
 
       // Act: Load today's session detail hook
-      const { result } = renderHook(() => useTodaysSessionDetail());
+      const { result } = await renderHookSettled(() => useTodaysSessionDetail());
 
       // Assert: Returns detail with all answers
       await waitFor(() => {
@@ -449,7 +457,7 @@ describe('Today Screen - Daily Session States', () => {
       };
 
       // Act: Load today's session detail hook
-      const { result } = renderHook(() => useTodaysSessionDetail());
+      const { result } = await renderHookSettled(() => useTodaysSessionDetail());
 
       // Assert: Returns detail with snapshot
       await waitFor(() => {
@@ -489,7 +497,7 @@ describe('Today Screen - Daily Session States', () => {
       ];
 
       // Act: Load today's session detail hook
-      const { result } = renderHook(() => useTodaysSessionDetail());
+      const { result } = await renderHookSettled(() => useTodaysSessionDetail());
 
       // Assert: Returns answers with correct values
       await waitFor(() => {
@@ -525,8 +533,8 @@ describe('Today Screen - Daily Session States', () => {
       ];
 
       // Act: Load hooks as if reopening the app
-      const { result: sessionResult } = renderHook(() => useDailySession());
-      const { result: detailResult } = renderHook(() => useTodaysSessionDetail());
+      const { result: sessionResult } = await renderHookSettled(() => useDailySession());
+      const { result: detailResult } = await renderHookSettled(() => useTodaysSessionDetail());
 
       await waitFor(() => {
         expect(sessionResult.current.isLoading).toBe(false);
@@ -584,8 +592,8 @@ describe('Today Screen - Daily Session States', () => {
       };
 
       // Act: Load hooks as if reopening the app
-      const { result: sessionResult } = renderHook(() => useDailySession());
-      const { result: detailResult } = renderHook(() => useTodaysSessionDetail());
+      const { result: sessionResult } = await renderHookSettled(() => useDailySession());
+      const { result: detailResult } = await renderHookSettled(() => useTodaysSessionDetail());
 
       await waitFor(() => {
         expect(sessionResult.current.isLoading).toBe(false);
@@ -605,14 +613,16 @@ describe('Today Screen - Daily Session States', () => {
       sessionCreated = false;
 
       // Act: Start a new session
-      const { result } = renderHook(() => useDailySession());
+      const { result } = await renderHookSettled(() => useDailySession());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
       // Start the session
-      await result.current.startTodaysSession();
+      await act(async () => {
+        await result.current.startTodaysSession();
+      });
 
       // Assert: A new session was created
       expect(sessionCreated).toBe(true);
@@ -655,8 +665,8 @@ describe('Today Screen - Daily Session States', () => {
       mockDbState.currentTypeSnapshot = mockDbState.todaysSnapshot;
 
       // Act: Load hooks
-      const { result: detailResult } = renderHook(() => useTodaysSessionDetail());
-      const { result: typeResult } = renderHook(() => useCurrentTypeSnapshot());
+      const { result: detailResult } = await renderHookSettled(() => useTodaysSessionDetail());
+      const { result: typeResult } = await renderHookSettled(() => useCurrentTypeSnapshot());
 
       await waitFor(() => {
         expect(detailResult.current.isLoading).toBe(false);

@@ -71,7 +71,6 @@ export function useTodaysSessionDetail(): TodaysSessionDetailState {
     } catch (err) {
       const errorInstance = err instanceof Error ? err : new Error(String(err));
       setError(errorInstance);
-      console.error('Failed to load today\'s session detail:', err);
     } finally {
       setIsLoading(false);
     }

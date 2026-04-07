@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import { Badge, BadgeLabel } from '@/components/ui/badge';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Avatar } from '@/components/ui/icon-container';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
@@ -70,7 +70,7 @@ export function JournalListItem({
         </Text>
       </View>
 
-      <Ionicons color={COLORS.warmGray} name="chevron-forward" size={18} />
+      <AppIcon color={COLORS.warmGray} name="chevron-forward" size={18} />
     </Pressable>
   );
 }

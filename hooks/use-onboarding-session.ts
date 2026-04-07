@@ -82,7 +82,6 @@ export function useOnboardingSession(): OnboardingController {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load onboarding session';
       setError(message);
-      console.error('Failed to initialize onboarding session:', err);
     } finally {
       setIsLoading(false);
     }

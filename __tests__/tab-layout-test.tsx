@@ -9,8 +9,8 @@ jest.mock('@/components/haptic-tab', () => ({
   HapticTab: jest.fn(({ children }: { children: React.ReactNode }) => children),
 }));
 
-jest.mock('@/components/ui/icon-symbol', () => ({
-  IconSymbol: jest.fn(() => null),
+jest.mock('@/components/ui/app-icon', () => ({
+  AppIcon: jest.fn(() => null),
 }));
 
 jest.mock('expo-router', () => ({

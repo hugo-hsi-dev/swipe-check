@@ -11,7 +11,7 @@
  * - Populated state is emitted when multiple snapshots exist
  */
 
-import { waitFor, renderHook } from '@testing-library/react-native';
+import { act, waitFor, renderHook } from '@testing-library/react-native';
 import type { TypeSnapshot } from '@/constants/scoring-contract';
 
 import { useInsightsData } from '@/hooks/use-insights-data';
@@ -26,6 +26,14 @@ const mockDb = {
   getFirstAsync: jest.fn() as jest.Mock,
   getAllAsync: jest.fn(() => Promise.resolve([])) as jest.Mock,
 };
+
+async function renderHookSettled<TResult>(callback: () => TResult) {
+  const hook = renderHook(callback);
+  await act(async () => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  });
+  return hook;
+}
 
 function createMockSnapshot({
   id,
@@ -98,10 +106,17 @@ function mapSnapshotRow(snapshot: TypeSnapshot) {
 describe('useInsightsData Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('Initial Loading State', () => {
     it('should emit loading state on first render', () => {
+      mockDb.getAllAsync.mockReturnValueOnce(new Promise(() => {}));
+
       const { result } = renderHook(() => useInsightsData());
 
       expect(result.current.status).toBe('loading');
@@ -112,7 +127,7 @@ describe('useInsightsData Hook', () => {
     it('should emit empty state when no snapshots exist', async () => {
       mockDb.getAllAsync.mockResolvedValueOnce([]);
 
-      const { result } = renderHook(() => useInsightsData());
+      const { result } = await renderHookSettled(() => useInsightsData());
 
       await waitFor(() => {
         expect(result.current.status).toBe('empty');
@@ -127,7 +142,7 @@ describe('useInsightsData Hook', () => {
       const error = new Error('Database connection failed');
       mockDb.getAllAsync.mockRejectedValueOnce(error);
 
-      const { result } = renderHook(() => useInsightsData());
+      const { result } = await renderHookSettled(() => useInsightsData());
 
       await waitFor(() => {
         expect(result.current.status).toBe('error');
@@ -140,7 +155,7 @@ describe('useInsightsData Hook', () => {
       const nonError = 'Database connection failed';
       mockDb.getAllAsync.mockRejectedValueOnce(nonError);
 
-      const { result } = renderHook(() => useInsightsData());
+      const { result } = await renderHookSettled(() => useInsightsData());
 
       await waitFor(() => {
         expect(result.current.status).toBe('error');
@@ -165,7 +180,7 @@ describe('useInsightsData Hook', () => {
 
       mockDb.getAllAsync.mockResolvedValueOnce([mapSnapshotRow(snapshot)]);
 
-      const { result } = renderHook(() => useInsightsData());
+      const { result } = await renderHookSettled(() => useInsightsData());
 
       await waitFor(() => {
         expect(result.current.status).toBe('sparse');
@@ -200,7 +215,7 @@ describe('useInsightsData Hook', () => {
 
       mockDb.getAllAsync.mockResolvedValueOnce([mapSnapshotRow(snapshot1), mapSnapshotRow(snapshot2)]);
 
-      const { result } = renderHook(() => useInsightsData());
+      const { result } = await renderHookSettled(() => useInsightsData());
 
       await waitFor(() => {
         expect(result.current.status).toBe('populated');
@@ -243,7 +258,7 @@ describe('useInsightsData Hook', () => {
 
       mockDb.getAllAsync.mockResolvedValueOnce([mapSnapshotRow(snapshot1), mapSnapshotRow(snapshot2), mapSnapshotRow(snapshot3)]);
 
-      const { result } = renderHook(() => useInsightsData());
+      const { result } = await renderHookSettled(() => useInsightsData());
 
       await waitFor(() => {
         expect(result.current.status).toBe('populated');

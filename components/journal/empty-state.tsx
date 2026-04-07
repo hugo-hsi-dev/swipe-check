@@ -1,12 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
+import { AppIcon, type AppIconName } from '@/components/ui/app-icon';
 import { Card, CardBody } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, RADIUS, SPACING } from '@/constants/design-system';
 
 interface EmptyStateProps {
   description: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   title: string;
 }
 
@@ -24,7 +24,7 @@ export function EmptyState({ description, icon, title }: EmptyStateProps) {
               justifyContent: 'center',
               width: 64,
             }}>
-            <Ionicons color={COLORS.softBrown} name={icon} size={28} />
+            <AppIcon color={COLORS.softBrown} name={icon} size={28} />
           </View>
           <View style={{ alignItems: 'center', gap: SPACING.sm }}>
             <Text

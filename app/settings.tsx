@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
+import { AppIcon } from '@/components/ui/app-icon';
 import { Button, ButtonLabel } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
@@ -130,7 +130,7 @@ export default function SettingsScreen() {
                 </Text>
               </View>
               <Button onPress={() => setShowDeleteConfirmation(true)} variant="danger">
-                <Ionicons color="#FFFFFF" name="trash-outline" size={18} />
+                <AppIcon color="#FFFFFF" name="trash-outline" size={18} />
                 <ButtonLabel variant="danger">Delete All Data</ButtonLabel>
               </Button>
             </>
@@ -146,7 +146,7 @@ export default function SettingsScreen() {
                     justifyContent: 'center',
                     width: 64,
                   }}>
-                  <Ionicons color={COLORS.danger} name="warning-outline" size={28} />
+                  <AppIcon color={COLORS.danger} name="warning-outline" size={28} />
                 </View>
                 <Text
                   style={{
@@ -179,7 +179,7 @@ export default function SettingsScreen() {
                 )}
               </View>
               <Button isDisabled={isWiping} onPress={handleResetData} variant="danger">
-                <Ionicons color="#FFFFFF" name="trash-outline" size={18} />
+                <AppIcon color="#FFFFFF" name="trash-outline" size={18} />
                 <ButtonLabel variant="danger">
                   {isWiping ? 'Deleting...' : 'Yes, Delete All Data'}
                 </ButtonLabel>
@@ -199,7 +199,7 @@ export default function SettingsScreen() {
       </Card>
 
       <Button isDisabled={isWiping} onPress={() => router.back()} variant="secondary">
-        <Ionicons color={COLORS.terracotta} name="arrow-back" size={16} />
+        <AppIcon color={COLORS.terracotta} name="arrow-back" size={16} />
         <ButtonLabel variant="secondary">Go Back</ButtonLabel>
       </Button>
     </ScrollView>

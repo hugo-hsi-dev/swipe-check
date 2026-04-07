@@ -36,6 +36,10 @@ jest.mock('expo-constants', () => ({
   },
 }));
 
+jest.mock('@/components/ui/app-icon', () => ({
+  AppIcon: () => null,
+}));
+
 describe('Settings Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();

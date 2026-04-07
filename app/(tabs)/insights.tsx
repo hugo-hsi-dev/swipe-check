@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, Text, View } from 'react-native';
 
 import type { AxisStrength } from '@/constants/scoring-contract';
 
 import { AxisBar } from '@/components/insights/chart-card';
 import { TypeTrendSection } from '@/components/insights/type-trend-section';
+import { AppIcon } from '@/components/ui/app-icon';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
 import { AXES } from '@/constants/questions';
@@ -61,7 +61,7 @@ export default function InsightsScreen() {
                 justifyContent: 'center',
                 width: 64,
               }}>
-              <Ionicons color={COLORS.softBrown} name="alert-circle-outline" size={28} />
+              <AppIcon color={COLORS.softBrown} name="alert-circle-outline" size={28} />
             </View>
             <Text style={{ color: COLORS.warmGray, textAlign: 'center' }}>
               Failed to load insights. Please try again later.
@@ -106,7 +106,7 @@ export default function InsightsScreen() {
                 justifyContent: 'center',
                 width: 64,
               }}>
-              <Ionicons color={COLORS.softBrown} name="analytics-outline" size={28} />
+              <AppIcon color={COLORS.softBrown} name="analytics-outline" size={28} />
             </View>
             <Text style={{ color: COLORS.warmGray, textAlign: 'center' }}>
               Complete onboarding to see your personality insights.

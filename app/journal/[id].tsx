@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 
 import type { PersistedSessionAnswer } from '@/lib/local-data/session-lifecycle';
 
 import { Badge, BadgeLabel } from '@/components/ui/badge';
+import { AppIcon, type AppIconName } from '@/components/ui/app-icon';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/icon-container';
 import { COLORS, FONT_SIZES, FONT_WEIGHTS, SPACING } from '@/constants/design-system';
@@ -254,7 +254,7 @@ export default function JournalEntryDetailScreen() {
                         paddingVertical: SPACING.sm,
                       }}>
                       <View style={{ marginTop: 2 }}>
-                        <Ionicons color={iconColor} name={iconName as never} size={20} />
+                        <AppIcon color={iconColor} name={iconName} size={20} />
                       </View>
                       <View style={{ flex: 1, gap: SPACING.xs }}>
                         <Text
@@ -296,7 +296,7 @@ export default function JournalEntryDetailScreen() {
                   justifyContent: 'center',
                   width: 48,
                 }}>
-                <Ionicons color={COLORS.softBrown} name="help-circle-outline" size={24} />
+                <AppIcon color={COLORS.softBrown} name="help-circle-outline" size={24} />
               </View>
               <Text style={{ color: COLORS.warmGray, fontSize: FONT_SIZES.base, textAlign: 'center' }}>
                 No responses recorded for this session.
@@ -327,7 +327,7 @@ function formatTime(dateString: string): string {
   });
 }
 
-function getAnswerIconName(answer: PersistedSessionAnswer['answer']): string {
+function getAnswerIconName(answer: PersistedSessionAnswer['answer']): AppIconName {
   return answer === 'agree' ? 'checkmark-circle' : 'close-circle';
 }
 
